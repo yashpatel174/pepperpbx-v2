@@ -1,93 +1,216 @@
-# pepperpbx-frontend-v2
+# React Admin Dashboard
 
+> Production-ready SaaS admin template built with React 19, TypeScript 6, Vite 8, and Ant Design v6.
 
+[![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://react-admin-dashboard-gamma-six.vercel.app/)
+[![React](https://img.shields.io/badge/React-19.2-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-blue)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-8.1-purple)](https://vite.dev/)
 
-## Getting started
+---
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+## Overview
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+| Why it matters | How it helps |
+| --- | --- |
+| ⚡️ Modern stack | React 19 + Vite 8 + TypeScript 6 = instant HMR and full type safety |
+| 🎨 Polished UI | Ant Design v6 components, theme switcher, and adaptive layouts |
+| 🔐 Real workflows | Auth, protected routes, SaaS dashboard, and customer lifecycle management |
+| 🧱 Strong DX | File-based routing, lazy route loading, Zustand stores, mock APIs, and zero-config startup |
 
-## Add your files
+### SaaS Demo Modules
+- **Dashboard** – KPI cards, lightweight revenue trend chart, customer source breakdown, and automated health insights
+- **Customers** – Advanced filtering, ownership, status transitions, detail drawer, and activity timeline
+- **Team Roles** – Nested role listing, detailed role insights, and permission matrix editor
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+---
+
+## Tech Stack
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| React | 19.2.7 | UI Framework |
+| TypeScript | 6.0.3 | Type Safety |
+| Vite | 8.1.0 | Build Tool |
+| Ant Design | 6.5.0 | UI Components |
+| React Router | 7.18.0 | Routing |
+| Zustand | 5.0.14 | State Management |
+| Axios | 1.18.1 | HTTP Client |
+
+---
+
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://scm.vindaloosofttech.com/vspl/pepperpbx-frontend-v2.git
-git branch -M main
-git push -uf origin main
+src/
+├── components/
+│   ├── layout/          # Shell layout: header, sidebar, breadcrumbs, content
+│   └── auth/            # Shared auth UI pieces
+├── config/
+│   ├── theme.ts         # Theme configuration types and utilities
+│   └── theme-presets.ts # Preset theme definitions
+├── views/
+│   ├── auth/            # Login & register pages (unprotected)
+│   ├── dashboard/       # SaaS dashboard page + routes
+│   └── customers/       # Customer management module + routes
+├── router/              # Auto-imported route definitions & guards
+├── store/               # Zustand stores (config + user)
+├── utils/               # API client, mock helpers, shared utils
+└── App.tsx              # Root layout orchestration
 ```
 
-## Integrate with your tools
+---
 
-- [ ] [Set up project integrations](https://scm.vindaloosofttech.com/vspl/pepperpbx-frontend-v2/-/settings/integrations)
+## Getting Started
 
-## Collaborate with your team
+### Prerequisites
+- Node.js 20.19+ or 22.12+
+- npm
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### Installation
 
-## Test and Deploy
+```bash
+git clone https://github.com/larry-xue/react-admin-dashboard.git
+cd react-admin-dashboard
+npm install
+npm run dev
+```
 
-Use the built-in continuous integration in GitLab.
+Visit `http://localhost:5173`.
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+### Demo Credentials
+| Role | Username | Password | Shortcut |
+| --- | --- | --- | --- |
+| Admin | `admin` | `admin123` | `/auth/login?demo=admin` |
+| User | `user` | `user123` | `/auth/login?demo=user` |
+| Demo | `demo` | `demo123` | `/auth/login?demo=demo` |
 
-***
+---
 
-# Editing this README
+## Core Concepts
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Authentication & Authorization
+- Login/register flows with Ant Design forms
+- `ProtectedRoute` wrapper guarding all non-`/auth/**` routes
+- Tokens stored in Zustand + localStorage with auto-injection via Axios interceptors
 
-## Suggestions for a good README
+### Routing
+- Vite `import.meta.glob` auto-loads every `*.router.tsx`
+- `meta` drives sidebar label/icon/hide/order plus page title
+- Nested routes supported out of the box (see `customers` module)
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+### Theming
+- Light / Dark / Compact algorithms controlled via Zustand store
+- Persistent theme preferences using localStorage
+- **Preset themes**: Blue, Green, Purple, Orange, Teal, Red, Cyan
+- **Custom colors**: Support for primary, secondary, success, warning, error, info, background, and text colors
+- Runtime theme switching and color customization via store
 
-## Name
-Choose a self-explaining name for your project.
+### Layout & Responsiveness
+- Sticky header, collapsible sidebar, breadcrumb trail, and flexible content area
+- Breakpoint-aware spacing and auto-collapse on mobile
+- Dark-mode-aware charts and cards (Ant Design charts + tokens)
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+---
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+## Customization Guide
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+### Add a Route & Page
+1. Create a directory under `src/views/your-page`
+2. Build your page component in `index.tsx`
+3. Define a `*.router.tsx` file:
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+```tsx
+// src/views/example/example.router.tsx
+import { ExampleOutlined } from '@ant-design/icons'
+import { AdminRouterItem } from '../../router'
+import ExamplePage from '.'
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+const exampleRoutes: AdminRouterItem[] = [
+  {
+    path: 'example',
+    element: <ExamplePage />,
+    meta: {
+      label: 'Example',
+      title: 'Example Page',
+      key: '/example',
+      icon: <ExampleOutlined />,
+      order: 3,
+    },
+  },
+]
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+export default exampleRoutes
+```
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Adjust Theme Defaults
+
+#### Option 1: Use Preset Themes
+```ts
+import useConfigStore from './store/config'
+
+// Switch to a preset theme
+const setTheme = useConfigStore(state => state.setTheme)
+setTheme('blue')  // or 'green', 'purple', 'orange', 'teal', 'red', 'cyan'
+```
+
+#### Option 2: Customize Individual Colors
+```ts
+import useConfigStore from './store/config'
+
+// Customize a specific color
+const setCustomColor = useConfigStore(state => state.setCustomColor)
+setCustomColor('primary', '#1890ff')
+setCustomColor('success', '#52c41a')
+// Available color keys: primary, secondary, success, warning, error, info, background, text
+```
+
+#### Option 3: Modify Default Theme in Code
+Modify `src/config/theme-presets.ts` to change preset theme colors, or modify `src/store/config.ts` to change the default theme:
+```ts
+// In src/store/config.ts
+const defaultThemeConfig = createDefaultThemeConfig()
+defaultThemeConfig.colors.primary = '#your-color'
+defaultThemeConfig.colors.secondary = '#your-secondary-color'
+```
+
+### API / Mock Settings
+`.env` (create if missing):
+```env
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_USE_MOCK=true             # use built-in mock auth/data
+```
+
+---
+
+## NPM Scripts
+
+```bash
+npm run dev       # start dev server
+npm run build     # production build
+npm run preview   # preview the production build
+npm run lint      # ESLint check (ts/tsx)
+```
+
+---
+
+## Deployment
+Output lives in `dist/`. Any static host works:
+- [Vercel](https://vercel.com/) – zero-config for Vite
+- [Netlify](https://www.netlify.com/) – continuous deployments
+- [GitHub Pages](https://pages.github.com/) – static hosting
+
+---
 
 ## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+PRs and issues are welcome! Please:
+1. Fork the repo & create a feature branch
+2. Add tests or docs where it makes sense
+3. Run `npm run lint` before submitting
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+---
 
 ## License
-For open source projects, say how it is licensed.
+MIT © [Yujian Xue](https://larryxue.dev)
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Acknowledgements: [Ant Design](https://ant.design/), [Vite](https://vitejs.dev/), [React Router](https://reactrouter.com/), [Zustand](https://github.com/pmndrs/zustand)
