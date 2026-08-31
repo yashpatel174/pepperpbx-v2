@@ -23,77 +23,11 @@ export interface ThemeColors {
 }
 
 /**
- * Spacing configuration (padding and margin)
- */
-export interface SpacingConfig {
-  /** Base padding */
-  padding: number
-  /** Large padding */
-  paddingLG: number
-  /** Medium padding */
-  paddingMD: number
-  /** Small padding */
-  paddingSM: number
-  /** Extra small padding */
-  paddingXS: number
-  /** Extra extra small padding */
-  paddingXXS: number
-  /** Base margin */
-  margin: number
-  /** Large margin */
-  marginLG: number
-  /** Medium margin */
-  marginMD: number
-  /** Small margin */
-  marginSM: number
-  /** Extra small margin */
-  marginXS: number
-  /** Extra extra small margin */
-  marginXXS: number
-}
-
-/**
- * Border radius configuration
- */
-export interface BorderRadiusConfig {
-  /** Base border radius */
-  borderRadius: number
-  /** Large border radius */
-  borderRadiusLG: number
-  /** Small border radius */
-  borderRadiusSM: number
-  /** Extra small border radius */
-  borderRadiusXS: number
-}
-
-/**
- * Typography configuration
- */
-export interface TypographyConfig {
-  /** Base font size */
-  fontSize: number
-  /** Large font size */
-  fontSizeLG: number
-  /** Small font size */
-  fontSizeSM: number
-  /** Extra large font size */
-  fontSizeXL: number
-  /** Line height */
-  lineHeight: number
-}
-
-/**
  * Theme configuration
  */
 export interface ThemeConfig {
   /** Color configuration */
   colors: ThemeColors
-  /** Spacing configuration */
-  spacing: SpacingConfig
-  /** Border radius configuration */
-  borderRadius: BorderRadiusConfig
-  /** Typography configuration */
-  typography: TypographyConfig
   /** Ant Design algorithm array */
   algorithm: MappingAlgorithm[]
   /** Algorithm string array (for persistence) */
@@ -112,9 +46,6 @@ export interface PresetTheme {
   name: PresetThemeName
   label: string
   colors: ThemeColors
-  spacing?: Partial<SpacingConfig>
-  borderRadius?: Partial<BorderRadiusConfig>
-  typography?: Partial<TypographyConfig>
 }
 
 /**
@@ -159,51 +90,6 @@ export function toRgba(color: string, alpha: number): string {
 }
 
 /**
- * Create default spacing configuration
- */
-export function createDefaultSpacingConfig(): SpacingConfig {
-  return {
-    padding: 16,
-    paddingLG: 24,
-    paddingMD: 16,
-    paddingSM: 12,
-    paddingXS: 8,
-    paddingXXS: 4,
-    margin: 16,
-    marginLG: 24,
-    marginMD: 16,
-    marginSM: 12,
-    marginXS: 8,
-    marginXXS: 4,
-  }
-}
-
-/**
- * Create default border radius configuration
- */
-export function createDefaultBorderRadiusConfig(): BorderRadiusConfig {
-  return {
-    borderRadius: 6,
-    borderRadiusLG: 8,
-    borderRadiusSM: 4,
-    borderRadiusXS: 2,
-  }
-}
-
-/**
- * Create default typography configuration
- */
-export function createDefaultTypographyConfig(): TypographyConfig {
-  return {
-    fontSize: 14,
-    fontSizeLG: 16,
-    fontSizeSM: 12,
-    fontSizeXL: 20,
-    lineHeight: 1.5715,
-  }
-}
-
-/**
  * Create default theme configuration
  */
 export function createDefaultThemeConfig(): ThemeConfig {
@@ -218,9 +104,6 @@ export function createDefaultThemeConfig(): ThemeConfig {
       background: '#ffffff',
       text: '#000000',
     },
-    spacing: createDefaultSpacingConfig(),
-    borderRadius: createDefaultBorderRadiusConfig(),
-    typography: createDefaultTypographyConfig(),
     algorithm: [theme.defaultAlgorithm],
     _algorithm: ['default'],
   }

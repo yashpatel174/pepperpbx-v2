@@ -1,8 +1,8 @@
 import { uniq } from 'lodash-es'
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { ThemeConfig, PresetThemeName, SpacingConfig, BorderRadiusConfig, TypographyConfig } from '../config/theme'
-import { createDefaultThemeConfig, buildAlgorithmArray, createDefaultSpacingConfig, createDefaultBorderRadiusConfig, createDefaultTypographyConfig } from '../config/theme'
+import type { ThemeConfig, PresetThemeName } from '../config/theme'
+import { createDefaultThemeConfig, buildAlgorithmArray } from '../config/theme'
 import { getPresetTheme } from '../config/theme-presets'
 
 type ConfigState = {
@@ -19,12 +19,6 @@ type Actions = {
   setTheme: (presetName: PresetThemeName) => void
   /** Customize a single color */
   setCustomColor: (colorKey: keyof ThemeConfig['colors'], color: string) => void
-  /** Set spacing configuration */
-  setSpacing: (spacing: Partial<SpacingConfig>) => void
-  /** Set border radius configuration */
-  setBorderRadius: (borderRadius: Partial<BorderRadiusConfig>) => void
-  /** Set typography configuration */
-  setTypography: (typography: Partial<TypographyConfig>) => void
   /** Reset theme to default configuration */
   resetTheme: () => void
   /** Get primary color (backward compatibility) */
@@ -101,39 +95,6 @@ const useThemeStore = create<ConfigState & Actions>()(
           }
         }))
       },
-      setSpacing: (spacing: Partial<SpacingConfig>) => {
-        set((state) => ({
-          themeConfig: {
-            ...state.themeConfig,
-            spacing: {
-              ...state.themeConfig.spacing,
-              ...spacing,
-            }
-          }
-        }))
-      },
-      setBorderRadius: (borderRadius: Partial<BorderRadiusConfig>) => {
-        set((state) => ({
-          themeConfig: {
-            ...state.themeConfig,
-            borderRadius: {
-              ...state.themeConfig.borderRadius,
-              ...borderRadius,
-            }
-          }
-        }))
-      },
-      setTypography: (typography: Partial<TypographyConfig>) => {
-        set((state) => ({
-          themeConfig: {
-            ...state.themeConfig,
-            typography: {
-              ...state.themeConfig.typography,
-              ...typography,
-            }
-          }
-        }))
-      },
       resetTheme: () => {
         // Reset to orange theme and default configurations
         const preset = getPresetTheme('orange')
@@ -143,9 +104,6 @@ const useThemeStore = create<ConfigState & Actions>()(
             themeConfig: {
               ...state.themeConfig,
               colors: { ...preset.colors },
-              spacing: createDefaultSpacingConfig(),
-              borderRadius: createDefaultBorderRadiusConfig(),
-              typography: createDefaultTypographyConfig(),
             }
           }))
         }
@@ -160,8 +118,8 @@ const useThemeStore = create<ConfigState & Actions>()(
         // Rebuild algorithm array from _algorithm strings after rehydration
         if (state) {
           // Handle old version data migration
-          const oldConfig = state.themeConfig as ThemeConfig & { primaryColor?: string; spacing?: SpacingConfig; borderRadius?: BorderRadiusConfig; typography?: TypographyConfig }
-          
+          const oldConfig = state.themeConfig as ThemeConfig & { primaryColor?: string }
+
           // Migrate from old color structure
           if ('primaryColor' in oldConfig && oldConfig.primaryColor && !oldConfig.colors) {
             state.themeConfig = {
@@ -175,23 +133,10 @@ const useThemeStore = create<ConfigState & Actions>()(
                 background: '#ffffff',
                 text: '#000000',
               },
-              spacing: oldConfig.spacing || createDefaultSpacingConfig(),
-              borderRadius: oldConfig.borderRadius || createDefaultBorderRadiusConfig(),
-              typography: oldConfig.typography || createDefaultTypographyConfig(),
               _algorithm: oldConfig._algorithm || ['default'],
               algorithm: buildAlgorithmArray(oldConfig._algorithm || ['default']),
             }
           } else {
-            // Ensure new fields exist for existing configs
-            if (!state.themeConfig.spacing) {
-              state.themeConfig.spacing = createDefaultSpacingConfig()
-            }
-            if (!state.themeConfig.borderRadius) {
-              state.themeConfig.borderRadius = createDefaultBorderRadiusConfig()
-            }
-            if (!state.themeConfig.typography) {
-              state.themeConfig.typography = createDefaultTypographyConfig()
-            }
             state.themeConfig.algorithm = buildAlgorithmArray(state.themeConfig._algorithm)
           }
         }
