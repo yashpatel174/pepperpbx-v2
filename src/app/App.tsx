@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import AuthLayout from '../layouts/AuthLayout';
-import { ConfigProvider } from 'antd';
+import { App as AntApp, ConfigProvider } from 'antd';
 import useThemeStore from '../store/theme';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '../store/auth';
@@ -40,7 +40,9 @@ const App: React.FC = () => {
         colorInfo: themeConfig.colors.info,
       }
     }}>
-      {isAuthPage ? <AuthLayout /> : <MainLayout />}
+      <AntApp>
+        {isAuthPage ? <AuthLayout /> : <MainLayout />}
+      </AntApp>
     </ConfigProvider>
   )
 };

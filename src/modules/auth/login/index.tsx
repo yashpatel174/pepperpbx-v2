@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Form, Input, Button, Card, message, Typography, Space, Divider, theme } from 'antd'
+import { App, Form, Input, Button, Card, Typography, Space, Divider, theme } from 'antd'
 import { UserOutlined, LockOutlined, ThunderboltOutlined } from '@ant-design/icons'
 import { useNavigate, Link } from 'react-router-dom'
 import useAuthStore from '../../../store/auth'
@@ -22,6 +22,7 @@ const LoginPage: React.FC = () => {
   const login = useAuthStore((state) => state.login)
   const mockEnabled = isMockMode()
   const { token } = theme.useToken()
+  const { message } = App.useApp()
   const sessionExpired = new URLSearchParams(window.location.search).get('sessionExpired') === '1'
 
   const backgroundStyle = useMemo(() => ({
@@ -91,7 +92,7 @@ const LoginPage: React.FC = () => {
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         }}
       >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
             <Title level={2}>Login</Title>
             <Text type="secondary">Welcome back, please login to your account</Text>
@@ -148,7 +149,7 @@ const LoginPage: React.FC = () => {
           {mockEnabled && (
             <>
               <Divider plain>Quick Login (Demo)</Divider>
-              <Space direction="vertical" style={{ width: '100%' }} size="small">
+              <Space orientation="vertical" style={{ width: '100%' }} size="small">
                 <Button
                   icon={<ThunderboltOutlined />}
                   onClick={() => handleQuickLogin('demo')}

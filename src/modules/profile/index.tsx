@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  App,
   Avatar,
   Button,
   Card,
@@ -14,7 +15,6 @@ import {
   Switch,
   Tag,
   Typography,
-  message,
   theme,
 } from 'antd'
 import {
@@ -84,6 +84,7 @@ const ProfilePage = () => {
   const updateUser = useAuthStore(state => state.updateUser)
   const [saving, setSaving] = useState(false)
   const { token: themeToken } = theme.useToken()
+  const { message } = App.useApp()
   const watchedAvatar = Form.useWatch('avatar', form)
   const watchedFullName = Form.useWatch('fullName', form)
   const watchedUsername = Form.useWatch('username', form)
@@ -139,18 +140,18 @@ const ProfilePage = () => {
   }
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
       <Row gutter={[16, 16]} align="stretch">
         <Col xs={24} lg={8}>
           <Card style={{ height: '100%' }}>
-            <Space direction="vertical" size="middle" style={{ width: '100%', alignItems: 'center' }}>
+            <Space orientation="vertical" size="middle" style={{ width: '100%', alignItems: 'center' }}>
               <Avatar
                 size={96}
                 src={previewAvatar}
                 icon={!previewAvatar && <UserOutlined />}
                 style={{ backgroundColor: themeToken.colorPrimary }}
               />
-              <Space direction="vertical" size={2} style={{ textAlign: 'center' }}>
+              <Space orientation="vertical" size={2} style={{ textAlign: 'center' }}>
                 <Typography.Title level={4} style={{ margin: 0 }}>
                   {previewName}
                 </Typography.Title>
@@ -255,7 +256,7 @@ const ProfilePage = () => {
           </Col>
 
           <Col xs={24} xl={10}>
-            <Space direction="vertical" size="large" style={{ width: '100%' }}>
+            <Space orientation="vertical" size="large" style={{ width: '100%' }}>
               <Card title="Preferences">
                 <Row gutter={16}>
                   <Col xs={24} md={12} xl={24}>
@@ -288,7 +289,7 @@ const ProfilePage = () => {
               </Card>
 
               <Card title="Security">
-                <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+                <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
                   <Typography.Paragraph type="secondary" style={{ margin: 0 }}>
                     These controls are stored locally in the demo profile. Wire them to your identity provider when replacing the mock API.
                   </Typography.Paragraph>

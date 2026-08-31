@@ -104,8 +104,8 @@ export function createDefaultThemeConfig(): ThemeConfig {
       background: '#ffffff',
       text: '#000000',
     },
-    algorithm: [theme.defaultAlgorithm],
-    _algorithm: ['default'],
+    algorithm: [theme.defaultAlgorithm, theme.compactAlgorithm],
+    _algorithm: ['default', 'compact'],
   }
 }
 

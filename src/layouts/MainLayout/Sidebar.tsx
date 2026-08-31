@@ -7,27 +7,76 @@ import useResponsive from '../../hooks/useResponsive';
 
 const { Sider } = Layout;
 
+type OrderedMenuItem = MenuItemType & { order?: number; children?: MenuItemType[] }
+
+/**
+ * Converts a single route into its menu item, recursing into same-file `children` nesting.
+ * Only whitelists the fields Ant Design's Menu actually renders (`key`/`label`/`icon`/`children`)
+ * plus our own internal `order` (stripped again in getMenuItems before handing items to <Menu>) —
+ * route-only metadata like `hideBreadcrumb`, `group`, `requiresAuth`, `hideInMenu` must never ride
+ * along on the object passed to <Menu items>, since rc-menu forwards unrecognized item properties
+ * straight onto the rendered <li> DOM node.
+ */
+const buildMenuItem = (itm: AdminRouterItem): OrderedMenuItem | null => {
+  if (!itm.meta) return null
+  if (itm.meta.hideInMenu) return null
+  const { key, label, icon, order } = itm.meta
+  const children = itm.children ? getMenuItems(itm.children) : undefined
+  return { key, label, icon, order, children }
+}
+
+/** Strips the internal-only `order` sort key before an item reaches <Menu items> — Ant
+ * Design's Menu doesn't consume it, and only Menu-relevant fields belong on that object. */
+const withoutOrder = (item: OrderedMenuItem): OrderedMenuItem => ({
+  key: item.key,
+  label: item.label,
+  icon: item.icon,
+  children: item.children,
+})
+
 const getMenuItems = (routes: AdminRouterItem[]): MenuItemType[] => {
-  const sortedRoutes = [...routes].sort((a, b) => {
-    const orderA = a.meta?.order ?? 0
-    const orderB = b.meta?.order ?? 0
-    return orderA - orderB
+  // Routes that declare `meta.group` are bucketed under one shared parent menu entry —
+  // this lets separate module files (e.g. Extensions, later Gateways) land under the same
+  // "Account" parent without any of them nesting in the actual route tree. See router/index.tsx.
+  const groupBuckets = new Map<string, { group: NonNullable<NonNullable<AdminRouterItem['meta']>['group']>; items: AdminRouterItem[] }>()
+  const standalone: AdminRouterItem[] = []
+
+  routes.forEach(itm => {
+    const group = itm.meta?.group
+    if (group) {
+      const bucket = groupBuckets.get(group.key)
+      if (bucket) {
+        bucket.items.push(itm)
+      } else {
+        groupBuckets.set(group.key, { group, items: [itm] })
+      }
+    } else {
+      standalone.push(itm)
+    }
   })
 
-  return sortedRoutes.map(itm => {
-    if (!itm.meta) return null
-    // Filter out routes that should be hidden in menu
-    if (itm.meta.hideInMenu) return null
-    let children = null
-    if (itm.children) children = getMenuItems(itm.children)
-    return children ? {
-      ...itm.meta,
-      children
-    } : {
-      ...itm.meta,
-      path: itm.path,
-    }
-  }).filter(itm => !!itm)
+  const groupMenuItems: OrderedMenuItem[] = Array.from(groupBuckets.values()).map(({ group, items }) => ({
+    key: group.key,
+    label: group.label,
+    icon: group.icon,
+    order: group.order,
+    // Items inside a group are rendered as plain leaves — their own `meta.group` (used only
+    // to place them here) is not re-applied recursively.
+    children: [...items]
+      .sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
+      .map(buildMenuItem)
+      .filter((mi): mi is OrderedMenuItem => !!mi)
+      .map(withoutOrder),
+  }))
+
+  const standaloneMenuItems: OrderedMenuItem[] = [...standalone]
+    .sort((a, b) => (a.meta?.order ?? 0) - (b.meta?.order ?? 0))
+    .map(buildMenuItem)
+    .filter((mi): mi is OrderedMenuItem => !!mi)
+
+  return [...groupMenuItems, ...standaloneMenuItems]
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    .map(withoutOrder)
 }
 
 /**

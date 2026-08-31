@@ -118,8 +118,9 @@ The UI supports permission-aware rendering via a centralized permissions store a
 
 ## Theme System
 
-- Light, dark, and compact display modes, switchable at runtime.
-- Multiple built-in color presets plus full custom color, spacing, border-radius, and typography overrides.
+- Light and dark display modes, switchable at runtime. Compact density is fixed and not user-configurable.
+- Multiple built-in color presets plus custom color configuration.
+- Typography, spacing, and border radius are fixed and not user-configurable.
 - Theme preferences persist across sessions.
 - Styling is driven entirely by Ant Design theme tokens.
 

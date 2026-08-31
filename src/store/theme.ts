@@ -9,12 +9,11 @@ type ConfigState = {
   themeConfig: ThemeConfig
   /** Current preset theme name */
   currentPresetTheme?: PresetThemeName
-  themeOptions: { label: string, value: string }[]
 }
 
 type Actions = {
+  /** Switch light/dark algorithm. Compact is always kept on — it is the permanent app density. */
   setAlgorithm: (v: string) => void
-  setCompactAlgorithm: (v: string) => void
   /** Switch preset theme */
   setTheme: (presetName: PresetThemeName) => void
   /** Customize a single color */
@@ -38,29 +37,10 @@ const useThemeStore = create<ConfigState & Actions>()(
     (set, get) => ({
       themeConfig: defaultThemeConfig,
       currentPresetTheme: 'orange',
-      themeOptions: [
-        { label: 'Light', value: 'default' },
-        { label: 'Dark', value: 'dark' },
-        { label: 'Compact', value: 'compact' },
-      ],
       setAlgorithm: (v: string) => {
         set((state) => {
-          const includesCompact = state.themeConfig._algorithm.includes('compact')
-          const _algorithm = includesCompact ? [v, 'compact'] : [v]
-
-          return {
-            themeConfig: {
-              ...state.themeConfig,
-              _algorithm,
-              algorithm: buildAlgorithmArray(_algorithm),
-            }
-          }
-        })
-      },
-      setCompactAlgorithm: (v: string) => {
-        set((state) => {
-          const withoutCompact = state.themeConfig._algorithm.filter((item) => item !== 'compact')
-          const _algorithm = uniq(v ? [...withoutCompact, 'compact'] : withoutCompact)
+          // Compact is the permanent app density and is always kept in the algorithm list.
+          const _algorithm = uniq([v, 'compact'])
 
           return {
             themeConfig: {
@@ -122,6 +102,7 @@ const useThemeStore = create<ConfigState & Actions>()(
 
           // Migrate from old color structure
           if ('primaryColor' in oldConfig && oldConfig.primaryColor && !oldConfig.colors) {
+            const _algorithm = uniq([...(oldConfig._algorithm || ['default']), 'compact'])
             state.themeConfig = {
               colors: {
                 primary: oldConfig.primaryColor || '#03dac6',
@@ -133,11 +114,15 @@ const useThemeStore = create<ConfigState & Actions>()(
                 background: '#ffffff',
                 text: '#000000',
               },
-              _algorithm: oldConfig._algorithm || ['default'],
-              algorithm: buildAlgorithmArray(oldConfig._algorithm || ['default']),
+              _algorithm,
+              algorithm: buildAlgorithmArray(_algorithm),
             }
           } else {
-            state.themeConfig.algorithm = buildAlgorithmArray(state.themeConfig._algorithm)
+            // Compact is now a permanent, non-user-configurable density — force it back on
+            // regardless of what an older session persisted (including an explicit "loose" state).
+            const _algorithm = uniq([...state.themeConfig._algorithm, 'compact'])
+            state.themeConfig._algorithm = _algorithm
+            state.themeConfig.algorithm = buildAlgorithmArray(_algorithm)
           }
         }
       },

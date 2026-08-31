@@ -19,7 +19,6 @@ const Headerbar = (props: HeaderbarProps) => {
   const { colorBgContainer, collapsed, onCollapse } = props
   const themeConfig = useThemeStore(state => state.themeConfig)
   const setAlgorithm = useThemeStore(state => state.setAlgorithm)
-  const setCompactAlgorithm = useThemeStore(state => state.setCompactAlgorithm)
   const user = useAuthStore(state => state.user)
   const logout = useAuthStore(state => state.logout)
   const navigate = useNavigate()
@@ -30,7 +29,6 @@ const Headerbar = (props: HeaderbarProps) => {
 
   // Get current theme mode (default or dark)
   const isDarkMode = themeConfig._algorithm.includes('dark')
-  const isCompactMode = themeConfig._algorithm.includes('compact')
 
   const handleLogout = () => {
     logout()
@@ -109,14 +107,7 @@ const Headerbar = (props: HeaderbarProps) => {
                 unCheckedChildren="Dark"
                 checked={!isDarkMode}
                 onChange={(checked) => setAlgorithm(checked ? 'default' : 'dark')}
-                size={isTablet ? 'small' : 'default'}
-              />
-              <Switch
-                checkedChildren="Compact"
-                unCheckedChildren="Loose"
-                checked={isCompactMode}
-                onChange={(checked) => setCompactAlgorithm(checked ? 'compact' : '')}
-                size={isTablet ? 'small' : 'default'}
+                size={isTablet ? 'small' : 'medium'}
               />
               <Tooltip title="Theme Configuration">
                 <Button

@@ -8,6 +8,7 @@ import { routes } from '../../router'
 type FlattenedRoute = {
   pattern: string
   title: string
+  hideBreadcrumb?: boolean
 }
 
 const normalizePath = (prefix: string, path: string) => {
@@ -23,6 +24,7 @@ const flattenRoutes = (routeList: AdminRouterItem[], prefix = '/'): FlattenedRou
       map.push({
         pattern: normalizePath(prefix, itm.path),
         title: itm.meta.title,
+        hideBreadcrumb: itm.meta.hideBreadcrumb,
       })
     }
 
@@ -45,6 +47,14 @@ const fallbackTitle = (pathname: string) => {
 const PageBreadcrumb = () => {
   const matches = useMatches()
   const flattenedRoutes = useMemo(() => flattenRoutes(routes), [])
+  const currentMatch = matches[matches.length - 1]
+  const currentRoute = useMemo(
+    () =>
+      currentMatch
+        ? flattenedRoutes.find(route => matchPath({ path: route.pattern, end: true }, currentMatch.pathname))
+        : undefined,
+    [currentMatch, flattenedRoutes],
+  )
   const breadcrumbs = useMemo<BreadcrumbItemType[]>(
     () =>
       matches.map(match => {
@@ -58,6 +68,8 @@ const PageBreadcrumb = () => {
       }),
     [matches, flattenedRoutes],
   )
+
+  if (currentRoute?.hideBreadcrumb) return null
 
   return <Breadcrumb style={{ margin: '16px 20px' }} items={breadcrumbs} />
 }
