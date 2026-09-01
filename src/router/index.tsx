@@ -13,7 +13,6 @@ export type AdminRouterItem = RouteObject & {
   // Set antd menu props in meta
   meta?: MenuItemType & {
     hideInMenu?: boolean
-    requiresAuth?: boolean
     order?: number
     /**
      * Groups this route under a shared parent menu entry (e.g. "Account") without nesting

@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons'
 import { defaultPageSize, extensionStatusLabels, extensionStatusTagColor } from '../extension.constants'
 import type { Extension, ExtensionStatus } from '../extension.types'
+import useStripedTableRow from '../../../components/common/useStripedTableRow'
 
 const { Text } = Typography
 
@@ -28,6 +29,7 @@ const renderOptionalText = (value?: string) =>
 
 const ExtensionTable = ({ data, loading, showAll, onEdit, onDuplicate, onDelete }: ExtensionTableProps) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const onRow = useStripedTableRow()
 
   const rowSelection: TableProps<Extension>['rowSelection'] = {
     selectedRowKeys,
@@ -145,6 +147,7 @@ const ExtensionTable = ({ data, loading, showAll, onEdit, onDuplicate, onDelete 
       rowSelection={rowSelection}
       pagination={showAll ? false : { pageSize: defaultPageSize, showSizeChanger: true, showTotal: (total) => `${total} extensions` }}
       scroll={{ x: 960 }}
+      onRow={onRow}
     />
   )
 }

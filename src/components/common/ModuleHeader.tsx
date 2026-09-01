@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Button, Flex, Space, Typography, theme } from 'antd'
+import { Button, Divider, Flex, Space, Typography, theme } from 'antd'
 
 export interface ModuleHeaderAction {
   key: string
@@ -35,10 +35,18 @@ const ModuleHeader = ({ title, count, primaryAction, actions = [], filters }: Mo
 
   return (
     <Flex vertical gap="middle" style={{ width: '100%' }}>
-      <Typography.Title level={4} style={{ margin: 0, fontSize: titleFontSize }}>
+      <Typography.Title level={5} style={{ margin: 0, fontSize: titleFontSize }}>
         {count === undefined ? title : `${title} (${count})`}
       </Typography.Title>
+
+      <Divider style={{ marginBottom: 10, marginTop: 5 }} />
+
       <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
+        {filters && (
+          <Space wrap size="middle" align="center" style={{ flex: '0 0 auto' }}>
+            {filters}
+          </Space>
+        )}
         <Space wrap size="middle" style={{ flex: '0 0 auto' }}>
           {primaryAction && (
             <Button
@@ -63,11 +71,6 @@ const ModuleHeader = ({ title, count, primaryAction, actions = [], filters }: Mo
             </Button>
           ))}
         </Space>
-        {filters && (
-          <Space wrap size="middle" align="center" style={{ flex: '0 0 auto' }}>
-            {filters}
-          </Space>
-        )}
       </Flex>
     </Flex>
   )

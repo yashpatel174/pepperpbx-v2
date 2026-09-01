@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 import type { MenuItemType } from 'antd/es/menu/interface';
 import { AdminRouterItem, routes } from '../../router';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -13,7 +13,7 @@ type OrderedMenuItem = MenuItemType & { order?: number; children?: MenuItemType[
  * Converts a single route into its menu item, recursing into same-file `children` nesting.
  * Only whitelists the fields Ant Design's Menu actually renders (`key`/`label`/`icon`/`children`)
  * plus our own internal `order` (stripped again in getMenuItems before handing items to <Menu>) —
- * route-only metadata like `hideBreadcrumb`, `group`, `requiresAuth`, `hideInMenu` must never ride
+ * route-only metadata like `hideBreadcrumb`, `group`, `hideInMenu` must never ride
  * along on the object passed to <Menu items>, since rc-menu forwards unrecognized item properties
  * straight onto the rendered <li> DOM node.
  */
@@ -87,12 +87,15 @@ const getMenuItems = (routes: AdminRouterItem[]): MenuItemType[] => {
 type PageSidebarProps = {
   autoCollapse?: boolean
   height?: string | number
+  /** Fixed-position top offset, in px — must match the Header's actual rendered height. */
+  topOffset?: number
   collapsed?: boolean
   onCollapse?: (collapsed: boolean) => void
 }
 
 const PageSidebar = (props: PageSidebarProps) => {
-  const { autoCollapse = true, height = '100%', collapsed: externalCollapsed, onCollapse } = props
+  const { autoCollapse = true, height = '100%', topOffset = 64, collapsed: externalCollapsed, onCollapse } = props
+  const { token } = theme.useToken()
   const menuItems = getMenuItems(routes)
   const navigate = useNavigate()
   const [lastOpenedMenu, setLastOpenedMenu] = useState<string[]>([])
@@ -148,7 +151,7 @@ const PageSidebar = (props: PageSidebarProps) => {
         overflow: 'auto',
         position: 'fixed',
         left: 0,
-        top: 64,
+        top: topOffset,
         bottom: 0,
         zIndex: 100,
         ...(isMobile && collapsed ? { display: 'none' } : {}),
@@ -170,6 +173,7 @@ const PageSidebar = (props: PageSidebarProps) => {
         onClick={onSwitchMenu}
         inlineCollapsed={collapsed}
         triggerSubMenuAction={collapsed ? 'hover' : 'click'}
+        style={{ fontSize: token.fontSizeLG, fontWeight: token.fontWeightStrong }}
       />
     </Sider>
   )

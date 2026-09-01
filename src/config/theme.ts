@@ -116,3 +116,52 @@ export function buildAlgorithmArray(algorithmStrings: string[]): MappingAlgorith
   return algorithmStrings.map((item) => algorithmMap[item] || theme.defaultAlgorithm)
 }
 
+/**
+ * Structural surface tokens (header/sidebar/background/container/table/border).
+ *
+ * These are fixed per light/dark mode and are deliberately independent of the
+ * user-configurable accent colors (`ThemeColors.primary` etc.) — switching color
+ * presets must not change the app's structural surface hierarchy. Values are derived
+ * from the Axion reference screenshots (light: white surfaces over a subtle blue-gray
+ * page background; dark: a dark navy hierarchy, never pure black).
+ */
+export interface StructuralTokens {
+  headerBg: string
+  siderBg: string
+  bodyBg: string
+  containerBg: string
+  borderColor: string
+  tableHeaderBg: string
+  tableRowHoverBg: string
+  tableBorderColor: string
+}
+
+export const lightStructuralTokens: StructuralTokens = {
+  headerBg: '#ffffff',
+  siderBg: '#ffffff',
+  bodyBg: '#f0f3f8',
+  containerBg: '#ffffff',
+  borderColor: '#e6ebf1',
+  tableHeaderBg: '#f5f7fa',
+  tableRowHoverBg: '#f0f5ff',
+  tableBorderColor: '#e8edf3',
+}
+
+export const darkStructuralTokens: StructuralTokens = {
+  headerBg: '#0f1729',
+  siderBg: '#0f1729',
+  bodyBg: '#131d33',
+  containerBg: '#18233d',
+  borderColor: '#28375a',
+  tableHeaderBg: '#22314f',
+  tableRowHoverBg: '#1e2c4a',
+  tableBorderColor: '#2c3c5e',
+}
+
+/**
+ * Resolve the structural token set for the currently active algorithm.
+ */
+export function getStructuralTokens(isDarkMode: boolean): StructuralTokens {
+  return isDarkMode ? darkStructuralTokens : lightStructuralTokens
+}
+

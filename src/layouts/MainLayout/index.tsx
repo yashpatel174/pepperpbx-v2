@@ -10,13 +10,15 @@ import useResponsive from '../../hooks/useResponsive';
 const { Footer } = Layout;
 
 const MainLayout: React.FC = () => {
-  const {
-    token: { colorBgContainer },
-  } = theme.useToken();
-
   const { isMobile } = useResponsive()
   const [collapsed, setCollapsed] = useState(isMobile);
-  const headerHeight = 64
+  const { token } = theme.useToken()
+  // Matches antd's own Layout.headerHeight formula (controlHeight * 2, see
+  // node_modules/antd/es/layout/style/index.js) so the fixed Sidebar/content offset
+  // always lines up with the Header's real rendered height under any algorithm
+  // (compact is permanently on for this app — see store/theme.ts — which shrinks
+  // controlHeight and, with it, the header, well below a hardcoded 64px).
+  const headerHeight = token.controlHeight * 2
 
   // Auto collapse on mobile
   useEffect(() => {
@@ -28,13 +30,13 @@ const MainLayout: React.FC = () => {
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Headerbar
-        colorBgContainer={colorBgContainer}
         collapsed={collapsed}
         onCollapse={setCollapsed}
       />
       <Layout style={{ marginTop: headerHeight }}>
         <PageSidebar
           height={`calc(100vh - ${headerHeight}px)`}
+          topOffset={headerHeight}
           collapsed={collapsed}
           onCollapse={setCollapsed}
         />

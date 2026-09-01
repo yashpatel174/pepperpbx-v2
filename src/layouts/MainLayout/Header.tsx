@@ -10,13 +10,12 @@ import useResponsive from '../../hooks/useResponsive';
 const { Header } = Layout;
 
 interface HeaderbarProps {
-  colorBgContainer: string
   collapsed?: boolean
   onCollapse?: (collapsed: boolean) => void
 }
 
 const Headerbar = (props: HeaderbarProps) => {
-  const { colorBgContainer, collapsed, onCollapse } = props
+  const { collapsed, onCollapse } = props
   const themeConfig = useThemeStore(state => state.themeConfig)
   const setAlgorithm = useThemeStore(state => state.setAlgorithm)
   const user = useAuthStore(state => state.user)
@@ -58,7 +57,6 @@ const Headerbar = (props: HeaderbarProps) => {
       title='PepperPBX'
       style={{
         padding: 0,
-        background: colorBgContainer,
         position: 'fixed',
         top: 0,
         left: 0,

@@ -1,6 +1,22 @@
-import type { Extension, ExtensionStatus } from './extension.types'
+import type { Extension, ExtensionFormValues, ExtensionStatus } from './extension.types'
 
 export const defaultPageSize = 10
+
+/** Single source of truth for ExtensionForm's create-mode initial values (see task §15). */
+export const defaultExtensionFormValues: Omit<ExtensionFormValues, 'extension' | 'context'> = {
+  status: 'enabled',
+  voicemailEnabled: false,
+  directoryListing: false,
+  callRecording: false,
+}
+
+/** Derived from the values already present in extension.mock.ts — not invented. */
+export const callGroupOptions = [
+  'Sales', 'Reception', 'Support', 'Billing', 'HR', 'Executive', 'IT', 'Logistics', 'Marketing',
+]
+
+// TODO: replace with the backend-confirmed context list once the dialplan contract is known.
+export const contextOptions = ['from-internal', 'test-context']
 
 export const extensionStatusLabels: Record<ExtensionStatus, string> = {
   enabled: 'Enabled',

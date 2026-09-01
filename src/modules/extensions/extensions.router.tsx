@@ -3,7 +3,9 @@ import { ApartmentOutlined, PhoneOutlined } from '@ant-design/icons'
 import type { AdminRouterItem } from '../../router'
 import LazyRoute from '../../components/common/LazyRoute'
 
-const ExtensionsPage = lazy(() => import('.'))
+const ExtensionsPage = lazy(() => import('./pages/ExtensionsPage'))
+const AddExtensionPage = lazy(() => import('./pages/AddExtensionPage'))
+const EditExtensionPage = lazy(() => import('./pages/EditExtensionPage'))
 
 const extensionsRoutes: AdminRouterItem[] = [
   {
@@ -29,6 +31,34 @@ const extensionsRoutes: AdminRouterItem[] = [
         icon: <ApartmentOutlined />,
         order: 2,
       },
+    },
+  },
+  {
+    path: 'account/extensions/add',
+    element: (
+      <LazyRoute>
+        <AddExtensionPage />
+      </LazyRoute>
+    ),
+    meta: {
+      title: 'Add Extension',
+      key: '/account/extensions/add',
+      hideInMenu: true,
+      hideBreadcrumb: true,
+    },
+  },
+  {
+    path: 'account/extensions/:extensionId/edit',
+    element: (
+      <LazyRoute>
+        <EditExtensionPage />
+      </LazyRoute>
+    ),
+    meta: {
+      title: 'Edit Extension',
+      key: '/account/extensions/:extensionId/edit',
+      hideInMenu: true,
+      hideBreadcrumb: true,
     },
   },
 ]
