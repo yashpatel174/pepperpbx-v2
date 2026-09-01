@@ -6,7 +6,7 @@ const DashboardPage = () => {
   const user = useAuthStore(state => state.user)
 
   return (
-    <Space direction="vertical" size="large" style={{ width: '100%' }}>
+    <Space orientation="vertical" size="large" style={{ width: '100%' }}>
       <Card>
         <Typography.Title level={3} style={{ margin: 0 }}>
           Welcome{user?.username ? `, ${user.username}` : ''}

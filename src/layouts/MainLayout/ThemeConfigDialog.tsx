@@ -82,9 +82,9 @@ const ThemeConfigDialog = ({ open, onClose }: ThemeConfigDialogProps) => {
         </Button>,
       ]}
       width={700}
-      destroyOnClose
+      destroyOnHidden
     >
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+      <Space orientation="vertical" size="large" style={{ width: '100%' }}>
         <div>
           <Title level={5}>Preset Themes</Title>
           <Radio.Group
@@ -138,7 +138,7 @@ const ThemeConfigDialog = ({ open, onClose }: ThemeConfigDialogProps) => {
               style={{ marginBottom: 16 }}
             />
           )}
-          <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
             {Object.entries(colorLabels).map(([key, label]) => {
               const isAutoHandled = isDarkMode && (key === 'background' || key === 'text')
               return (

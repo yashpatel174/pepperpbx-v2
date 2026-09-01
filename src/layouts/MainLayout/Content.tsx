@@ -10,11 +10,10 @@ const PageContent: React.FC = () => {
   return (
     <div style={{
       padding: isMobile ? "12px" : isTablet ? "16px" : "20px",
-      minHeight: "calc(100vh - 200px)",
     }}>
       <Card style={{
-        minHeight: "100%",
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        borderRadius: '5px',
       }}>
         <Outlet />
       </Card>

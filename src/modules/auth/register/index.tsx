@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react'
-import { Form, Input, Button, Card, message, Typography, Space, theme } from 'antd'
+import { App, Form, Input, Button, Card, Typography, Space, theme } from 'antd'
 import { UserOutlined, LockOutlined, MailOutlined } from '@ant-design/icons'
 import { useNavigate, Link } from 'react-router-dom'
 import { request } from '../../../services/api/apiClient'
@@ -27,6 +27,7 @@ const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const { token } = theme.useToken()
+  const { message } = App.useApp()
 
   const backgroundStyle = useMemo(() => ({
     minHeight: '100vh',
@@ -76,7 +77,7 @@ const RegisterPage: React.FC = () => {
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         }}
       >
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        <Space orientation="vertical" size="large" style={{ width: '100%' }}>
           <div style={{ textAlign: 'center' }}>
             <Title level={2}>Sign Up</Title>
             <Text type="secondary">Create a new account to get started</Text>

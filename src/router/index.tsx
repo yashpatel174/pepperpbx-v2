@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   RouteObject,
   createBrowserRouter,
@@ -12,8 +13,21 @@ export type AdminRouterItem = RouteObject & {
   // Set antd menu props in meta
   meta?: MenuItemType & {
     hideInMenu?: boolean
-    requiresAuth?: boolean
     order?: number
+    /**
+     * Groups this route under a shared parent menu entry (e.g. "Account") without nesting
+     * it in the actual route tree — the route's own `path` stays flat/top-level, so routing
+     * and breadcrumbs are unaffected. Multiple modules can reuse the same `group.key` to
+     * land children under the same parent; see Sidebar.tsx's getMenuItems.
+     */
+    group?: {
+      key: string
+      label: string
+      icon?: ReactNode
+      order?: number
+    }
+    /** Suppresses MainLayout's global breadcrumb for this route. Defaults to shown. */
+    hideBreadcrumb?: boolean
   }
   children?: AdminRouterItem[]
 }
