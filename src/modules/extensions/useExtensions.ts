@@ -1,47 +1,100 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { getExtensions } from './extension.service'
-import { searchableExtensionFields } from './extension.constants'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { defaultPageSize } from './extension.constants'
+import {
+  deleteExtensions as deleteExtensionsRequest,
+  fetchExtensions,
+  setExtensionEnabled,
+  toggleExtensions as toggleExtensionsRequest,
+} from './extension.service'
 import type { Extension } from './extension.types'
 
-const matchesSearch = (extension: Extension, term: string): boolean => {
-  const needle = term.trim().toLowerCase()
-  if (!needle) return true
-  return searchableExtensionFields.some((field) => {
-    const value = extension[field]
-    return typeof value === 'string' && value.toLowerCase().includes(needle)
-  })
-}
-
 /**
- * Owns the extensions dataset and its local CRUD-ish behavior (mock-backed for now).
- * ExtensionsPage stays composition-only; a future server-side search/pagination swap
- * only touches this hook and extension.service.ts.
+ * Owns the extensions dataset and its pagination/search state. The page, page size and
+ * Show All flag live here (not inside Ant Design's table), so turning Show All on and off
+ * never loses the user's pagination configuration — Show All is independent of page size.
+ * ExtensionsPage stays composition-only; a future server-side swap only touches this hook
+ * and extension.service.ts.
  */
 export const useExtensions = () => {
   const [data, setData] = useState<Extension[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(defaultPageSize)
+  const [showAll, setShowAll] = useState(false)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [searchTerm, setSearchTermState] = useState('')
+  const requestRef = useRef(0)
 
   const load = useCallback(async () => {
+    const requestId = ++requestRef.current
     setLoading(true)
     setError(null)
     try {
-      const result = await getExtensions()
-      setData(result)
+      const result = await fetchExtensions({ page, pageSize, showAll, search: searchTerm })
+      if (requestId !== requestRef.current) return
+      setData(result.data)
+      setTotalRecords(result.total_records)
     } catch {
+      if (requestId !== requestRef.current) return
       setError('Failed to load extensions.')
     } finally {
-      setLoading(false)
+      if (requestId === requestRef.current) setLoading(false)
     }
-  }, [])
+  }, [page, pageSize, showAll, searchTerm])
 
   useEffect(() => {
     load()
   }, [load])
 
-  const removeExtension = useCallback((id: string) => {
-    setData((prev) => prev.filter((extension) => extension.id !== id))
+  const setSearchTerm = useCallback((value: string) => {
+    setSearchTermState(value)
+    setPage(1)
+  }, [])
+
+  const setSize = useCallback((size: number) => {
+    setPageSize(size)
+    setPage(1)
+  }, [])
+
+  const setShowAllMode = useCallback((value: boolean) => {
+    setShowAll(value)
+    setPage(1)
+  }, [])
+
+  /**
+   * Bulk delete — used by both the single-row and multi-row Select Action delete flow (single
+   * is just a one-element array). Goes through the real service and refetches on success rather
+   * than patching `data` locally, so page/pageSize/search/showAll stay exactly as they were and
+   * a subsequent refresh can never resurrect a "deleted" row (see CLAUDE.md's note on the old
+   * local-only removeExtension this replaces).
+   */
+  const deleteExtensions = useCallback(async (extensionUuids: string[], deleteVoicemail: boolean) => {
+    await deleteExtensionsRequest(extensionUuids, deleteVoicemail)
+    await load()
+  }, [load])
+
+  /**
+   * Bulk toggle — flips each targeted record's own current state (see extension.service.ts's
+   * toggleExtensions) and refetches, rather than optimistically patching rows. The single-row
+   * click keeps using toggleExtensionStatus below, unchanged.
+   */
+  const bulkToggle = useCallback(async (extensionUuids: string[]) => {
+    await toggleExtensionsRequest(extensionUuids)
+    await load()
+  }, [load])
+
+  /**
+   * Flips the stored `enabled` flag through the service boundary (so a later refetch sees
+   * the new value) and updates the visible row in place, keeping pagination position.
+   */
+  const toggleExtensionStatus = useCallback(async (id: string, enabled: boolean) => {
+    await setExtensionEnabled(id, enabled)
+    setData((prev) =>
+      prev.map((extension) =>
+        extension.id === id ? { ...extension, status: enabled ? 'enabled' : 'disabled' } : extension
+      )
+    )
   }, [])
 
   const duplicateExtension = useCallback((id: string) => {
@@ -63,21 +116,36 @@ export const useExtensions = () => {
     })
   }, [])
 
-  const filteredData = useMemo(
-    () => data.filter((extension) => matchesSearch(extension, searchTerm)),
-    [data, searchTerm]
-  )
+  /**
+   * CSV export: returns every search-filtered record across ALL domains and pages (a page
+   * size that can't be reached by the table's own pager), not just the currently visible page.
+   */
+  const getExportData = useCallback(async () => {
+    const result = await fetchExtensions({ showAll: true, search: searchTerm, pageSize: Number.MAX_SAFE_INTEGER })
+    return result.data
+  }, [searchTerm])
+
+  const refresh = useCallback(() => load(), [load])
 
   return {
     data,
-    filteredData,
     loading,
     error,
-    refresh: load,
-    removeExtension,
-    duplicateExtension,
+    totalRecords,
+    page,
+    pageSize,
+    showAll,
     searchTerm,
     setSearchTerm,
+    setPage,
+    setPageSize: setSize,
+    setShowAll: setShowAllMode,
+    refresh,
+    deleteExtensions,
+    bulkToggle,
+    toggleExtensionStatus,
+    duplicateExtension,
+    getExportData,
   }
 }
 

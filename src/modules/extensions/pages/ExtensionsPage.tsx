@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { App, Button, Space, Switch, Tooltip } from "antd";
+import { App, Button, Select, Space, Switch, Tooltip, Typography } from "antd";
 import {
   DownloadOutlined,
   PlusOutlined,
@@ -13,12 +13,18 @@ import EmptyState from "../../../components/feedback/EmptyState";
 import ModuleHeader from "../../../components/common/ModuleHeader";
 import ExtensionFilters from "../components/ExtensionFilters";
 import ExtensionTable from "../components/ExtensionTable";
+import DeleteExtensionsModal from "../components/DeleteExtensionsModal";
+import type { DeleteTarget } from "../components/DeleteExtensionsModal";
 import { extensionStatusLabels } from "../extension.constants";
 import { useExtensions } from "../useExtensions";
 import type { Extension } from "../extension.types";
 
+type BulkAction = "toggle" | "delete";
+
 const escapeCsvValue = (value: string) =>
-  /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+  /[",\n]/.test(value)
+    ? `"${value.replace(/"/g, '""')}"`
+    : value;
 
 const exportExtensionsToCsv = (extensions: Extension[]) => {
   const headers = [
@@ -26,53 +32,91 @@ const exportExtensionsToCsv = (extensions: Extension[]) => {
     "Effective Caller ID Name",
     "Outbound Caller ID Name",
     "Call Group",
-    "Context",
+    "Domain",
     "Description",
     "Status",
   ];
+
   const rows = extensions.map((ext) => [
     ext.extension,
     ext.effectiveCallerIdName ?? "",
     ext.outboundCallerIdName ?? "",
     ext.callGroup ?? "",
-    ext.context,
+    ext.domain,
     ext.description ?? "",
     extensionStatusLabels[ext.status],
   ]);
+
   const csv = [headers, ...rows]
     .map((row) => row.map(escapeCsvValue).join(","))
     .join("\n");
 
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([csv], {
+    type: "text/csv;charset=utf-8;",
+  });
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
+
   link.href = url;
-  link.download = `extensions-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `extensions-${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`;
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+
   URL.revokeObjectURL(url);
 };
 
 const ExtensionsPage = () => {
   const {
     data,
-    filteredData,
     loading,
     error,
-    refresh,
-    removeExtension,
-    duplicateExtension,
+    totalRecords,
+    page,
+    pageSize,
+    showAll,
     searchTerm,
     setSearchTerm,
+    setPage,
+    setPageSize,
+    setShowAll,
+    refresh,
+    deleteExtensions,
+    bulkToggle,
+    toggleExtensionStatus,
+    duplicateExtension,
+    getExportData,
   } = useExtensions();
-  const { message } = App.useApp();
+
+  const { message, modal } = App.useApp();
   const navigate = useNavigate();
-  const [showAll, setShowAll] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Selected extension rows (uuids — see Extension.id)
+  const [selectedExtensionIds, setSelectedExtensionIds] = useState<string[]>([]);
+  const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined);
+  const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null);
+
+  const hasSelection = selectedExtensionIds.length > 0;
+
+  // Selection can be cleared by deselecting rows directly (not just via a completed/cancelled
+  // bulk action) — reset the chosen action too so a later re-selection doesn't show a stale one.
+  useEffect(() => {
+    if (selectedExtensionIds.length === 0) setBulkAction(undefined);
+  }, [selectedExtensionIds]);
+
+  const clearSelection = () => {
+    setSelectedExtensionIds([]);
+    setBulkAction(undefined);
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
+
     try {
       await refresh();
     } finally {
@@ -81,29 +125,140 @@ const ExtensionsPage = () => {
   };
 
   const handleAdd = () => navigate("/account/extensions/add");
+
   const handleImport = () =>
     message.info("Extension import will be implemented next.");
+
   const handleEdit = (extension: Extension) =>
-    navigate(`/account/extensions/${extension.extension}/edit`);
+    navigate(
+      `/account/extensions/${extension.id}/edit?extension-uuid=${extension.id}`
+    );
 
   const handleDuplicate = (extension: Extension) => {
     duplicateExtension(extension.id);
     message.success(`Extension ${extension.extension} duplicated.`);
   };
 
-  const handleDelete = (extension: Extension) => {
-    removeExtension(extension.id);
-    message.success(`Extension ${extension.extension} deleted.`);
+  // Single-row delete now goes through the same DeleteExtensionsModal (and the same delete
+  // service) as bulk delete — see extension.service.ts's deleteExtensions.
+  const handleDeleteRequest = (extension: Extension) => {
+    setDeleteTargets([{ id: extension.id, extension: extension.extension }]);
   };
 
-  // Exports the currently visible (search-filtered) set, matching what the table shows.
-  const handleExport = () => {
-    if (filteredData.length === 0) {
+  const handleToggleStatus = async (extension: Extension) => {
+    const target = extension.status !== "enabled";
+
+    try {
+      await toggleExtensionStatus(extension.id, target);
+
+      message.success(
+        `Extension ${extension.extension} ${
+          target ? "enabled" : "disabled"
+        }.`
+      );
+    } catch (err) {
+      message.error(
+        err instanceof Error
+          ? err.message
+          : `Failed to update extension ${extension.extension}.`
+      );
+    }
+  };
+
+  // Exports the full search-filtered set (all domains, all pages), matching what a
+  // Show All view would display.
+  const handleExport = async () => {
+    const rows = await getExportData();
+
+    if (rows.length === 0) {
       message.warning("No extensions to export.");
       return;
     }
-    exportExtensionsToCsv(filteredData);
+
+    exportExtensionsToCsv(rows);
   };
+
+  // Rows selected on the current page whose `default` (protected/system) flag is known —
+  // cross-page selections can't be checked client-side without fetching them, so those ids
+  // are passed through and rely on the service's own defensive skip (see extension.service.ts).
+  const getEligibleSelectedIds = () => {
+    const protectedIds = new Set(data.filter((extension) => extension.default).map((extension) => extension.id));
+    return selectedExtensionIds.filter((id) => !protectedIds.has(id));
+  };
+
+  const handleApplyBulkAction = () => {
+    const eligibleIds = getEligibleSelectedIds();
+    if (eligibleIds.length === 0) {
+      message.warning("No eligible extensions selected.");
+      return;
+    }
+
+    if (bulkAction === "toggle") {
+      modal.confirm({
+        title: "Toggle selected extensions?",
+        content: "Do you really want to toggle this?",
+        okText: "Toggle",
+        cancelText: "Cancel",
+        onOk: async () => {
+          try {
+            await bulkToggle(eligibleIds);
+            message.success(
+              `${eligibleIds.length} extension${eligibleIds.length === 1 ? "" : "s"} toggled.`
+            );
+          } catch (err) {
+            message.error(err instanceof Error ? err.message : "Failed to toggle selected extensions.");
+          } finally {
+            clearSelection();
+          }
+        },
+        onCancel: () => clearSelection(),
+      });
+      return;
+    }
+
+    if (bulkAction === "delete") {
+      const rows = data.filter((extension) => eligibleIds.includes(extension.id));
+      setDeleteTargets(rows.map((extension) => ({ id: extension.id, extension: extension.extension })));
+    }
+  };
+
+  const handleDeleteConfirm = async (deleteVoicemail: boolean) => {
+    if (!deleteTargets) return;
+    const ids = deleteTargets.map((target) => target.id);
+    await deleteExtensions(ids, deleteVoicemail);
+    message.success(`${ids.length} extension${ids.length === 1 ? "" : "s"} deleted.`);
+    setDeleteTargets(null);
+    clearSelection();
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteTargets(null);
+    clearSelection();
+  };
+
+  const selectionToolbar = (
+    <Space size="middle" wrap>
+      <Typography.Text>
+        You have selected {selectedExtensionIds.length} rows
+      </Typography.Text>
+
+      <Select<BulkAction>
+        placeholder="Select Action"
+        style={{ width: 160 }}
+        value={bulkAction}
+        onChange={setBulkAction}
+        options={[
+          { value: "toggle", label: "Toggle" },
+          { value: "delete", label: "Delete" },
+        ]}
+        aria-label="Select action"
+      />
+
+      <Button type="primary" disabled={!bulkAction} onClick={handleApplyBulkAction}>
+        Apply
+      </Button>
+    </Space>
+  );
 
   if (error) {
     return <ErrorState message={error} onRetry={refresh} />;
@@ -114,10 +269,14 @@ const ExtensionsPage = () => {
   }
 
   return (
-    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+    <Space
+      orientation="vertical"
+      size="middle"
+      style={{ width: "100%" }}
+    >
       <ModuleHeader
         title="Extensions"
-        count={data.length}
+        count={totalRecords}
         primaryAction={{
           key: "add",
           // TODO: wrap with <PermissionGuard permission="extension.create"> once RBAC
@@ -150,8 +309,13 @@ const ExtensionsPage = () => {
                 aria-label="Refresh extensions"
               />
             </Tooltip>
-            <ExtensionFilters value={searchTerm} onChange={setSearchTerm} />
-            <Tooltip title="Show every extension on one page">
+
+            <ExtensionFilters
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
+
+            <Tooltip title="Show extensions across all accessible domains">
               <Space size="small">
                 <Switch
                   checked={showAll}
@@ -164,8 +328,10 @@ const ExtensionsPage = () => {
             </Tooltip>
           </>
         }
+        toolbar={hasSelection ? selectionToolbar : undefined}
       />
-      {filteredData.length === 0 ? (
+
+      {totalRecords === 0 ? (
         <EmptyState
           description={
             searchTerm
@@ -175,14 +341,29 @@ const ExtensionsPage = () => {
         />
       ) : (
         <ExtensionTable
-          data={filteredData}
+          data={data}
           loading={loading}
+          page={page}
+          pageSize={pageSize}
+          total={totalRecords}
           showAll={showAll}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
           onEdit={handleEdit}
           onDuplicate={handleDuplicate}
-          onDelete={handleDelete}
+          onDelete={handleDeleteRequest}
+          onToggleStatus={handleToggleStatus}
+          selectedRowKeys={selectedExtensionIds}
+          onSelectionChange={setSelectedExtensionIds}
         />
       )}
+
+      <DeleteExtensionsModal
+        open={!!deleteTargets}
+        targets={deleteTargets ?? []}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </Space>
   );
 };

@@ -3,7 +3,7 @@ import { Button, Divider, Flex, Space, Typography, theme } from 'antd'
 
 export interface ModuleHeaderAction {
   key: string
-  label: string
+  label: ReactNode
   icon?: ReactNode
   onClick: () => void
   loading?: boolean
@@ -21,6 +21,12 @@ export interface ModuleHeaderProps {
   actions?: ModuleHeaderAction[]
   /** Filter/search controls for the row below the title — e.g. a toggle, a search input, a refresh button. */
   filters?: ReactNode
+  /**
+   * Replaces the entire filters/actions row when provided — e.g. a bulk-selection toolbar
+   * ("You have selected N rows" + an action Select + Apply). `filters`/`primaryAction`/`actions`
+   * are ignored while this is set, rather than composed alongside it.
+   */
+  toolbar?: ReactNode
 }
 
 /**
@@ -29,7 +35,7 @@ export interface ModuleHeaderProps {
  * ordering (primary action always first), and responsive wrapping so modules don't each
  * reimplement this.
  */
-const ModuleHeader = ({ title, count, primaryAction, actions = [], filters }: ModuleHeaderProps) => {
+const ModuleHeader = ({ title, count, primaryAction, actions = [], filters, toolbar }: ModuleHeaderProps) => {
   const { token } = theme.useToken()
   const titleFontSize = parseFloat(String(token.fontSizeHeading4)) + 2
 
@@ -41,37 +47,41 @@ const ModuleHeader = ({ title, count, primaryAction, actions = [], filters }: Mo
 
       <Divider style={{ marginBottom: 10, marginTop: 5 }} />
 
-      <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
-        {filters && (
-          <Space wrap size="middle" align="center" style={{ flex: '0 0 auto' }}>
-            {filters}
-          </Space>
-        )}
-        <Space wrap size="middle" style={{ flex: '0 0 auto' }}>
-          {primaryAction && (
-            <Button
-              type="primary"
-              icon={primaryAction.icon}
-              onClick={primaryAction.onClick}
-              loading={primaryAction.loading}
-              disabled={primaryAction.disabled}
-            >
-              {primaryAction.label}
-            </Button>
+      {toolbar ? (
+        <div style={{ width: '100%' }}>{toolbar}</div>
+      ) : (
+        <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
+          {filters && (
+            <Space wrap size="middle" align="center" style={{ flex: '0 0 auto' }}>
+              {filters}
+            </Space>
           )}
-          {actions.map(action => (
-            <Button
-              key={action.key}
-              icon={action.icon}
-              onClick={action.onClick}
-              loading={action.loading}
-              disabled={action.disabled}
-            >
-              {action.label}
-            </Button>
-          ))}
-        </Space>
-      </Flex>
+          <Space wrap size="middle" style={{ flex: '0 0 auto' }}>
+            {primaryAction && (
+              <Button
+                type="primary"
+                icon={primaryAction.icon}
+                onClick={primaryAction.onClick}
+                loading={primaryAction.loading}
+                disabled={primaryAction.disabled}
+              >
+                {primaryAction.label}
+              </Button>
+            )}
+            {actions.map(action => (
+              <Button
+                key={action.key}
+                icon={action.icon}
+                onClick={action.onClick}
+                loading={action.loading}
+                disabled={action.disabled}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </Space>
+        </Flex>
+      )}
     </Flex>
   )
 }
