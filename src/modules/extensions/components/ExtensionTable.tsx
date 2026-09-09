@@ -153,7 +153,7 @@ const ExtensionTable = ({
       title: "Actions",
       key: "actions",
       fixed: "right",
-      width: 130,
+      width: 100,
       render: (_, record) => (
         <Space size="small">
           {/* TODO: wrap with <PermissionGuard permission="extension.update"> once RBAC
