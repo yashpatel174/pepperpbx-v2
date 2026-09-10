@@ -8,6 +8,9 @@ import {
 } from './extension.service'
 import type { Extension } from './extension.types'
 
+/** Delay before a search input change is committed to a fetch, to avoid a request per keystroke. */
+const SEARCH_DEBOUNCE_MS = 300
+
 /**
  * Owns the extensions dataset and its pagination/search state. The page, page size and
  * Show All flag live here (not inside Ant Design's table), so turning Show All on and off
@@ -23,15 +26,28 @@ export const useExtensions = () => {
   const [pageSize, setPageSize] = useState(defaultPageSize)
   const [showAll, setShowAll] = useState(false)
   const [totalRecords, setTotalRecords] = useState(0)
-  const [searchTerm, setSearchTermState] = useState('')
+  // searchInput reflects what's typed (for the controlled filter input); debouncedSearchTerm
+  // is what's actually fetched with, so a fetch only fires once typing settles.
+  const [searchInput, setSearchInput] = useState('')
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
   const requestRef = useRef(0)
+
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearchTerm(searchInput), SEARCH_DEBOUNCE_MS)
+    return () => clearTimeout(handle)
+  }, [searchInput])
+
+  // Reset to page 1 once the debounced term actually commits, not on every keystroke.
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearchTerm])
 
   const load = useCallback(async () => {
     const requestId = ++requestRef.current
     setLoading(true)
     setError(null)
     try {
-      const result = await fetchExtensions({ page, pageSize, showAll, search: searchTerm })
+      const result = await fetchExtensions({ page, pageSize, showAll, search: debouncedSearchTerm })
       if (requestId !== requestRef.current) return
       setData(result.data)
       setTotalRecords(result.total_records)
@@ -41,15 +57,14 @@ export const useExtensions = () => {
     } finally {
       if (requestId === requestRef.current) setLoading(false)
     }
-  }, [page, pageSize, showAll, searchTerm])
+  }, [page, pageSize, showAll, debouncedSearchTerm])
 
   useEffect(() => {
     load()
   }, [load])
 
   const setSearchTerm = useCallback((value: string) => {
-    setSearchTermState(value)
-    setPage(1)
+    setSearchInput(value)
   }, [])
 
   const setSize = useCallback((size: number) => {
@@ -121,9 +136,13 @@ export const useExtensions = () => {
    * size that can't be reached by the table's own pager), not just the currently visible page.
    */
   const getExportData = useCallback(async () => {
-    const result = await fetchExtensions({ showAll: true, search: searchTerm, pageSize: Number.MAX_SAFE_INTEGER })
+    const result = await fetchExtensions({
+      showAll: true,
+      search: debouncedSearchTerm,
+      pageSize: Number.MAX_SAFE_INTEGER,
+    })
     return result.data
-  }, [searchTerm])
+  }, [debouncedSearchTerm])
 
   const refresh = useCallback(() => load(), [load])
 
@@ -135,7 +154,7 @@ export const useExtensions = () => {
     page,
     pageSize,
     showAll,
-    searchTerm,
+    searchTerm: searchInput,
     setSearchTerm,
     setPage,
     setPageSize: setSize,

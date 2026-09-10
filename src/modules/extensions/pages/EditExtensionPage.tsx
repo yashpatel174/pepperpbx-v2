@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import ModuleHeader from "../../../components/common/ModuleHeader";
@@ -62,8 +62,7 @@ const toFormValues = (details: ExtensionDetails): ExtensionFormValues => ({
 const EditExtensionPage = () => {
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const [searchParams] = useSearchParams();
-  const extensionUuid = searchParams.get("extension-uuid");
+  const { extensionId: extensionUuid } = useParams<{ extensionId: string }>();
 
   const [hive, setHive] = useState<HiveUserDetails | null>(null);
   const [details, setDetails] = useState<ExtensionDetails | null>(null);

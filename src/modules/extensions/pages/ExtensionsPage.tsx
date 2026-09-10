@@ -130,9 +130,7 @@ const ExtensionsPage = () => {
     message.info("Extension import will be implemented next.");
 
   const handleEdit = (extension: Extension) =>
-    navigate(
-      `/account/extensions/${extension.id}/edit?extension-uuid=${extension.id}`
-    );
+    navigate(`/account/extensions/${extension.id}/edit`);
 
   const handleDuplicate = (extension: Extension) => {
     duplicateExtension(extension.id);

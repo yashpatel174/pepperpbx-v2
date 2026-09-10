@@ -51,7 +51,7 @@ const ExtensionFormVoicemailSection = ({
           tooltip="Enter the voicemail password"
           extra={mode === 'edit' ? 'Re-enter to change the current voicemail password.' : undefined}
           validateFirst
-          rules={voicemailPasswordRules}
+          rules={voicemailPasswordRules(mode)}
         >
           <Input.Password
             placeholder={mode === 'edit' ? 'Unchanged' : '6-digit PIN'}

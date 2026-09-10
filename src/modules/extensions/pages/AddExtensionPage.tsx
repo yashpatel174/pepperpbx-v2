@@ -50,7 +50,7 @@ const AddExtensionPage = () => {
       // Follow the post-submit convention: users who can edit an extension continue on to
       // the newly created record's Edit page; otherwise they land back on the list.
       if (canEditBasic) {
-        navigate(`/account/extensions/${created.extension_uuid}/edit?extension-uuid=${created.extension_uuid}`);
+        navigate(`/account/extensions/${created.extension_uuid}/edit`);
       } else {
         navigate("/account/extensions");
       }

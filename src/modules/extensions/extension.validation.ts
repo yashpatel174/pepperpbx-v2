@@ -4,6 +4,8 @@
  * exact same validators, matching Axion's wording and regexes.
  */
 
+import type { Rule } from 'antd/es/form'
+
 const EMBEDDED_EXTENSION_NUMBER_PATTERN = /^(?:\*\*\d+|\d+)$/
 const NUMERIC_TWENTY_PATTERN = /^\+?[0-9]{0,20}$/
 const CALL_TIMEOUT_PATTERN = /^\+?[0-9]{0,3}$/
@@ -14,7 +16,7 @@ const DOMAIN_OR_HTTP_PATTERN = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/
 const MISSED_CALL_EMAILS_PATTERN = /^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,},?){1,5}$/
 const VOICEMAIL_EMAILS_PATTERN =
   /^([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})(,([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}))*$/
-const VOICEMAIL_PASSWORD_PATTERN = /^\d{6}$/
+const VOICEMAIL_PASSWORD_PATTERN = /^\d{6,20}$/
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
 export const noEdgeWhitespaceRule = {
@@ -107,11 +109,27 @@ export const voicemailMailToRule = {
   message: 'You can add multiple emails with comma separated',
 }
 
-/** Required 6-digit numeric voicemail password when voicemail is enabled. */
-export const voicemailPasswordRules = [
-  { required: true, message: 'Voicemail Password is required' },
-  { pattern: VOICEMAIL_PASSWORD_PATTERN, message: 'Voicemail password must be a 6-digit number' },
-]
+/**
+ * Voicemail password rules, mode-aware: Create requires a 6-digit PIN up front. Edit allows
+ * leaving it blank to keep the existing password unchanged (see ExtensionFormVoicemailSection's
+ * "Unchanged" placeholder/hint) — the 6-digit format still applies to whatever is typed.
+ */
+export const voicemailPasswordRules = (mode: 'create' | 'edit'): Rule[] =>
+  mode === 'create'
+    ? [
+        { required: true, message: 'Voicemail Password is required' },
+        { pattern: VOICEMAIL_PASSWORD_PATTERN, message: 'Voicemail password must be a 6-digit number' },
+      ]
+    : [
+        {
+          validator: (_: unknown, value?: string) => {
+            if (!value) return Promise.resolve()
+            return VOICEMAIL_PASSWORD_PATTERN.test(value)
+              ? Promise.resolve()
+              : Promise.reject(new Error('Voicemail password must be a 6-digit number'))
+          },
+        },
+      ]
 
 /**
  * Password (edit only): optional — leaving it blank preserves the existing backend password.
