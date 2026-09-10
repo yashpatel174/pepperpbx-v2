@@ -9,7 +9,7 @@ interface ExtensionFormVoicemailSectionProps {
 
 /**
  * Rendered by the parent ExtensionForm only when `voicemail_enabled` is truthy.
- * Contains voicemail-to, delivery format, and the optional 6-digit password
+ * Contains voicemail-to, delivery format, and the 6-20 digit password
  * (Edit shows a hint).
  */
 const ExtensionFormVoicemailSection = ({
@@ -54,7 +54,7 @@ const ExtensionFormVoicemailSection = ({
           rules={voicemailPasswordRules(mode)}
         >
           <Input.Password
-            placeholder={mode === 'edit' ? 'Unchanged' : '6-digit PIN'}
+            placeholder={mode === 'edit' ? 'Unchanged' : '6-20 digit PIN'}
             disabled={disabled}
           />
         </Form.Item>

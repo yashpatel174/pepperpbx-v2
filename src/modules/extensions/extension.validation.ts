@@ -110,15 +110,15 @@ export const voicemailMailToRule = {
 }
 
 /**
- * Voicemail password rules, mode-aware: Create requires a 6-digit PIN up front. Edit allows
+ * Voicemail password rules, mode-aware: Create requires a 6-20 digit PIN up front. Edit allows
  * leaving it blank to keep the existing password unchanged (see ExtensionFormVoicemailSection's
- * "Unchanged" placeholder/hint) — the 6-digit format still applies to whatever is typed.
+ * "Unchanged" placeholder/hint) — the 6-20 digit format still applies to whatever is typed.
  */
 export const voicemailPasswordRules = (mode: 'create' | 'edit'): Rule[] =>
   mode === 'create'
     ? [
         { required: true, message: 'Voicemail Password is required' },
-        { pattern: VOICEMAIL_PASSWORD_PATTERN, message: 'Voicemail password must be a 6-digit number' },
+        { pattern: VOICEMAIL_PASSWORD_PATTERN, message: 'Voicemail password must be between 6 and 20 digits' },
       ]
     : [
         {
@@ -126,7 +126,7 @@ export const voicemailPasswordRules = (mode: 'create' | 'edit'): Rule[] =>
             if (!value) return Promise.resolve()
             return VOICEMAIL_PASSWORD_PATTERN.test(value)
               ? Promise.resolve()
-              : Promise.reject(new Error('Voicemail password must be a 6-digit number'))
+              : Promise.reject(new Error('Voicemail password must be between 6 and 20 digits'))
           },
         },
       ]
