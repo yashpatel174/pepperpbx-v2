@@ -1,6 +1,10 @@
+import { MOCK_DEFAULT_DOMAIN } from '../../store/domain'
 import type { GatewayDetails, HiveGatewayDetails, SbcDomainOption, SipProfileOption } from './gateway.types'
 
-const DEFAULT_DOMAIN = 'sip.pepperpbx.local'
+// Shared with extension.mock.ts via store/domain.ts's MOCK_DEFAULT_DOMAIN — keeps the two
+// modules' mocks scoped to the same domain so neither's list silently empties out depending
+// on which module happened to seed the shared domain store first.
+const DEFAULT_DOMAIN = MOCK_DEFAULT_DOMAIN
 
 export const mockHiveGatewayDetails: HiveGatewayDetails = {
   defaultDomain: DEFAULT_DOMAIN,

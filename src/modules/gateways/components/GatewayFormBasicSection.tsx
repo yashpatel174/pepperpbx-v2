@@ -225,69 +225,6 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      {/* Register + Enabled + Description */}
-      {/* <Col xs={24} md={8}>
-        <Row gutter={[16, 16]} align="middle">
-          <Col xs={24} sm={12}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                minHeight: 32,
-              }}
-            >
-              <Form.Item name="register" valuePropName="checked" noStyle>
-                <Switch aria-label="Register" />
-              </Form.Item>
-
-              <span>Register</span>
-
-              <Tooltip title="Choose whether to register">
-                <QuestionCircleOutlined
-                  aria-label="Register information"
-                  style={{
-                    color: "#8c8c8c",
-                    fontSize: 12,
-                    cursor: "help",
-                    flexShrink: 0,
-                  }}
-                />
-              </Tooltip>
-            </div>
-          </Col>
-
-          <Col xs={24} sm={12}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                minHeight: 32,
-              }}
-            >
-              <Form.Item name="enabled" valuePropName="checked" noStyle>
-                <Switch aria-label="Enabled" />
-              </Form.Item>
-
-              <span>Enabled</span>
-
-              <Tooltip title="Set the status of the gateway">
-                <QuestionCircleOutlined
-                  aria-label="Enabled information"
-                  style={{
-                    color: "#8c8c8c",
-                    fontSize: 12,
-                    cursor: "help",
-                    flexShrink: 0,
-                  }}
-                />
-              </Tooltip>
-            </div>
-          </Col>
-        </Row>
-      </Col> */}
-      {/* Register + Enabled */}
       <Col xs={24} md={8}>
         <div
           style={{

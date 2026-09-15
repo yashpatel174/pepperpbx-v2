@@ -136,67 +136,6 @@ const GatewayFormAdvancedSection = () => {
         </Form.Item>
       </Col>
     </Row>
-    {/* <Row gutter={[16, 8]}>
-      <Col xs={24} sm={12} md={6}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Form.Item name="distinct_to" valuePropName="checked" noStyle>
-            <Switch aria-label="Distinct To" />
-          </Form.Item>
-          <span>Distinct To</span>
-          <Tooltip title="Enter the distinct to here">
-            <QuestionCircleOutlined
-              aria-label="Distinct To information"
-              style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help" }}
-            />
-          </Tooltip>
-        </div>
-      </Col>
-
-      <Col xs={24} sm={12} md={6}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Form.Item name="caller_id_in_from" valuePropName="checked" noStyle>
-            <Switch aria-label="Caller ID In From" />
-          </Form.Item>
-          <span>Caller ID In From</span>
-          <Tooltip title="Enter the caller ID in from">
-            <QuestionCircleOutlined
-              aria-label="Caller ID In From information"
-              style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help" }}
-            />
-          </Tooltip>
-        </div>
-      </Col>
-
-      <Col xs={24} sm={12} md={6}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Form.Item name="supress_cng" valuePropName="checked" noStyle>
-            <Switch aria-label="Supress CNG" />
-          </Form.Item>
-          <span>Supress CNG</span>
-          <Tooltip title="Enter the suppress CNG">
-            <QuestionCircleOutlined
-              aria-label="Supress CNG information"
-              style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help" }}
-            />
-          </Tooltip>
-        </div>
-      </Col>
-
-      <Col xs={24} sm={12} md={6}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Form.Item name="extension_in_contact" valuePropName="checked" noStyle>
-            <Switch aria-label="Extension In Contact" />
-          </Form.Item>
-          <span>Extension In Contact</span>
-          <Tooltip title="Enter the extension in contact">
-            <QuestionCircleOutlined
-              aria-label="Extension In Contact information"
-              style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help" }}
-            />
-          </Tooltip>
-        </div>
-      </Col>
-    </Row> */}
     <Row gutter={[16, 8]} style={{ marginTop: 8 }}>
   <Col xs={24}>
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

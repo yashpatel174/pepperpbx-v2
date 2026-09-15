@@ -224,27 +224,36 @@ const GatewaysPage = () => {
       <ModuleHeader
         title="Gateways"
         count={totalRecords}
-        primaryAction={{
-          key: 'add',
-          // TODO: wrap with <PermissionGuard permission="gateway.manage"> once RBAC
-          // permissions are populated from the backend — not gated in the Axion reference either.
-          label: 'Add Gateway',
-          icon: <PlusOutlined />,
-          onClick: handleAdd,
-        }}
+        // Add/Search/Show All are only meaningful once the user can actually manage gateways —
+        // per gateway.md, an unauthorized user sees just the title while the whole toolbar
+        // (not only the table) is replaced by the permission-denied state below.
+        primaryAction={
+          canManage
+            ? {
+                key: 'add',
+                // TODO: wrap with <PermissionGuard permission="gateway.manage"> once RBAC
+                // permissions are populated from the backend — not gated in the Axion reference either.
+                label: 'Add Gateway',
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <GatewayFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            <Tooltip title="Show gateways across all accessible domains">
-              <Space size="small">
-                <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all gateways" />
-                <span>Show All</span>
-              </Space>
-            </Tooltip>
-          </>
+          canManage ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <GatewayFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              <Tooltip title="Show gateways across all accessible domains">
+                <Space size="small">
+                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all gateways" />
+                  <span>Show All</span>
+                </Space>
+              </Tooltip>
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

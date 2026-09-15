@@ -1,6 +1,10 @@
+import { MOCK_DEFAULT_DOMAIN } from '../../store/domain'
 import type { ExtensionDetails, HiveUserDetails } from './extension.types'
 
-const DEFAULT_DOMAIN = 'sip.axionhq.hivepbx.com'
+// Shared with gateway.mock.ts via store/domain.ts's MOCK_DEFAULT_DOMAIN — keeps the two
+// modules' mocks scoped to the same domain so neither's list silently empties out depending
+// on which module happened to seed the shared domain store first.
+const DEFAULT_DOMAIN = MOCK_DEFAULT_DOMAIN
 
 /**
  * Seed data for extension.service.ts's in-memory working copy — replace with a real API

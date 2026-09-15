@@ -11,6 +11,16 @@ export interface Domain {
   name: string
 }
 
+/**
+ * Single shared literal used by module mocks (Extensions, Gateways, ...) to seed this store's
+ * `currentDomain` before a real backend domain contract exists. Every mock must use this same
+ * value — if two modules' mocks each seeded their own different default domain, whichever
+ * module ran first would permanently win (see setCurrentDomain's `if (!currentDomain)` guard
+ * below, persisted to localStorage), leaving the other module's domain-scoped mock list
+ * filtering against a domain name its own records don't have.
+ */
+export const MOCK_DEFAULT_DOMAIN = 'sip.pepperpbx.local'
+
 interface DomainState {
   currentDomain: Domain | null
   availableDomains: Domain[]
