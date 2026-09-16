@@ -1,0 +1,5 @@
+Voicemail ID,Password,Alternate Greet ID,Mail To,Transcription Enabled,Domain,Voicemail File,Keep Local,Enabled,Description,Play Tutorial,Default
+200,axion,111,,TRUE,sip.233012805910-1.hivepbx.com,,,,,,
+201,axion,112,,TRUE,sip.233012805910-1.hivepbx.com,,,,,,
+202,axion,113,,TRUE,sip.233012805910-1.hivepbx.com,,,,,,
+203,axion,114,,TRUE,sip.233012805910-1.hivepbx.com,,,,,,

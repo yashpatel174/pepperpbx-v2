@@ -1,0 +1,4 @@
+Type,Destination,Trunk Prefix,Area Code,Country Code,Caller ID Name,Caller ID Number,Caller ID Name Prefix,Context,Record,Account Code,Voice,Fax,Text,destination_app,destination_data,destination_alternate_app,destination_alternate_data,Enabled,Description,Emergency,Order
+inbound,1004,,,91,test,1001,test,sip.233012805910-1.hivepbx.com,TRUE,2.33E+11,1,1,1,playback,tone_stream://v,playback,tone_stream://v,TRUE,test,1,100
+outbound,1004,,,91,test,1001,test,sip.233012805910-1.hivepbx.com,TRUE,2.33E+11,1,1,1,playback,tone_stream://v,playback,tone_stream://v,TRUE,test,1,100
+local,1004,,,91,test,1001,test,sip.233012805910-1.hivepbx.com,TRUE,2.33E+11,1,1,1,playback,tone_stream://v,playback,tone_stream://v,TRUE,test,1,100
