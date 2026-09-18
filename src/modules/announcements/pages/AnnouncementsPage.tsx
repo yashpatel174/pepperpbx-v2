@@ -166,13 +166,7 @@ const AnnouncementsPage = () => {
         </Tooltip>
 
         <AnnouncementFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-      </Flex>
-
-      <Flex wrap gap="middle" align="center" style={{ flex: '0 0 auto' }}>
-        {/* Show All is visible only for the module-admin tier, matching the audit's
-            `actionPermission`-only gate (announcements.md §7/§14/§25) — narrower than the list's
-            own overall view access. */}
-        {canManageAll && (
+         {canManageAll && (
           <Tooltip title="Show announcements across all accessible domains">
             <Space size="small">
               <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all announcements" />
@@ -180,6 +174,13 @@ const AnnouncementsPage = () => {
             </Space>
           </Tooltip>
         )}
+      </Flex>
+
+      <Flex wrap gap="middle" align="center" style={{ flex: '0 0 auto' }}>
+        {/* Show All is visible only for the module-admin tier, matching the audit's
+            `actionPermission`-only gate (announcements.md §7/§14/§25) — narrower than the list's
+            own overall view access. */}
+       
 
         {(canManageAll || canAdd) && (
           // TODO: wrap with <PermissionGuard permission="announcement.add"> once RBAC
