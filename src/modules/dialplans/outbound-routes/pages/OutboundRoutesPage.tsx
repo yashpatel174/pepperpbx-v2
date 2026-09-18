@@ -130,14 +130,20 @@ const OutboundRoutesPage = () => {
 
   const handleApplyBulkAction = () => {
     if (!bulkAction || selectedRouteIds.length === 0) return
-    const rows = data.filter((route) => selectedRouteIds.includes(route.id))
+    // Row selection is preserved across pages (preserveSelectedRowKeys), so a selection can span
+    // pages the table isn't currently showing. The delete/toggle targets must come from the full
+    // selectedRouteIds list, not from `data` (only the current page) — otherwise IDs selected on
+    // another page would be silently dropped. `data` is still used opportunistically to show a
+    // friendly label for whichever selected rows happen to be on the current page; a row from
+    // another page falls back to its id — matches Extensions'/Destinations' established pattern.
+    const labelById = new Map(data.map((route) => [route.id, route.name]))
 
     if (bulkAction === 'delete') {
-      setDeleteTargets(rows.map((route) => ({ id: route.id, name: route.name })))
+      setDeleteTargets(selectedRouteIds.map((id) => ({ id, name: labelById.get(id) ?? id })))
       return
     }
 
-    setToggleTargetIds(rows.map((route) => route.id))
+    setToggleTargetIds([...selectedRouteIds])
   }
 
   const selectionToolbar = (

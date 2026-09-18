@@ -69,7 +69,7 @@ const DeleteOutboundRoutesModal = ({ open, targets, onConfirm, onCancel }: Delet
         type="warning"
         showIcon
         style={{ marginTop: 16 }}
-        title="Note: Please ensure this outbound route is not linked to any other records before proceeding, as deleting it may affect related data."
+        message="Note: Please ensure this outbound route is not linked to any other records before proceeding, as deleting it may affect related data."
       />
     </Modal>
   )

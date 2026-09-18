@@ -169,16 +169,19 @@ export const getOutboundRouteGatewayOptions = (domainName?: string): Promise<Out
 /**
  * Maps form values into the stored/API details shape. `dialplan_number` has no Add-form
  * equivalent in the Axion reference (outbound-routes.md §8) — when the form didn't collect one
- * (create mode), this derives a reasonable default from the caller ID number so the list's
+ * at all (create mode, where OutboundRouteBasicSection never renders the field so `values.dialplan_number`
+ * is `undefined`), this derives a reasonable default from the caller ID number so the list's
  * Number column and Edit's Number field always have something meaningful to show, rather than
- * inventing a fake required Add field. `dialplan_context` is likewise server-derived from the
- * domain on creation and never user-supplied.
+ * inventing a fake required Add field. In edit mode the field IS rendered, so an intentionally
+ * cleared value (`''`, not `undefined`) must be respected rather than falling back to the caller
+ * ID number — otherwise the field could never actually be cleared once set. `dialplan_context` is
+ * likewise server-derived from the domain on creation and never user-supplied.
  */
 const toDetails = (values: OutboundRouteFormValues, dialplanUuid: string, existingContext?: string): OutboundRouteDetails => ({
   ...values,
   dialplan_uuid: dialplanUuid,
   dialplan_context: existingContext ?? values.domain_name,
-  dialplan_number: values.dialplan_number || values.outbound_caller_id_number,
+  dialplan_number: values.dialplan_number === undefined ? values.outbound_caller_id_number : values.dialplan_number || undefined,
   outbound_caller_id_name: values.outbound_caller_id_name || undefined,
   prefix_number: values.prefix_number || undefined,
   limit: values.limit || undefined,
