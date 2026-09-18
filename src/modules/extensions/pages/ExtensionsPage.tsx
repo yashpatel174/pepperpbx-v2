@@ -215,8 +215,13 @@ const ExtensionsPage = () => {
     }
 
     if (bulkAction === "delete") {
-      const rows = data.filter((extension) => eligibleIds.includes(extension.id));
-      setDeleteTargets(rows.map((extension) => ({ id: extension.id, extension: extension.extension })));
+      // Row selection is preserved across pages, so eligibleIds can include ids from a page that
+      // isn't currently loaded in `data`. The delete targets must come from eligibleIds itself,
+      // not from filtering `data` — otherwise ids selected on another page would be silently
+      // dropped from the delete. `data` is still used to show a friendly label for whichever
+      // selected rows happen to be on the current page; a row from another page falls back to its id.
+      const labelById = new Map(data.map((extension) => [extension.id, extension.extension]));
+      setDeleteTargets(eligibleIds.map((id) => ({ id, extension: labelById.get(id) ?? id })));
     }
   };
 

@@ -1,15 +1,11 @@
+import { MOCK_DEFAULT_DOMAIN } from '../../../store/domain'
 import type { ActionOptionGroup, DestinationDetails, HiveDestinationDetails, HoldMusicGroup, SelectOption } from './destination.types'
 
-/**
- * Matches Extensions' own DEFAULT_DOMAIN (extension.mock.ts) and the Axion-compatible sample
- * dataset's `domain_name` — deliberately the same string, not a coincidence: the domain store
- * (store/domain.ts) is shared app-wide, so once any module (e.g. Extensions) has seeded
- * `currentDomain`, every other module's `showAll=false` scope must resolve to that same
- * domain or its own records will never match. Using a different literal here was the actual
- * cause of the Destinations list rendering 0 records with `showAll=false` — see
- * destination.service.ts's getCurrentDomainName.
- */
-const DEFAULT_DOMAIN = 'sip.axionhq.hivepbx.com'
+// Shared with extension.mock.ts/gateway.mock.ts via store/domain.ts's MOCK_DEFAULT_DOMAIN — keeps
+// all three modules' mocks scoped to the same domain so none of their lists silently empties out
+// depending on which module happened to seed the shared domain store first (see
+// destination.service.ts's getCurrentDomainName).
+const DEFAULT_DOMAIN = MOCK_DEFAULT_DOMAIN
 const BRANCH_DOMAIN = 'branch.pepperpbx.local'
 const REMOTE_DOMAIN = 'remote.pepperpbx.local'
 
@@ -340,7 +336,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: '1001',
     destination_enabled: 'true',
     destination_description: 'test',
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: 'busy-au-tone (Tones)',
   },
   {
@@ -354,7 +350,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: '18053223591',
     destination_enabled: 'true',
     destination_description: null,
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: 'phrase:fa2c7f77-f777-4995-9582-2e7e86d8d2c5',
   },
   {
@@ -368,7 +364,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: null,
     destination_enabled: 'true',
     destination_description: null,
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: null,
   },
   {
@@ -382,7 +378,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: '1001',
     destination_enabled: 'true',
     destination_description: 'test',
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: 'busy-au-tone (Tones)',
   },
   {
@@ -396,7 +392,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: null,
     destination_enabled: 'true',
     destination_description: null,
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: 'phrase:f96597b4-dd1f-46d3-bce4-53f367b4b39e',
   },
   {
@@ -410,7 +406,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: null,
     destination_enabled: 'true',
     destination_description: null,
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: '111 RB check (Voicemail)',
   },
   {
@@ -424,7 +420,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: '1001',
     destination_enabled: 'true',
     destination_description: 'test',
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: '112 check rb (Voicemail)',
   },
   {
@@ -438,7 +434,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: null,
     destination_enabled: 'true',
     destination_description: 'QA Test',
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: '112 check rb (Voicemail)',
   },
   {
@@ -452,7 +448,7 @@ const rawSampleDestinations: RawSampleDestination[] = [
     destination_caller_id_number: null,
     destination_enabled: 'true',
     destination_description: null,
-    domain_name: 'sip.axionhq.hivepbx.com',
+    domain_name: DEFAULT_DOMAIN,
     destinationAction: 'hangup (Other)',
   },
 ]

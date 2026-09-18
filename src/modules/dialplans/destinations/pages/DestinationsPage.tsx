@@ -218,8 +218,16 @@ const DestinationsPage = () => {
 
   const handleApplyBulkAction = () => {
     if (bulkAction !== "delete" || selectedDestinationIds.length === 0) return;
-    const rows = data.filter((destination) => selectedDestinationIds.includes(destination.id));
-    setDeleteTargets(rows.map((destination) => ({ id: destination.id, destination: destination.destination })));
+    // Row selection is preserved across pages (preserveSelectedRowKeys), so a selection can span
+    // pages the table isn't currently showing. The delete targets must come from the full
+    // selectedDestinationIds list, not from `data` (only the current page) — otherwise IDs
+    // selected on another page would be silently dropped from the delete. `data` is still used
+    // opportunistically to show a friendly label for whichever selected rows happen to be on the
+    // current page; a row from another page falls back to its id.
+    const labelById = new Map(data.map((destination) => [destination.id, destination.destination]));
+    setDeleteTargets(
+      selectedDestinationIds.map((id) => ({ id, destination: labelById.get(id) ?? id })),
+    );
   };
 
   const handleImportSubmit = async (file: File, options: ImportDestinationOptions) => {
@@ -295,37 +303,50 @@ const DestinationsPage = () => {
       <ModuleHeader
         title="Destinations"
         count={totalRecords}
-        primaryAction={{
-          key: "add",
-          // TODO: wrap with <PermissionGuard permission="destination.create"> once RBAC
-          // permissions are populated from the backend.
-          label: "Add Destination",
-          icon: <PlusOutlined />,
-          onClick: handleAdd,
-        }}
-        actions={[
-          // TODO: wrap with <PermissionGuard permission="destination.import"> once RBAC
-          // permissions are populated from the backend.
-          { key: "import", label: "Import", icon: <DownloadOutlined />, onClick: () => setImportOpen(true) },
-          // TODO: wrap with <PermissionGuard permission="destination.export"> once RBAC
-          // permissions are populated from the backend.
-          { key: "export", label: "Export", icon: <UploadOutlined />, onClick: () => setExportOpen(true) },
-        ]}
+        // Add/Import/Export/Search/Show All/Reset are only meaningful once the user can actually
+        // manage destinations — per destinations.md §14/§25, an unauthorized user sees just the
+        // title while the whole toolbar (not only the table) is replaced by PermissionDenied below.
+        primaryAction={
+          canManage
+            ? {
+                key: "add",
+                // TODO: wrap with <PermissionGuard permission="destination.create"> once RBAC
+                // permissions are populated from the backend.
+                label: "Add Destination",
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        actions={
+          canManage
+            ? [
+                // TODO: wrap with <PermissionGuard permission="destination.import"> once RBAC
+                // permissions are populated from the backend.
+                { key: "import", label: "Import", icon: <DownloadOutlined />, onClick: () => setImportOpen(true) },
+                // TODO: wrap with <PermissionGuard permission="destination.export"> once RBAC
+                // permissions are populated from the backend.
+                { key: "export", label: "Export", icon: <UploadOutlined />, onClick: () => setExportOpen(true) },
+              ]
+            : undefined
+        }
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
+          canManage ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
 
-            <DestinationFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              <DestinationFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
 
-            <Tooltip title="Show destinations across all accessible domains">
-              <Space size="small">
-                <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all destinations" />
-                <span>Show All</span>
-              </Space>
-            </Tooltip>
-          </>
+              <Tooltip title="Show destinations across all accessible domains">
+                <Space size="small">
+                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all destinations" />
+                  <span>Show All</span>
+                </Space>
+              </Tooltip>
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />
