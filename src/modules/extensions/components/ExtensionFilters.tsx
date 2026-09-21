@@ -17,7 +17,10 @@ const ExtensionFilters = ({ value, onChange }: ExtensionFiltersProps) => (
     prefix={<SearchOutlined />}
     value={value}
     onChange={(e) => onChange(e.target.value)}
-    style={{ flex: '1 1 200px', minWidth: 160, maxWidth: 320 }}
+    style={{
+          width: "100%",
+          maxWidth: 200,
+        }}    
     aria-label="Search extensions"
   />
 )

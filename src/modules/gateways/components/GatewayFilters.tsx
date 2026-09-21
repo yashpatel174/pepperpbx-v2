@@ -1,11 +1,11 @@
-import { Input } from 'antd'
+import { Input } from "antd";
 
 interface GatewayFiltersProps {
   /** Uncommitted draft text — the page owns this, distinct from the committed/fetched search term. */
-  value: string
-  onChange: (value: string) => void
+  value: string;
+  onChange: (value: string) => void;
   /** Fires on Enter or the search-icon click — matches the Axion reference's commit-on-Enter search, not live type-ahead. */
-  onSearch: (value: string) => void
+  onSearch: (value: string) => void;
 }
 
 /**
@@ -20,9 +20,12 @@ const GatewayFilters = ({ value, onChange, onSearch }: GatewayFiltersProps) => (
     value={value}
     onChange={(e) => onChange(e.target.value)}
     onSearch={onSearch}
-    style={{ flex: '1 1 200px', minWidth: 160, maxWidth: 320 }}
+    style={{
+      width: "100%",
+      maxWidth: 200,
+    }}
     aria-label="Search gateways"
   />
-)
+);
 
-export default GatewayFilters
+export default GatewayFilters;

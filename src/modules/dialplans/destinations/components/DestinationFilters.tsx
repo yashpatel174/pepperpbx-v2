@@ -21,7 +21,10 @@ const DestinationFilters = ({ value, onChange, onSearch }: DestinationFiltersPro
     value={value}
     onChange={(e) => onChange(e.target.value)}
     onSearch={onSearch}
-    style={{ flex: '1 1 200px', minWidth: 160, maxWidth: 320 }}
+     style={{
+      width: "100%",
+      maxWidth: 200,
+    }}
     aria-label="Search destinations"
   />
 )
