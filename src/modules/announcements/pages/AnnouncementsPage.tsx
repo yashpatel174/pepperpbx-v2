@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Flex, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
@@ -66,6 +66,17 @@ const AnnouncementsPage = () => {
     if (selectedAnnouncementIds.length === 0) setBulkAction(undefined)
   }, [selectedAnnouncementIds])
 
+  // Accumulates name labels across every page this session has fetched (reusing the same `data`
+  // the table already renders — no extra request). A row can only ever be selected after
+  // appearing in `data` at least once, so by the time a bulk delete is confirmed, every selected
+  // id's label is already known here even if that row's page isn't the one currently loaded.
+  const announcementLabelByIdRef = useRef<Map<string, string>>(new Map())
+  useEffect(() => {
+    data.forEach((announcement) => {
+      announcementLabelByIdRef.current.set(announcement.id, announcement.name)
+    })
+  }, [data])
+
   const clearSelection = () => {
     setSelectedAnnouncementIds([])
     setBulkAction(undefined)
@@ -122,13 +133,11 @@ const AnnouncementsPage = () => {
     // Row selection is preserved across pages (preserveSelectedRowKeys), so a selection can span
     // pages the table isn't currently showing. The delete/toggle targets must come from the full
     // selectedAnnouncementIds list, not from `data` (only the current page) — otherwise IDs
-    // selected on another page would be silently dropped. `data` is still used opportunistically to
-    // show a friendly label for whichever selected rows happen to be on the current page; a row
-    // from another page falls back to its id — matches Outbound Routes' established pattern.
-    const labelById = new Map(data.map((announcement) => [announcement.id, announcement.name]))
-
+    // selected on another page would be silently dropped. The friendly label comes from
+    // announcementLabelByIdRef (accumulated across every page fetched this session, see above),
+    // falling back to the raw id only if a selected announcement was somehow never fetched.
     if (bulkAction === 'delete') {
-      setDeleteTargets(selectedAnnouncementIds.map((id) => ({ id, name: labelById.get(id) ?? id })))
+      setDeleteTargets(selectedAnnouncementIds.map((id) => ({ id, name: announcementLabelByIdRef.current.get(id) ?? id })))
       return
     }
 

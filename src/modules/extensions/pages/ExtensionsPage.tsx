@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { App, Button, Select, Space, Switch, Tooltip, Typography } from "antd";
 import {
@@ -109,6 +109,19 @@ const ExtensionsPage = () => {
     if (selectedExtensionIds.length === 0) setBulkAction(undefined);
   }, [selectedExtensionIds]);
 
+  // Accumulates extension-number labels across every page this session has fetched (reusing the
+  // same `data` the table already renders — no extra request). A row can only ever be selected
+  // after appearing in `data` at least once, so by the time a bulk delete is confirmed, every
+  // selected id's label is already known here even if that row's page isn't the one currently
+  // loaded — fixing the "shows ext-106 instead of 106" cross-page display issue without falling
+  // back to the raw id unless a record was genuinely never fetched this session.
+  const extensionLabelByIdRef = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    data.forEach((extension) => {
+      extensionLabelByIdRef.current.set(extension.id, extension.extension);
+    });
+  }, [data]);
+
   const clearSelection = () => {
     setSelectedExtensionIds([]);
     setBulkAction(undefined);
@@ -192,9 +205,10 @@ const ExtensionsPage = () => {
     }
 
     if (bulkAction === "toggle") {
+      const count = eligibleIds.length;
       modal.confirm({
         title: "Toggle selected extensions?",
-        content: "Do you really want to toggle this?",
+        content: `Do you really want to toggle the status of ${count === 1 ? "this extension" : `these ${count} extensions`}?`,
         okText: "Toggle",
         cancelText: "Cancel",
         onOk: async () => {
@@ -218,10 +232,10 @@ const ExtensionsPage = () => {
       // Row selection is preserved across pages, so eligibleIds can include ids from a page that
       // isn't currently loaded in `data`. The delete targets must come from eligibleIds itself,
       // not from filtering `data` — otherwise ids selected on another page would be silently
-      // dropped from the delete. `data` is still used to show a friendly label for whichever
-      // selected rows happen to be on the current page; a row from another page falls back to its id.
-      const labelById = new Map(data.map((extension) => [extension.id, extension.extension]));
-      setDeleteTargets(eligibleIds.map((id) => ({ id, extension: labelById.get(id) ?? id })));
+      // dropped from the delete. The friendly label comes from extensionLabelByIdRef (accumulated
+      // across every page fetched this session, see above), falling back to the raw id only if a
+      // selected extension was somehow never fetched.
+      setDeleteTargets(eligibleIds.map((id) => ({ id, extension: extensionLabelByIdRef.current.get(id) ?? id })));
     }
   };
 

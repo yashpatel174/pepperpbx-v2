@@ -201,6 +201,7 @@ const ExtensionTable = ({
   return (
     <Table<Extension>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

@@ -251,6 +251,7 @@ const DestinationTable = ({
   return (
     <Table<Destination>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Flex, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
@@ -72,6 +72,18 @@ const CallBlocksPage = () => {
     if (selectedCallBlockIds.length === 0) setBulkAction(undefined)
   }, [selectedCallBlockIds])
 
+  // Accumulates call_block_name/number labels (via callBlockLabel's own name→number→uuid
+  // priority) across every page this session has fetched (reusing the same `data` the table
+  // already renders — no extra request). A row can only ever be selected after appearing in
+  // `data` at least once, so by the time a bulk delete is confirmed, every selected id's label is
+  // already known here even if that row's page isn't the one currently loaded.
+  const callBlockLabelByIdRef = useRef<Map<string, string>>(new Map())
+  useEffect(() => {
+    data.forEach((callBlock) => {
+      callBlockLabelByIdRef.current.set(callBlock.call_block_uuid, callBlockLabel(callBlock))
+    })
+  }, [data])
+
   const clearSelection = () => {
     setSelectedCallBlockIds([])
     setBulkAction(undefined)
@@ -143,13 +155,11 @@ const CallBlocksPage = () => {
     // Row selection is preserved across pages (preserveSelectedRowKeys), so a selection can span
     // pages the table isn't currently showing. The delete/toggle targets must come from the full
     // selectedCallBlockIds list, not from `data` (only the current page) — otherwise IDs selected
-    // on another page would be silently dropped. `data` is still used opportunistically to show a
-    // friendly label for whichever selected rows happen to be on the current page; a row from
-    // another page falls back to its id — matches Outbound Routes' established pattern.
-    const labelById = new Map(data.map((callBlock) => [callBlock.call_block_uuid, callBlockLabel(callBlock)]))
-
+    // on another page would be silently dropped. The friendly label comes from
+    // callBlockLabelByIdRef (accumulated across every page fetched this session, see above),
+    // falling back to the raw id only if a selected call block was somehow never fetched.
     if (bulkAction === 'delete') {
-      setDeleteTargets(selectedCallBlockIds.map((id) => ({ id, label: labelById.get(id) ?? id })))
+      setDeleteTargets(selectedCallBlockIds.map((id) => ({ id, label: callBlockLabelByIdRef.current.get(id) ?? id })))
       return
     }
 

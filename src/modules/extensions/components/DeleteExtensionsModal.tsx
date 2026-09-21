@@ -69,7 +69,9 @@ const DeleteExtensionsModal = ({ open, targets, onConfirm, onCancel }: DeleteExt
       footer={footer}
       width={480}
     >
-      <Paragraph>Are you sure you want to delete this extension?</Paragraph>
+      <Paragraph>
+        Are you sure you want to delete {single ? 'this extension' : `these ${targets.length} extensions`}?
+      </Paragraph>
       {!single && (
         <ul style={{ paddingLeft: 20, maxHeight: 160, overflow: 'auto' }}>
           {targets.map(target => (

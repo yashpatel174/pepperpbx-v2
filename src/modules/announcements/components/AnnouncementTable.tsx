@@ -180,6 +180,7 @@ const AnnouncementTable = ({
   return (
     <Table<Announcement>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

@@ -258,6 +258,7 @@ const CallBlockTable = ({
   return (
     <Table<CallBlock>
       rowKey="call_block_uuid"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

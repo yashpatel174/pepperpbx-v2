@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
@@ -51,6 +51,17 @@ const GatewaysPage = () => {
   useEffect(() => {
     if (selectedGatewayIds.length === 0) setBulkAction(undefined)
   }, [selectedGatewayIds])
+
+  // Accumulates gateway-name labels across every page this session has fetched (reusing the same
+  // `data` the table already renders — no extra request). A row can only ever be selected after
+  // appearing in `data` at least once, so by the time a bulk delete is confirmed, every selected
+  // id's label is already known here even if that row's page isn't the one currently loaded.
+  const gatewayLabelByIdRef = useRef<Map<string, string>>(new Map())
+  useEffect(() => {
+    data.forEach((gateway) => {
+      gatewayLabelByIdRef.current.set(gateway.id, gateway.gateway)
+    })
+  }, [data])
 
   const clearSelection = () => {
     setSelectedGatewayIds([])
@@ -121,9 +132,21 @@ const GatewaysPage = () => {
     const plural = count === 1 ? '' : 's'
 
     if (bulkAction === 'delete') {
+      // Display-only: names are resolved from gatewayLabelByIdRef purely for the confirmation
+      // list. `ids` (passed to removeGateways below) is untouched — always the raw selected
+      // gateway_uuid values, never a display value.
       modal.confirm({
         title: 'Delete Gateway',
-        content: `Are you sure you want to delete ${count === 1 ? 'this gateway' : `these ${count} gateways`}?`,
+        content: (
+          <div>
+            <p>Are you sure you want to delete {count === 1 ? 'this gateway' : `these ${count} gateways`}?</p>
+            <ul style={{ paddingLeft: 20, maxHeight: 160, overflow: 'auto' }}>
+              {ids.map((id) => (
+                <li key={id}>{gatewayLabelByIdRef.current.get(id) ?? id}</li>
+              ))}
+            </ul>
+          </div>
+        ),
         okText: 'Delete',
         okButtonProps: { danger: true },
         onOk: async () => {
@@ -144,7 +167,7 @@ const GatewaysPage = () => {
     if (bulkAction === 'toggle') {
       modal.confirm({
         title: 'Toggle Gateways',
-        content: 'Do you really want to toggle this?',
+        content: `Do you really want to toggle the status of ${count === 1 ? 'this gateway' : `these ${count} gateways`}?`,
         okText: 'Toggle',
         onOk: async () => {
           try {

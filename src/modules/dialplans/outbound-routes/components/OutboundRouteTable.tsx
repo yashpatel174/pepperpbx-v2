@@ -196,6 +196,7 @@ const OutboundRouteTable = ({
   return (
     <Table<OutboundRoute>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

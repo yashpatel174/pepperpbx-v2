@@ -256,6 +256,7 @@ const GatewayTable = ({
   return (
     <Table<Gateway>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

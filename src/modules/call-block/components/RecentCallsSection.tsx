@@ -118,6 +118,7 @@ const RecentCallsSection = ({
           ) : (
             <Table<RecentCall>
               rowKey="id"
+              showSorterTooltip={false}
               columns={columns}
               dataSource={data}
               loading={loading}

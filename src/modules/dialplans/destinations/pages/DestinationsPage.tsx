@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { App, Alert, Button, Select, Space, Switch, Tooltip, Typography } from "antd";
 import { DownloadOutlined, PlusOutlined, UndoOutlined, UploadOutlined } from "@ant-design/icons";
@@ -152,6 +152,17 @@ const DestinationsPage = () => {
     if (selectedDestinationIds.length === 0) setBulkAction(undefined);
   }, [selectedDestinationIds]);
 
+  // Accumulates destination-number labels across every page this session has fetched (reusing the
+  // same `data` the table already renders — no extra request). A row can only ever be selected
+  // after appearing in `data` at least once, so by the time a bulk delete is confirmed, every
+  // selected id's label is already known here even if that row's page isn't the one currently loaded.
+  const destinationLabelByIdRef = useRef<Map<string, string>>(new Map());
+  useEffect(() => {
+    data.forEach((destination) => {
+      destinationLabelByIdRef.current.set(destination.id, destination.destination);
+    });
+  }, [data]);
+
   const clearSelection = () => {
     setSelectedDestinationIds([]);
     setBulkAction(undefined);
@@ -221,12 +232,11 @@ const DestinationsPage = () => {
     // Row selection is preserved across pages (preserveSelectedRowKeys), so a selection can span
     // pages the table isn't currently showing. The delete targets must come from the full
     // selectedDestinationIds list, not from `data` (only the current page) — otherwise IDs
-    // selected on another page would be silently dropped from the delete. `data` is still used
-    // opportunistically to show a friendly label for whichever selected rows happen to be on the
-    // current page; a row from another page falls back to its id.
-    const labelById = new Map(data.map((destination) => [destination.id, destination.destination]));
+    // selected on another page would be silently dropped from the delete. The friendly label comes
+    // from destinationLabelByIdRef (accumulated across every page fetched this session, see
+    // above), falling back to the raw id only if a selected destination was somehow never fetched.
     setDeleteTargets(
-      selectedDestinationIds.map((id) => ({ id, destination: labelById.get(id) ?? id })),
+      selectedDestinationIds.map((id) => ({ id, destination: destinationLabelByIdRef.current.get(id) ?? id })),
     );
   };
 

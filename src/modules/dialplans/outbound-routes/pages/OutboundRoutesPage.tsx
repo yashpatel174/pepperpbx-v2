@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
@@ -61,6 +61,17 @@ const OutboundRoutesPage = () => {
   useEffect(() => {
     if (selectedRouteIds.length === 0) setBulkAction(undefined)
   }, [selectedRouteIds])
+
+  // Accumulates route-name labels across every page this session has fetched (reusing the same
+  // `data` the table already renders — no extra request). A row can only ever be selected after
+  // appearing in `data` at least once, so by the time a bulk delete is confirmed, every selected
+  // id's label is already known here even if that row's page isn't the one currently loaded.
+  const routeLabelByIdRef = useRef<Map<string, string>>(new Map())
+  useEffect(() => {
+    data.forEach((route) => {
+      routeLabelByIdRef.current.set(route.id, route.name)
+    })
+  }, [data])
 
   const clearSelection = () => {
     setSelectedRouteIds([])
@@ -133,13 +144,11 @@ const OutboundRoutesPage = () => {
     // Row selection is preserved across pages (preserveSelectedRowKeys), so a selection can span
     // pages the table isn't currently showing. The delete/toggle targets must come from the full
     // selectedRouteIds list, not from `data` (only the current page) — otherwise IDs selected on
-    // another page would be silently dropped. `data` is still used opportunistically to show a
-    // friendly label for whichever selected rows happen to be on the current page; a row from
-    // another page falls back to its id — matches Extensions'/Destinations' established pattern.
-    const labelById = new Map(data.map((route) => [route.id, route.name]))
-
+    // another page would be silently dropped. The friendly label comes from routeLabelByIdRef
+    // (accumulated across every page fetched this session, see above), falling back to the raw id
+    // only if a selected route was somehow never fetched.
     if (bulkAction === 'delete') {
-      setDeleteTargets(selectedRouteIds.map((id) => ({ id, name: labelById.get(id) ?? id })))
+      setDeleteTargets(selectedRouteIds.map((id) => ({ id, name: routeLabelByIdRef.current.get(id) ?? id })))
       return
     }
 
