@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { Card, Space, Table, Tooltip, Typography } from "antd";
+import { App, Button, Card, Select, Space, Table, Tooltip, Typography } from "antd";
 import type { TableColumnsType } from "antd";
 import ErrorState from "../../../components/feedback/ErrorState";
 import EmptyState from "../../../components/feedback/EmptyState";
-import { callBlockDirectionIconSrc, recentCallsPageSize } from "../call-block.constants";
-import { fetchRecentCalls } from "../call-block.service";
+import { callBlockDirectionIconSrc, callBlockDirectionOptions, recentCallsPageSize } from "../call-block.constants";
+import { blockRecentCalls, fetchRecentCalls } from "../call-block.service";
 import type { CallBlockDirection, RecentCall, SelectOption } from "../call-block.types";
 
 const { Text } = Typography;
@@ -47,15 +47,21 @@ const RecentCallsSection = ({
   domainName,
   name,
   number,
-
+  extensionOptions,
+  actionOptions,
   disabled,
 }: RecentCallsSectionProps) => {
+  const { message } = App.useApp();
   const [data, setData] = useState<RecentCall[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [blockDirection, setBlockDirection] = useState<CallBlockDirection | undefined>(undefined);
+  const [blockExtension, setBlockExtension] = useState<string | undefined>(undefined);
+  const [blockAction, setBlockAction] = useState<string | undefined>(undefined);
+  const [blocking, setBlocking] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -75,10 +81,32 @@ const RecentCallsSection = ({
     load();
   }, [load]);
 
-  // Reasonable UI-level requirement (not an invented backend constraint): the Block action needs
-  // a target direction/extension/action to submit, same as any selected rows — the audit doesn't
-  // document a specific enablement rule for the Block button beyond "select rows → choose
-  // dropdowns → Block", so requiring all of them non-empty before enabling is the sensible default.
+  const resetBlockSelections = () => {
+    setSelectedIds([]);
+    setBlockDirection(undefined);
+    setBlockExtension(undefined);
+    setBlockAction(undefined);
+  };
+
+  // The Block action needs a target direction/extension/action to submit, same as the selected
+  // rows (call-block.md §3/§21/§33: "select rows → choose direction/extension/action → Block") —
+  // requiring all three non-empty before enabling Block is the sensible default the audit implies.
+  const canBlock = selectedIds.length > 0 && !!blockDirection && !!blockExtension && !!blockAction;
+
+  const handleBlock = async () => {
+    if (!blockDirection || !blockExtension || !blockAction) return;
+    setBlocking(true);
+    try {
+      await blockRecentCalls({ direction: blockDirection, extensionUuid: blockExtension, action: blockAction, uuids: selectedIds });
+      message.success(`${selectedIds.length} call${selectedIds.length === 1 ? "" : "s"} blocked.`);
+      resetBlockSelections();
+      await load();
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : "Failed to block selected calls.");
+    } finally {
+      setBlocking(false);
+    }
+  };
 
   const columns: TableColumnsType<RecentCall> = [
     {
@@ -113,6 +141,46 @@ const RecentCallsSection = ({
         <ErrorState message={error} onRetry={load} />
       ) : (
         <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
+          {selectedIds.length > 0 && (
+            <Space size="middle" wrap>
+              <Typography.Text>You have selected {selectedIds.length} calls</Typography.Text>
+              <Select<CallBlockDirection>
+                placeholder="Direction"
+                style={{ width: 140 }}
+                value={blockDirection}
+                onChange={setBlockDirection}
+                options={callBlockDirectionOptions}
+                disabled={disabled || blocking}
+                aria-label="Block direction"
+              />
+              <Select<string>
+                placeholder="Extension"
+                style={{ width: 180 }}
+                value={blockExtension}
+                onChange={setBlockExtension}
+                options={extensionOptions}
+                showSearch
+                optionFilterProp="label"
+                disabled={disabled || blocking}
+                aria-label="Block extension"
+              />
+              <Select<string>
+                placeholder="Action"
+                style={{ width: 160 }}
+                value={blockAction}
+                onChange={setBlockAction}
+                options={actionOptions}
+                showSearch
+                optionFilterProp="label"
+                disabled={disabled || blocking}
+                aria-label="Block action"
+              />
+              <Button type="primary" disabled={!canBlock || disabled} loading={blocking} onClick={handleBlock}>
+                Block
+              </Button>
+            </Space>
+          )}
+
           {!loading && totalRecords === 0 ? (
             <EmptyState description="No recent calls found." />
           ) : (
