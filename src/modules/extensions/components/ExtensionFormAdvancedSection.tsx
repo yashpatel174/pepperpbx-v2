@@ -185,7 +185,7 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the maximum registration allowed for this user"
               rules={[numericFieldRule]}
             >
-              <Input placeholder="Enter max registrations" disabled={disabled} />
+              <Input type="number" min={0} placeholder="Enter max registrations" disabled={disabled} />
             </Form.Item>
           </Col>
 
@@ -196,12 +196,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the max number of outgoing calls for this user"
               rules={[numericFieldRule]}
             >
-              <Input placeholder="Enter limit max" disabled={disabled} />
+              <Input type="number" min={0} placeholder="Enter limit max" disabled={disabled} />
             </Form.Item>
           </Col>
 
           <Col xs={24} md={8}>
-            <Form.Item
+            <Form.Item  
               name="limit_destination"
               label="Limit Destination"
               tooltip="Enter the destination to send the calls when the max number of outgoing calls has been reached"
@@ -258,7 +258,7 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the call timeout"
               rules={[callTimeoutRule]}
             >
-              <Input placeholder="Enter call timeout" disabled={disabled} />
+              <Input type="number" min={0} placeholder="Enter call timeout" disabled={disabled} />
             </Form.Item>
           </Col>
 
@@ -386,7 +386,7 @@ const ExtensionFormAdvancedSection = ({
               tooltip="To prevent stale registrations SIP force expires can override the client expire"
               rules={[numericFieldRule]}
             >
-              <Input placeholder="Enter sip force expires" disabled={disabled} />
+              <Input type="number" min={0} placeholder="Enter sip force expires" disabled={disabled} />
             </Form.Item>
           </Col>
 

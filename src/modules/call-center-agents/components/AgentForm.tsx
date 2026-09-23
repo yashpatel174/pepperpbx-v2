@@ -146,7 +146,7 @@ const AgentForm = ({
               tooltip="Enter the call timeout"
               rules={[numericUpTo3DigitsRule]}
             >
-              <Input placeholder="Enter call timeout" aria-label="Call timeout" />
+              <Input type="number" min={0} placeholder="Enter call timeout" aria-label="Call timeout" />
             </Form.Item>
           </Col>
 
@@ -184,7 +184,7 @@ const AgentForm = ({
               tooltip="Enter the agent no answer delay time in seconds"
               rules={[numericUpTo20DigitsRule]}
             >
-              <Input placeholder="Enter no answer delay time" aria-label="No answer delay time" />
+              <Input type="number" min={0} placeholder="Enter no answer delay time" aria-label="No answer delay time" />
             </Form.Item>
           </Col>
 
@@ -196,7 +196,7 @@ const AgentForm = ({
               tooltip="At max no answer, the agent's status will change to 'On Break'"
               rules={[numericUpTo20DigitsRule]}
             >
-              <Input placeholder="Enter max no answer" aria-label="Max no answer" />
+              <Input type="number" min={0} placeholder="Enter max no answer" aria-label="Max no answer" />
             </Form.Item>
           </Col>
 
@@ -208,7 +208,7 @@ const AgentForm = ({
               tooltip="Enter the wrap up time"
               rules={[numericUpTo20DigitsRule]}
             >
-              <Input placeholder="Enter wrap up time" aria-label="Wrap up time" />
+              <Input type="number" min={0} placeholder="Enter wrap up time" aria-label="Wrap up time" />
             </Form.Item>
           </Col>
 
@@ -220,7 +220,7 @@ const AgentForm = ({
               tooltip="Enter the reject delay time"
               rules={[numericUpTo20DigitsRule]}
             >
-              <Input placeholder="Enter reject delay time" aria-label="Reject delay time" />
+              <Input type="number" min={0} placeholder="Enter reject delay time" aria-label="Reject delay time" />
             </Form.Item>
           </Col>
 
@@ -232,7 +232,7 @@ const AgentForm = ({
               tooltip="Enter the agent busy delay time"
               rules={[numericUpTo20DigitsRule]}
             >
-              <Input placeholder="Enter the agent busy delay time" aria-label="Busy delay time" />
+              <Input type="number" min={0} placeholder="Enter the agent busy delay time" aria-label="Busy delay time" />
             </Form.Item>
           </Col>
 

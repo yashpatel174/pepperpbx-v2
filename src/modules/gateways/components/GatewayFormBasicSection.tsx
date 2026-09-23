@@ -192,7 +192,7 @@ const GatewayFormBasicSection = ({
             numericFieldRule,
           ]}
         >
-          <Input placeholder="Enter expire seconds" />
+          <Input type="number" min={0} placeholder="Enter expire seconds" />
         </Form.Item>
       </Col>
 
@@ -209,7 +209,7 @@ const GatewayFormBasicSection = ({
             numericFieldRule,
           ]}
         >
-          <Input placeholder="Enter retry seconds" />
+          <Input type="number" min={0} placeholder="Enter retry seconds" />
         </Form.Item>
       </Col>
 

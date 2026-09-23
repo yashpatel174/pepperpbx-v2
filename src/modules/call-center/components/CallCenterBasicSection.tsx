@@ -78,7 +78,7 @@ const CallCenterBasicSection = ({
             validateFirst
             rules={extensionRangeRule(hive)}
           >
-            <Input placeholder="Enter extension" disabled={mode === "edit" && disabled} aria-label="Extension" />
+            <Input type="number" min={0} placeholder="Enter extension" disabled={mode === "edit" && disabled} aria-label="Extension" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -156,7 +156,7 @@ const CallCenterBasicSection = ({
             tooltip="Enter the max wait time"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter max wait time (seconds)" />
+            <Input type="number" min={0} placeholder="Enter max wait time (seconds)" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -166,7 +166,7 @@ const CallCenterBasicSection = ({
             tooltip="Enter the tier rule wait seconds"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter tier rule wait (seconds)" />
+            <Input type="number" min={0} placeholder="Enter tier rule wait (seconds)" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -186,7 +186,7 @@ const CallCenterBasicSection = ({
             tooltip="Set the discard abandoned after seconds"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter discard-abandoned-after (seconds)" />
+            <Input type="number" min={0} placeholder="Enter discard-abandoned-after (seconds)" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -196,7 +196,7 @@ const CallCenterBasicSection = ({
             tooltip="Set the time base score in seconds. Higher numbers mean higher priority over other call centers"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter time base score seconds" />
+            <Input type="number" min={0} placeholder="Enter time base score seconds" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -206,7 +206,7 @@ const CallCenterBasicSection = ({
             tooltip="Enter the max wait time with no agent"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter max wait time with no agent (seconds)" />
+            <Input type="number" min={0} placeholder="Enter max wait time with no agent (seconds)" />
           </Form.Item>
         </Col>
 
@@ -217,7 +217,7 @@ const CallCenterBasicSection = ({
             tooltip="Enter the max wait time with no agent time reached"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter time-reached wait (seconds)" />
+            <Input type="number" min={0} placeholder="Enter time-reached wait (seconds)" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -227,7 +227,7 @@ const CallCenterBasicSection = ({
             tooltip="How often should we play the announce sound. Enter a number in seconds"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter announce frequency (seconds)" />
+            <Input type="number" min={0} placeholder="Enter announce frequency (seconds)" />
           </Form.Item>
         </Col>
 
