@@ -1,52 +1,59 @@
 import { useMemo, useState } from 'react'
 import { Button, Input, Select, Space, Tooltip } from 'antd'
 import { LeftOutlined } from '@ant-design/icons'
-import type { SelectOption } from '../call-center.types'
+
+export interface ToggleSelectOption {
+  label: string
+  value: string
+}
 
 export interface ToggleSelectOptionGroup {
   label: string
-  options: SelectOption[]
+  options: ToggleSelectOption[]
 }
 
 /** A flat option list, or a list already grouped into labeled sections — matches whatever shape
- * the module's existing option source (call-center.service.ts) already provides. */
-export type ToggleSelectOptions = (SelectOption | ToggleSelectOptionGroup)[]
+ * the calling module's option source already provides. */
+export type ToggleSelectOptions = (ToggleSelectOption | ToggleSelectOptionGroup)[]
 
 export interface ToggleSelectInputProps {
   /** Injected by Ant Design's `Form.Item` when this is used as its child — same integration
    * pattern as a plain `<Select>`/`<Input>`, no `Form.useWatch` needed. */
   value?: string
-  onChange?: (value: string) => void
-  /** The field's predefined options (module-owned — see call-center.mock.ts/service.ts). Never
-   * mutated; the current value is derived into a display-only "Other" group when missing. */
+  /** Receives `undefined` when an `allowClear` Select is cleared. */
+  onChange?: (value?: string) => void
+  /** The field's predefined options (owned by the calling module's service). Never mutated; the
+   * current value is derived into a display-only "Other" group when missing. */
   options: ToggleSelectOptions
   placeholder?: string
   /** Axion's `isSelectInitial` — whether the field starts in Select mode. Defaults to `true`,
-   * matching every field this component is currently used for (call-center.md §8). */
+   * matching every field this component is currently used for. */
   isSelectInitial?: boolean
   /**
    * Whether the current user may toggle between Select and Text mode. Reproduces Axion's
    * `pbx_admin || pbx_axiontech` gate (`ToggleSelectInputCallCenter`) — PepperPBX has no
    * confirmed equivalent backend permission yet, so this is a placeholder wired to the caller's
-   * own privilege check (see CallCenterBasicSection.tsx). TODO: replace with a real permission
-   * string once the backend contract for this exact Axion behavior is confirmed.
+   * own privilege check. TODO: replace with a real permission string once the backend contract
+   * for this exact Axion behavior is confirmed.
    */
   canToggle: boolean
+  /** Shows the Select's clear icon — for optional fields only; clearing emits `undefined`. */
+  allowClear?: boolean
   loading?: boolean
   disabled?: boolean
   'aria-label'?: string
 }
 
-const isOptionGroup = (option: SelectOption | ToggleSelectOptionGroup): option is ToggleSelectOptionGroup => 'options' in option
+const isOptionGroup = (option: ToggleSelectOption | ToggleSelectOptionGroup): option is ToggleSelectOptionGroup => 'options' in option
 
-const flattenOptions = (options: ToggleSelectOptions): SelectOption[] => options.flatMap((option) => (isOptionGroup(option) ? option.options : [option]))
+const flattenOptions = (options: ToggleSelectOptions): ToggleSelectOption[] => options.flatMap((option) => (isOptionGroup(option) ? option.options : [option]))
 
 /**
  * PepperPBX's Ant Design equivalent of Axion's `ToggleSelectInputCallCenter` — lets a privileged
  * user switch a field between a searchable Select (predefined options) and a free-text Input
  * (custom value), without ever changing the field's own value. Toggling is visible only when
- * `canToggle` is true; other users only ever see the Select. Module-local since only Call Center
- * currently needs this (call-center.md §8's Greeting/Timeout Destination/Announce Sound fields).
+ * `canToggle` is true; other users only ever see the Select. Shared by Call Center (Greeting/
+ * Timeout Destination/Announce Sound) and Call Center Agents (Contact).
  */
 const ToggleSelectInput = ({
   value,
@@ -55,6 +62,7 @@ const ToggleSelectInput = ({
   placeholder,
   isSelectInitial = true,
   canToggle,
+  allowClear,
   loading,
   disabled,
   'aria-label': ariaLabel,
@@ -79,6 +87,7 @@ const ToggleSelectInput = ({
           optionFilterProp="label"
           value={value || undefined}
           onChange={(nextValue) => onChange?.(nextValue)}
+          allowClear={allowClear}
           options={displayOptions}
           placeholder={placeholder}
           loading={loading}

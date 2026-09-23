@@ -12,10 +12,10 @@ import { callCenterPermissions } from './call-center.constants'
  * `hasAnyAccess` mirrors the audit's `isModuleAccess` (any of the four keys grants at least list
  * visibility, call-center.md §14/§25) — it gates the list's overall PermissionDenied fallback.
  *
- * NOT implemented: Axion's separate `AGENT_PERMISSION` (single key, no module_admin) — that
- * governs the Agent entity CRUD/Agent Status sub-screens, which are out of scope for this module
- * (see call-center.router.tsx). Preserving the two-permission-module split is documented in
- * call-center.md §33 as an intentional design choice for whenever that sub-module is built.
+ * Axion's separate `AGENT_PERMISSION` (single key, no module_admin) governs the Agent entity
+ * CRUD/Agent Status screens and is implemented by the `call-center-agents` module's own
+ * `useCallCenterAgentPermissions` — the two-permission-module split call-center.md §33 documents
+ * as an intentional design choice.
  */
 const useCallCenterPermissions = () => {
   const { permissions, hasPermission } = usePermissions()

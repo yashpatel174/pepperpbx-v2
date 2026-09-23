@@ -50,10 +50,9 @@ export const mockHiveCallCenterDetails: Record<string, HiveCallCenterDetails> = 
 /**
  * Placeholder options for the Agent tier assignment select (call-center.md §8's
  * `agentSelectOptions`, fetched per domain via `/api/callCenters/getAgent`). The Agent entity's
- * own CRUD (list/add/edit/delete) is a separate, distinctly-permissioned Axion sub-module
- * (`AGENT_PERMISSION`, call-center.md §1/§14/§33) that is out of scope for this Call Center Queue
- * module — see call-center.router.tsx's top comment. This is a self-contained mock of just the
- * dropdown values a queue's tier rows need to reference, not a reproduction of Agent entity data.
+ * own CRUD (list/add/edit/delete + Agent Status) is the separate, distinctly-permissioned
+ * `call-center-agents` module (Axion's `AGENT_PERMISSION`, call-center.md §1/§14/§33). This is a
+ * self-contained mock of just the dropdown values a queue's tier rows need to reference.
  */
 export const mockAgentOptionsByDomain: Record<string, SelectOption[]> = {
   [DEFAULT_DOMAIN]: [
@@ -119,11 +118,11 @@ const seed = (uuid: string, fields: Partial<CallCenterDetails>): CallCenterDetai
   queue_strategy: 'longest-idle-agent',
   queue_moh_sound: 'default-moh',
   queue_time_base_score: 'system',
-  queue_max_wait_time: '0',
-  queue_tier_rule_wait_second: '30',
-  queue_discard_abandoned_after: '900',
-  queue_max_wait_time_with_no_agent: '90',
-  queue_max_wait_time_with_no_agent_time_reached: '30',
+  queue_max_wait_time: 0,
+  queue_tier_rule_wait_second: 30,
+  queue_discard_abandoned_after: 900,
+  queue_max_wait_time_with_no_agent: 90,
+  queue_max_wait_time_with_no_agent_time_reached: 30,
   domain_name: DEFAULT_DOMAIN,
   queue_record_template: false,
   queue_tier_rules_apply: false,

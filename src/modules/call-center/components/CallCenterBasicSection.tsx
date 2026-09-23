@@ -11,7 +11,7 @@ import {
 import { queueStrategyOptions, timeBaseScoreOptions } from "../call-center.constants";
 import type { HiveCallCenterDetails, SelectOption } from "../call-center.types";
 import useCallCenterPermissions from "../useCallCenterPermissions";
-import ToggleSelectInput from "./ToggleSelectInput";
+import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
 
 const { TextArea } = Input;
 
@@ -33,10 +33,10 @@ interface CallCenterBasicSectionProps {
  * mode-locked (disabled on Edit, call-center.md §9/§15/§33 — a queue can't move between domains
  * after creation).
  *
- * `queue_greeting`/`queue_timeout_action`/`queue_announce_sound` use Ant Design's own
- * `AutoComplete` as the PepperPBX-idiomatic equivalent of Axion's custom "select or type your own"
- * `ToggleSelectInputCallCenter` control — see call-center.types.ts's CallCenterFormValues comment
- * for why no new component was built for this.
+ * `queue_greeting`/`queue_timeout_action`/`queue_announce_sound` use the shared
+ * `ToggleSelectInput` (components/common) — PepperPBX's equivalent of Axion's
+ * `ToggleSelectInputCallCenter` "select or type your own" control. All three are optional, so
+ * their Select is clearable.
  */
 const CallCenterBasicSection = ({
   mode,
@@ -94,6 +94,7 @@ const CallCenterBasicSection = ({
               loading={optionsLoading}
               disabled={disabled}
               canToggle={canManageAll}
+              allowClear
               aria-label="Greeting"
             />
           </Form.Item>
@@ -301,6 +302,7 @@ const CallCenterBasicSection = ({
               loading={optionsLoading}
               disabled={disabled}
               canToggle={canManageAll}
+              allowClear
               aria-label="Timeout destination"
             />
           </Form.Item>
@@ -318,6 +320,7 @@ const CallCenterBasicSection = ({
               loading={optionsLoading}
               disabled={disabled}
               canToggle={canManageAll}
+              allowClear
               aria-label="Announce sound"
             />
           </Form.Item>

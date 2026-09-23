@@ -28,7 +28,7 @@ interface CallCenterTierSectionProps {
  *
  * Rows can be added or removed using Ant Design's Form.List. The complete tier array is still
  * submitted together with the rest of the Call Center form values on Save (call-center.service.ts's
- * toDetails filters out any row with no agent selected).
+ * toDetails filters out any row with no agent selected, so a queue can be saved with zero agents).
  *
  * Delete behavior (call-center.md §8/§9/§11/§20/§21/§27/§33) distinguishes two cases:
  * - An existing, persisted row (has its own `call_center_tier_uuid`, loaded from the queue's
@@ -109,15 +109,11 @@ const CallCenterTierSection = ({
             {fields.map((field) => (
               <Row gutter={[16, 0]} key={field.key} align="middle">
                 <Col xs={24} sm={10}>
+                  {/* Optional — a queue may have zero agents (call-center.md §8/§10/§27); rows
+                      left without an agent are dropped by call-center.service.ts's toDetails. */}
                   <Form.Item
                     name={[field.name, "call_center_agent_uuid"]}
                     label="Agent Name"
-                    rules={[
-                      {
-                        required: true,
-                        message: "Agent is required",
-                      },
-                    ]}
                   >
                     <Select
                       showSearch

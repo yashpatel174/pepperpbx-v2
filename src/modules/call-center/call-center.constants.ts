@@ -42,9 +42,9 @@ export const tierLevelAndPositionOptions: { label: string; value: number }[] = A
 /**
  * Four-key granular permission module (call-center.md §14/§33: "Preserve both permission
  * modules... the two-module split is an intentional design choice"). This module implements only
- * the `CALLCENTER_PERMISSION` half (queue CRUD) — the separate `AGENT_PERMISSION`-gated Agent
- * entity CRUD/Agent Status sub-screens are out of scope for this module (see call-center.router.tsx's
- * top comment). Deliberately module-local placeholder strings per CLAUDE.md's `<module>.<action>`
+ * the `CALLCENTER_PERMISSION` half (queue CRUD) — the `AGENT_PERMISSION`-gated Agent entity
+ * CRUD/Agent Status screens are the separate `call-center-agents` module, with its own
+ * permission keys. Deliberately module-local placeholder strings per CLAUDE.md's `<module>.<action>`
  * naming rule — not a reproduction of Axion's literal `pbx_callcenter_*` names.
  *
  * NOT reproduced: the audit's row-level permission flags read from each list row's own embedded
@@ -73,7 +73,7 @@ export const getDefaultCallCenterFormValues = (hive: HiveCallCenterDetails): Cal
   queue_name: '',
   queue_extension: hive.autoExtension,
   queue_strategy: 'longest-idle-agent',
-  queue_moh_sound: '',
+  queue_moh_sound: undefined,
   queue_time_base_score: 'system',
   queue_max_wait_time: '0',
   queue_tier_rule_wait_second: '30',

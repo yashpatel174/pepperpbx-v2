@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { App, Button, Space, theme ,Tooltip } from 'antd'
+import { App, Button, Space, theme, Tooltip } from 'antd'
 import { ArrowLeftOutlined, CaretRightOutlined, ReloadOutlined, StopOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
 import LoadingState from '../../../components/feedback/LoadingState'
@@ -19,7 +19,15 @@ import {
   updateCallCenter,
 } from '../call-center.service'
 import useCallCenterPermissions from '../useCallCenterPermissions'
-import type { CallCenterDetails, CallCenterFlagCommand, CallCenterFormValues, HiveCallCenterDetails, SelectOption } from '../call-center.types'
+import { isNotFoundError } from '../../../services/api/apiError'
+import type {
+  CallCenterDetails,
+  CallCenterFlagCommand,
+  CallCenterFormValues,
+  CallCenterTierFormValue,
+  HiveCallCenterDetails,
+  SelectOption,
+} from '../call-center.types'
 
 const EDIT_CALL_CENTER_FORM_ID = 'edit-call-center-form'
 
@@ -41,11 +49,38 @@ const loadDomainOptions = async (domainName: string) => {
   }
 }
 
-/** Maps the stored/API details back into the form model — a straight passthrough (one shared shape). */
-const toFormValues = (details: CallCenterDetails): CallCenterFormValues => ({ ...details })
+const toOptionalString = (value?: number): string | undefined => (value === undefined ? undefined : String(value))
+
+/**
+ * call-center.md §9/§27's `sortCallCenterTier`: tiers ordered by tier position, then by agent label
+ * (locale-aware). Sorts a copy (stable), so the loaded details are never mutated; a row whose agent
+ * isn't in `agentOptions` sorts with an empty label. Applied only when a record loads, so rows are
+ * never reordered while the user is editing.
+ */
+const sortTiers = (tiers: CallCenterTierFormValue[], agentOptions: SelectOption[]): CallCenterTierFormValue[] => {
+  const labelOf = (agentUuid?: string) => agentOptions.find((option) => option.value === agentUuid)?.label ?? ''
+  return [...tiers].sort(
+    (a, b) => a.tier_position - b.tier_position || labelOf(a.call_center_agent_uuid).localeCompare(labelOf(b.call_center_agent_uuid))
+  )
+}
+
+/** Maps the stored/API details back into the form model — numeric fields back to the form's string inputs. */
+const toFormValues = (details: CallCenterDetails, agentOptions: SelectOption[]): CallCenterFormValues => ({
+  ...details,
+  queue_max_wait_time: toOptionalString(details.queue_max_wait_time),
+  queue_tier_rule_wait_second: toOptionalString(details.queue_tier_rule_wait_second),
+  queue_discard_abandoned_after: toOptionalString(details.queue_discard_abandoned_after),
+  queue_time_base_score_sec: toOptionalString(details.queue_time_base_score_sec),
+  queue_max_wait_time_with_no_agent: toOptionalString(details.queue_max_wait_time_with_no_agent),
+  queue_max_wait_time_with_no_agent_time_reached: toOptionalString(details.queue_max_wait_time_with_no_agent_time_reached),
+  queue_announce_frequency: toOptionalString(details.queue_announce_frequency),
+  callcenter_tier: sortTiers(details.callcenter_tier, agentOptions),
+})
+
+const lifecyclePastTense: Record<CallCenterFlagCommand, string> = { load: 'started', unload: 'stopped', reload: 'restarted' }
 
 const EditCallCenterPage = () => {
-const { token } = theme.useToken()
+  const { token } = theme.useToken()
   const navigate = useNavigate()
   const { message } = App.useApp()
   const { canManageAll, canEdit, canView } = useCallCenterPermissions()
@@ -95,11 +130,10 @@ const { token } = theme.useToken()
         setAgentOptions(options.agentOptions)
         setFormKey((key) => key + 1)
       } catch (err) {
-        // getCallCenterDetails rejects with a "not found" message when the id doesn't match any
-        // record — distinguished from a genuine fetch failure so the page can show a record-scoped
-        // EmptyState instead of an ErrorState+retry (retrying a bad id can't help), matching the
-        // Call Center Agent module's identical EditCallCenterAgentPage.tsx pattern.
-        if (err instanceof Error && err.message.includes('not found')) {
+        // A 404 (unknown id) is distinguished from a genuine fetch failure so the page can show a
+        // record-scoped EmptyState instead of an ErrorState+retry (retrying a bad id can't help),
+        // matching the Call Center Agent module's identical EditCallCenterAgentPage.tsx pattern.
+        if (isNotFoundError(err)) {
           setNotFound(true)
         } else {
           setError('Failed to load this call center queue.')
@@ -148,7 +182,7 @@ const { token } = theme.useToken()
     setLifecycleAction(flagCommand)
     try {
       await startStopRestartCallCenter(details.call_center_queue_uuid, flagCommand)
-      message.success(`Call center queue ${label.toLowerCase()}ed.`)
+      message.success(`Call center queue ${lifecyclePastTense[flagCommand]}.`)
       await load(false)
     } catch (err) {
       message.error(err instanceof Error ? err.message : `Failed to ${label.toLowerCase()} call center queue.`)
@@ -245,7 +279,7 @@ const { token } = theme.useToken()
         key={formKey}
         formId={EDIT_CALL_CENTER_FORM_ID}
         mode="edit"
-        initialValues={toFormValues(details)}
+        initialValues={toFormValues(details, agentOptions)}
         queueUuid={details.call_center_queue_uuid}
         hive={hive}
         greetingOptions={greetingOptions}

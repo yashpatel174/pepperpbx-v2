@@ -1,6 +1,7 @@
 import { defaultPageSize, searchableAgentFields } from './call-center-agents.constants'
 import { mockCallCenterAgents as seedAgents, mockContactOptionsByDomain, mockHiveCallCenterAgentDetails } from './call-center-agents.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   AgentStatusEntry,
   AgentStatusUpdate,
@@ -84,14 +85,18 @@ export const fetchCallCenterAgents = (query: CallCenterAgentListQuery = {}): Pro
     }, 300)
   })
 
-/** GET /api/callCentersAgents/details?call_center_agent_uuid= (call-center.md §25). */
+/**
+ * GET /api/callCentersAgents/details?call_center_agent_uuid= (call-center.md §25). An unknown id
+ * rejects with the same `ApiError` shape (status 404) the real apiClient produces.
+ */
 export const getCallCenterAgentDetails = (agentUuid: string): Promise<CallCenterAgentDetails> =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
       const details = agents.find((record) => record.call_center_agent_uuid === agentUuid)
 
       if (!details) {
-        reject(new Error(`Call center agent ${agentUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Call center agent ${agentUuid} not found.` }
+        reject(notFound)
         return
       }
 

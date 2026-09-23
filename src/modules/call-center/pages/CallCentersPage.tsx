@@ -54,7 +54,10 @@ const CallCentersPage = () => {
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
   const [copyTarget, setCopyTarget] = useState<CallCenter | null>(null)
   const [copyHive, setCopyHive] = useState<HiveCallCenterDetails | null>(null)
+  const [copyHiveError, setCopyHiveError] = useState(false)
   const [copySubmitting, setCopySubmitting] = useState(false)
+  // Only the latest Copy bootstrap may apply — a slow response for a closed/replaced Copy target is ignored.
+  const copyRequestRef = useRef(0)
 
   const hasSelection = selectedCallCenterIds.length > 0
   // Row Edit is reachable by view-only users too (read-only form); row Delete requires the
@@ -63,6 +66,8 @@ const CallCentersPage = () => {
   const canEditRow = canManageAll || canEdit || canView
   const canCopyRow = canManageAll || canAdd
   const canDeleteRow = canManageAll
+  // Tier Rules Apply inline toggle — same edit tier as Call Block's/Announcements' Status pill.
+  const canToggleRow = canManageAll || canEdit
 
   useEffect(() => {
     if (selectedCallCenterIds.length === 0) setBulkAction(undefined)
@@ -94,15 +99,28 @@ const CallCentersPage = () => {
   const handleAgents = () => navigate('/call-center/agents')
   const handleEdit = (callCenter: CallCenter) => navigate(`/call-center/${callCenter.id}/edit`)
 
-  const handleCopyClick = async (callCenter: CallCenter) => {
-    setCopyTarget(callCenter)
+  const loadCopyHive = async (callCenter: CallCenter) => {
+    const requestId = ++copyRequestRef.current
     setCopyHive(null)
+    setCopyHiveError(false)
     try {
       const hive = await getHiveCallCenterDetails(callCenter.domain)
-      setCopyHive(hive)
+      if (requestId === copyRequestRef.current) setCopyHive(hive)
     } catch {
-      message.error('Failed to load domain details for copy.')
+      if (requestId === copyRequestRef.current) setCopyHiveError(true)
     }
+  }
+
+  const handleCopyClick = (callCenter: CallCenter) => {
+    setCopyTarget(callCenter)
+    void loadCopyHive(callCenter)
+  }
+
+  const closeCopy = () => {
+    copyRequestRef.current++
+    setCopyTarget(null)
+    setCopyHive(null)
+    setCopyHiveError(false)
   }
 
   const handleCopyConfirm = async ({ name, extension }: { name: string; extension: string }) => {
@@ -111,8 +129,7 @@ const CallCentersPage = () => {
     try {
       await copyCallCenter(copyTarget.id, name, extension)
       message.success(`Call center queue ${copyTarget.name} copied.`)
-      setCopyTarget(null)
-      setCopyHive(null)
+      closeCopy()
       await refresh()
       clearSelection()
     } catch (err) {
@@ -243,6 +260,7 @@ const CallCentersPage = () => {
           canEditRow={canEditRow}
           canCopyRow={canCopyRow}
           canDeleteRow={canDeleteRow}
+          canToggleRow={canToggleRow}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onEdit={handleEdit}
@@ -265,12 +283,11 @@ const CallCentersPage = () => {
         open={!!copyTarget}
         target={copyTarget}
         hive={copyHive}
+        hiveError={copyHiveError}
+        onRetryHive={() => copyTarget && loadCopyHive(copyTarget)}
         submitting={copySubmitting}
         onSubmit={handleCopyConfirm}
-        onCancel={() => {
-          setCopyTarget(null)
-          setCopyHive(null)
-        }}
+        onCancel={closeCopy}
       />
     </Space>
   )

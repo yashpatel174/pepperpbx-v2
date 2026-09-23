@@ -20,6 +20,8 @@ interface CallCenterTableProps {
   canCopyRow: boolean;
   /** Gates Delete — module-admin tier only, per the audit (call-center.md §14). */
   canDeleteRow: boolean;
+  /** Gates the inline Tier Rules Apply toggle — same edit tier as Call Block/Announcements' Status pill. */
+  canToggleRow: boolean;
   onPageChange: (page: number, pageSize: number) => void;
   onPageSizeChange: (size: number) => void;
   onEdit: (callCenter: CallCenter) => void;
@@ -44,6 +46,7 @@ const CallCenterTable = ({
   canEditRow,
   canCopyRow,
   canDeleteRow,
+  canToggleRow,
   onPageChange,
   onPageSizeChange,
   onEdit,
@@ -81,7 +84,6 @@ const CallCenterTable = ({
       title: "Queue Name",
       dataIndex: "name",
       key: "name",
-      // width: 200,
       ellipsis: true,
       render: (value: string) => <Tooltip title={value}>{value}</Tooltip>,
       sorter: (a, b) => a.name.localeCompare(b.name),
@@ -91,7 +93,6 @@ const CallCenterTable = ({
       title: "Extension",
       dataIndex: "extension",
       key: "extension",
-      // width: 120,
       render: renderOptionalText,
       sorter: (a, b) => compareOptional(a.extension, b.extension),
     },
@@ -100,7 +101,6 @@ const CallCenterTable = ({
       title: "Strategy",
       dataIndex: "strategy",
       key: "strategy",
-      // width: 200,
       render: (value: CallCenter["strategy"]) => queueStrategyLabel(value),
       sorter: (a, b) => compareOptional(a.strategy, b.strategy),
     },
@@ -122,10 +122,12 @@ const CallCenterTable = ({
         const isEnabled = record.tierRulesApply;
 
         return (
-          <Tag
-            icon={isEnabled ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
-            style={{
-                cursor: "pointer",
+          <Tooltip title={canToggleRow ? `Click to ${isEnabled ? "disable" : "enable"}` : undefined}>
+            <Tag
+              icon={isEnabled ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
+              style={{
+                cursor: canToggleRow ? "pointer" : "not-allowed",
+                opacity: canToggleRow ? 1 : 0.6,
                 backgroundColor: isEnabled ? "#00D27A" : "#f16b3e",
                 color: "#fff",
                 borderColor: isEnabled ? "#00D27A" : "#f16b3e",
@@ -135,10 +137,11 @@ const CallCenterTable = ({
                 minHeight: "28px",
                 lineHeight: "20px",
               }}
-            onClick={() => onToggleTierRulesApply(record)}
-          >
-            {isEnabled ? "Enabled" : "Disabled"}
-          </Tag>
+              onClick={() => canToggleRow && onToggleTierRulesApply(record)}
+            >
+              {isEnabled ? "Enabled" : "Disabled"}
+            </Tag>
+          </Tooltip>
         );
       },
     },

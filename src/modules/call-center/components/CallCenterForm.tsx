@@ -1,5 +1,5 @@
 import { App, Col, Form, Row } from 'antd'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
 import type { CallCenterFormValues, HiveCallCenterDetails, SelectOption } from '../call-center.types'
 import CallCenterBasicSection from './CallCenterBasicSection'
@@ -23,8 +23,9 @@ export interface CallCenterFormProps {
   optionsLoading?: boolean
   canManage: boolean
   submitting: boolean
-  /** Called once the domain-change notice is dismissed, so the page can re-fetch domain-dependent
-   * options (greeting/timeout/announce/MOH/agent) for the new domain. */
+  /** Called once the domain-change notice is confirmed, so the page can re-fetch the new domain's
+   * Hive details (extension range/exclusions/suggestion → the `hive` prop) and domain-dependent
+   * options (greeting/timeout/announce/MOH/agent). */
   onDomainConfirmed?: (domainName: string) => void
   onSubmit: (values: CallCenterFormValues) => void
   /** HTML form id — the page renders Cancel/Save (and, on Edit, Start/Stop/Restart) in its
@@ -59,13 +60,23 @@ const CallCenterForm = ({
   const [form] = Form.useForm<CallCenterFormValues>()
   const { modal } = App.useApp()
   const currentDomainRef = useRef(initialValues.domain_name)
+  // Set on a confirmed domain change; the next `hive` the page delivers (straight away, or via
+  // Retry if the first fetch failed) is the new domain's, so its suggested extension replaces the
+  // old domain's — clearing any stale range/reserved error from the previous domain's rules.
+  const awaitingDomainHiveRef = useRef(false)
+
+  useEffect(() => {
+    if (!awaitingDomainHiveRef.current) return
+    awaitingDomainHiveRef.current = false
+    form.setFields([{ name: 'queue_extension', value: hive.autoExtension, errors: [] }])
+  }, [hive, form])
 
   /**
    * Matches the domain-change popup pattern already established for Outbound Routes/
    * Announcements/Call Block: rather than wiping the *entire* form back to defaults (Axion's
    * literal behavior, call-center.md §9/§20 — "footer={false}", "closing resets form"), only the
-   * domain-scoped fields (Greeting/Timeout Destination/Announce Sound/Music On Hold/Agent tiers)
-   * are reset and re-fetched for the new domain, preserving everything the user already typed —
+   * domain-scoped fields (Extension suggestion/Greeting/Timeout Destination/Announce Sound/Music On
+   * Hold/Agent tiers) are reset and re-fetched for the new domain, preserving everything else —
    * the same "reset only what's actually domain-dependent" principle already applied consistently
    * across this codebase.
    */
@@ -96,10 +107,11 @@ const CallCenterForm = ({
           queue_greeting: undefined,
           queue_timeout_action: undefined,
           queue_announce_sound: undefined,
-          queue_moh_sound: '',
+          queue_moh_sound: undefined,
           callcenter_tier: [{ tier_level: 0, tier_position: 0 }],
         })
 
+        awaitingDomainHiveRef.current = true
         onDomainConfirmed?.(value)
       },
       onCancel: () => {

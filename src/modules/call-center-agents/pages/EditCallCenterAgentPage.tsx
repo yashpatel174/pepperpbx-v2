@@ -9,6 +9,7 @@ import ErrorState from '../../../components/feedback/ErrorState'
 import AgentForm from '../components/AgentForm'
 import { getCallCenterAgentContactOptions, getCallCenterAgentDetails, getHiveCallCenterAgentDetails, updateCallCenterAgent } from '../call-center-agents.service'
 import useCallCenterAgentPermissions from '../useCallCenterAgentPermissions'
+import { isNotFoundError } from '../../../services/api/apiError'
 import type { CallCenterAgentDetails, CallCenterAgentFormValues, HiveCallCenterAgentDetails, SelectOption } from '../call-center-agents.types'
 
 const EDIT_AGENT_FORM_ID = 'edit-call-center-agent-form'
@@ -50,10 +51,9 @@ const EditCallCenterAgentPage = () => {
         setContactOptions(contacts)
         setFormKey((key) => key + 1)
       } catch (err) {
-        // getCallCenterAgentDetails rejects with a "not found" message when the id doesn't match
-        // any record — distinguished from a genuine fetch failure so the page can show a
+        // A 404 (unknown id) is distinguished from a genuine fetch failure so the page can show a
         // record-scoped EmptyState instead of an ErrorState+retry (retrying a bad id can't help).
-        if (err instanceof Error && err.message.includes('not found')) {
+        if (isNotFoundError(err)) {
           setNotFound(true)
         } else {
           setError('Failed to load this call center agent.')

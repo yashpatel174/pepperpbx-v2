@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
@@ -61,6 +61,10 @@ const AddCallCenterPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
   const [hasOptionsError, setHasOptionsError] = useState(false)
+  // The domain the form is currently scoped to — Retry must reload *this* domain, not the default.
+  const [selectedDomain, setSelectedDomain] = useState<string | null>(null)
+  // Only the latest domain load may apply its results (guards changing domain twice in a row).
+  const domainRequestRef = useRef(0)
 
   const canAccessForm = canManageAll || canAdd
 
@@ -70,6 +74,7 @@ const AddCallCenterPage = () => {
       .then(async (hiveDetails) => {
         if (!active) return
         setHive(hiveDetails)
+        setSelectedDomain(hiveDetails.defaultDomain)
         const options = await loadDomainOptions(hiveDetails.defaultDomain)
         if (!active) return
         setGreetingOptions(options.greetingOptions)
@@ -92,22 +97,30 @@ const AddCallCenterPage = () => {
 
   const handleCancel = () => navigate('/call-center')
 
-  // Matches the audit: once a domain change is dismissed, re-fetch the domain-dependent option
-  // lists for the newly selected domain — call-center.md §9.
+  // Matches call-center.md §9: a confirmed domain change re-fetches that domain's Hive details
+  // (extension range/exclusions/suggested extension, which drive queue_extension's validation and
+  // pre-filled value — CallCenterForm applies the suggestion when the new `hive` arrives) together
+  // with the five domain-dependent option lists. A failed Hive fetch keeps the previous `hive` and
+  // surfaces through the same "Some data couldn't be loaded" + Retry as a failed option list.
   const handleDomainConfirmed = async (domainName: string) => {
+    const requestId = ++domainRequestRef.current
+    setSelectedDomain(domainName)
     setOptionsLoading(true)
     try {
-      const options = await loadDomainOptions(domainName)
+      const [hiveDetails, options] = await Promise.all([
+        getHiveCallCenterDetails(domainName).catch(() => undefined),
+        loadDomainOptions(domainName),
+      ])
+      if (requestId !== domainRequestRef.current) return
+      if (hiveDetails) setHive(hiveDetails)
       setGreetingOptions(options.greetingOptions)
       setTimeoutActionOptions(options.timeoutActionOptions)
       setAnnounceOptions(options.announceOptions)
       setMusicOnHoldOptions(options.musicOnHoldOptions)
       setAgentOptions(options.agentOptions)
-      setHasOptionsError(options.hasError)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+      setHasOptionsError(options.hasError || !hiveDetails)
     } finally {
-      setOptionsLoading(false)
+      if (requestId === domainRequestRef.current) setOptionsLoading(false)
     }
   }
 
@@ -161,7 +174,10 @@ const AddCallCenterPage = () => {
         }
       />
       {hasOptionsError && (
-        <ErrorState message="Some data couldn't be loaded. Please refresh and try again." onRetry={() => handleDomainConfirmed(hive.defaultDomain)} />
+        <ErrorState
+          message="Some data couldn't be loaded. Please refresh and try again."
+          onRetry={() => handleDomainConfirmed(selectedDomain ?? hive.defaultDomain)}
+        />
       )}
       <CallCenterForm
         formId={ADD_CALL_CENTER_FORM_ID}

@@ -11,7 +11,7 @@ import {
 } from "../call-center-agents.validation";
 import { agentStatusOptions } from "../call-center-agents.constants";
 import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
-import ToggleSelectInput from "../../call-center/components/ToggleSelectInput";
+import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
 import type { CallCenterAgentFormValues, HiveCallCenterAgentDetails, SelectOption } from "../call-center-agents.types";
 
 const { Password } = Input;

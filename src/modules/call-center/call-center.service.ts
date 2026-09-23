@@ -9,6 +9,7 @@ import {
   mockTimeoutActionOptionsByDomain,
 } from './call-center.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   CallCenter,
   CallCenterDetails,
@@ -89,14 +90,19 @@ export const fetchCallCenters = (query: CallCenterListQuery = {}): Promise<CallC
     }, 300)
   })
 
-/** GET /api/callCenters/details?call_center_queue_uuid= (call-center.md §12). */
+/**
+ * GET /api/callCenters/details?call_center_queue_uuid= (call-center.md §12). An unknown id rejects
+ * with the same `ApiError` shape (status 404) the real apiClient produces, so EditCallCenterPage's
+ * not-found handling keeps working unchanged once this becomes a real request.
+ */
 export const getCallCenterDetails = (queueUuid: string): Promise<CallCenterDetails> =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
       const details = callCenters.find((record) => record.call_center_queue_uuid === queueUuid)
 
       if (!details) {
-        reject(new Error(`Call center queue ${queueUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Call center queue ${queueUuid} not found.` }
+        reject(notFound)
         return
       }
 
@@ -153,8 +159,8 @@ export const getCallCenterTimeoutActionOptions = (domainName?: string): Promise<
 
 /**
  * GET .../callCenters/getAgent?domain_name=... — options for the Agent tier assignment select
- * (call-center.md §8/§9/§12/§33). Not the Agent entity's own CRUD (out of scope — see
- * call-center.router.tsx).
+ * (call-center.md §8/§9/§12/§33). The Agent entity's own CRUD lives in the separate
+ * `call-center-agents` module.
  */
 export const getCallCenterAgentOptions = (domainName?: string): Promise<SelectOption[]> =>
   new Promise((resolve) => setTimeout(() => resolve(domainScopedOptions(mockAgentOptionsByDomain, domainName)), 250))
@@ -166,6 +172,9 @@ export const getCallCenterAnnounceOptions = (domainName?: string): Promise<Selec
 /** GET .../callCenters/mohDropdown?domain_name=... (call-center.md §8/§9/§12/§33). */
 export const getCallCenterMusicOnHoldOptions = (domainName?: string): Promise<SelectOption[]> =>
   new Promise((resolve) => setTimeout(() => resolve(domainScopedOptions(mockMusicOnHoldOptionsByDomain, domainName)), 250))
+
+/** Empty → `undefined`; anything else → `Number(value)`, so '0' stays 0. */
+const toOptionalNumber = (value?: string): number | undefined => (value === undefined || value.trim() === '' ? undefined : Number(value))
 
 /**
  * Maps form values into the stored/API details shape. Numeric fields stay validated strings on
@@ -181,6 +190,8 @@ export const getCallCenterMusicOnHoldOptions = (domainName?: string): Promise<Se
 const toDetails = (values: CallCenterFormValues, queueUuid: string): CallCenterDetails => ({
   ...values,
   call_center_queue_uuid: queueUuid,
+  // Type-level only: the form's required rule guarantees a value by submit time.
+  queue_moh_sound: values.queue_moh_sound ?? '',
   queue_description: values.queue_description?.trim() || undefined,
   queue_distinctive_ring: values.queue_distinctive_ring || undefined,
   queue_cid_prefix: values.queue_cid_prefix || undefined,
@@ -190,6 +201,13 @@ const toDetails = (values: CallCenterFormValues, queueUuid: string): CallCenterD
   queue_greeting: values.queue_greeting || undefined,
   queue_timeout_action: values.queue_timeout_action || undefined,
   queue_announce_sound: values.queue_announce_sound || undefined,
+  queue_max_wait_time: toOptionalNumber(values.queue_max_wait_time),
+  queue_tier_rule_wait_second: toOptionalNumber(values.queue_tier_rule_wait_second),
+  queue_discard_abandoned_after: toOptionalNumber(values.queue_discard_abandoned_after),
+  queue_time_base_score_sec: toOptionalNumber(values.queue_time_base_score_sec),
+  queue_max_wait_time_with_no_agent: toOptionalNumber(values.queue_max_wait_time_with_no_agent),
+  queue_max_wait_time_with_no_agent_time_reached: toOptionalNumber(values.queue_max_wait_time_with_no_agent_time_reached),
+  queue_announce_frequency: toOptionalNumber(values.queue_announce_frequency),
   callcenter_tier: values.callcenter_tier.filter((tier) => !!tier.call_center_agent_uuid),
 })
 
@@ -291,8 +309,8 @@ export const toggleCallCenterTierRules = (queueUuid: string): Promise<CallCenter
  * for an *existing, already-persisted* row; the Call Center Agent entity itself is never touched
  * (call-center.md §8/§11/§12/§27/§33). Distinct from:
  * - `deleteCallCenters` (deletes whole queues), and
- * - any Agent-entity delete (`DELETE /api/callCentersAgents/delete`) — out of scope for this
- *   module, see call-center.router.tsx's top comment.
+ * - any Agent-entity delete (`DELETE /api/callCentersAgents/delete`) — owned by the separate
+ *   `call-center-agents` module.
  *
  * Called only for rows that already have a `call_center_tier_uuid` (i.e. loaded from an existing
  * queue's details, never a newly-added unsaved row) — see CallCenterTierSection.tsx's delete

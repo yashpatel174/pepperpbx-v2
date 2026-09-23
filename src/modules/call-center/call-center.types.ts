@@ -33,9 +33,9 @@ export interface CallCenter {
   extension: string
   strategy: QueueStrategy
   description?: string
-  /** Drives the read-only "Tier Rules Apply" badge (call-center.md §5) — not a clickable status;
-   * Call Center queues have no list-level enabled/disabled concept, see call-center.md §5's table
-   * column set (no Status column) and §33's explicit warning against inventing one. */
+  /** Drives the list's "Tier Rules Apply" pill (call-center.md §5). call-center.md documents it as
+   * a read-only badge; the list currently makes it an inline toggle (edit-permission-gated, same
+   * pattern as Call Block/Announcements) — see toggleCallCenterTierRules in call-center.service.ts. */
   tierRulesApply: boolean
 }
 
@@ -87,19 +87,18 @@ export interface CallCenterTierFormValue {
  * in call-center.service.ts's `toDetails`) — same convention as Gateways'/Extensions'
  * `*FormValues` (see gateway.types.ts's own comment on this).
  *
- * NOT reproduced: Axion's `ToggleSelectInputCallCenter` custom select-or-type-your-own control for
- * `queue_greeting`/`queue_timeout_action`/`queue_announce_sound` — PepperPBX has no equivalent
- * component in any existing module, and CLAUDE.md's "don't build abstractions ahead of real
- * repetition" rule argues against inventing one for a single module. Ant Design's own
- * `AutoComplete` (a stock component, not a new dependency) provides the same "pick from a fetched
- * list or type a custom value" behavior and is used instead — see CallCenterBasicSection.tsx.
+ * `queue_greeting`/`queue_timeout_action`/`queue_announce_sound` are edited with the shared
+ * `ToggleSelectInput` (components/common) — see CallCenterBasicSection.tsx.
+ *
+ * `queue_moh_sound` is required on submit but `undefined` until picked, so the Select shows its
+ * placeholder (an empty string would count as a selected value).
  */
 export interface CallCenterFormValues {
   queue_name: string
   queue_extension: string
   queue_greeting?: string
   queue_strategy: QueueStrategy
-  queue_moh_sound: string
+  queue_moh_sound?: string
   queue_distinctive_ring?: string
   queue_time_base_score: TimeBaseScore
   queue_max_wait_time?: string
@@ -127,9 +126,27 @@ export interface CallCenterFormValues {
   callcenter_tier: CallCenterTierFormValue[]
 }
 
-/** The stored/API record shape — the create/update form model as returned by the server. */
-export interface CallCenterDetails extends CallCenterFormValues {
+/** The numeric fields call-center.md §27 documents as `Number()`-coerced on submit. */
+export type CallCenterNumericField =
+  | 'queue_max_wait_time'
+  | 'queue_tier_rule_wait_second'
+  | 'queue_discard_abandoned_after'
+  | 'queue_time_base_score_sec'
+  | 'queue_max_wait_time_with_no_agent'
+  | 'queue_max_wait_time_with_no_agent_time_reached'
+  | 'queue_announce_frequency'
+
+/**
+ * The stored/API record shape — the form model with call-center.md §27's numeric fields as real
+ * numbers (`undefined` when left empty). `queue_outbound_caller_id_number` stays a string: it's a
+ * phone number, not a quantity, and isn't in §27's coercion list. `queue_moh_sound` is required
+ * on the record (the form's required rule guarantees it by submit time).
+ */
+export type CallCenterDetails = Omit<CallCenterFormValues, CallCenterNumericField | 'queue_moh_sound'> & {
+  [Field in CallCenterNumericField]?: number
+} & {
   call_center_queue_uuid: string
+  queue_moh_sound: string
 }
 
 /**
