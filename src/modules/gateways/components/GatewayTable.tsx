@@ -120,21 +120,20 @@ const GatewayTable = ({
         }
 
         const stopped = record.status === "Stopped";
-        const actionColor = stopped ? token.colorSuccess : token.colorError;
 
         return (
           <Tag
             style={{
-              cursor: "pointer",
-              backgroundColor: actionColor,
-              color: token.colorTextLightSolid,
-              borderColor: actionColor,
-              fontWeight: 500,
-              borderRadius: "999px",
-              padding: "4px 14px",
-              minHeight: "28px",
-              lineHeight: "20px",
-            }}
+                cursor: "pointer",
+                backgroundColor: stopped ? "#00D27A" : "#f16b3e",
+                color: "#fff",
+                borderColor: stopped ? "#00D27A" : "#f16b3e",
+                fontWeight: 500,
+                borderRadius: "999px",
+                padding: "4px 14px",
+                minHeight: "28px",
+                lineHeight: "20px",
+              }}
             onClick={() => onStartStop(record)}
           >
             {stopped ? "Start" : "Stop"}
@@ -165,7 +164,6 @@ const GatewayTable = ({
       width: 120,
       render: (_, record) => {
         const isEnabled = record.enabled;
-        const enabledColor = isEnabled ? token.colorSuccess : token.colorError;
 
         return (
           <Tooltip title={`Click to ${isEnabled ? "disable" : "enable"}`}>
@@ -173,9 +171,9 @@ const GatewayTable = ({
               icon={isEnabled ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
               style={{
                 cursor: "pointer",
-                backgroundColor: enabledColor,
-                color: token.colorTextLightSolid,
-                borderColor: enabledColor,
+                backgroundColor: isEnabled ? "#00D27A" : "#f16b3e",
+                color: "#fff",
+                borderColor: isEnabled ? "#00D27A" : "#f16b3e",
                 fontWeight: 500,
                 borderRadius: "999px",
                 padding: "4px 14px",

@@ -150,7 +150,7 @@ const OutboundRouteTable = ({
       title: 'Actions',
       key: 'actions',
       fixed: 'right',
-      width: 100,
+      width: 120,
       render: (_, record) => (
         <Space size="small">
           {/* TODO: wrap with <PermissionGuard permission="outboundRoute.manage"> once RBAC
