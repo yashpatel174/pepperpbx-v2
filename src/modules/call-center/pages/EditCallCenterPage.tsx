@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { App, Button, Space, Tooltip } from 'antd'
+import { App, Button, Space, theme ,Tooltip } from 'antd'
 import { ArrowLeftOutlined, CaretRightOutlined, ReloadOutlined, StopOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
 import LoadingState from '../../../components/feedback/LoadingState'
@@ -45,6 +45,7 @@ const loadDomainOptions = async (domainName: string) => {
 const toFormValues = (details: CallCenterDetails): CallCenterFormValues => ({ ...details })
 
 const EditCallCenterPage = () => {
+const { token } = theme.useToken()
   const navigate = useNavigate()
   const { message } = App.useApp()
   const { canManageAll, canEdit, canView } = useCallCenterPermissions()
@@ -190,6 +191,11 @@ const EditCallCenterPage = () => {
                       icon={<CaretRightOutlined />}
                       loading={lifecycleAction === 'load'}
                       disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'load')}
+                      style={{
+                        color: '#fff',
+                        backgroundColor: token.colorSuccess,
+                        borderColor: token.colorSuccess,
+                      }}
                       onClick={() => handleLifecycleAction('load', 'Start')}
                     >
                       Start
@@ -198,6 +204,11 @@ const EditCallCenterPage = () => {
                   <Tooltip title="Stop">
                     <Button
                       icon={<StopOutlined />}
+                       style={{
+                          color: '#fff',
+                          backgroundColor: token.colorError,
+                          borderColor: token.colorError,
+                        }}
                       loading={lifecycleAction === 'unload'}
                       disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'unload')}
                       onClick={() => handleLifecycleAction('unload', 'Stop')}
@@ -208,6 +219,7 @@ const EditCallCenterPage = () => {
                   <Tooltip title="Restart">
                     <Button
                       icon={<ReloadOutlined />}
+                      type='primary'
                       loading={lifecycleAction === 'reload'}
                       disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'reload')}
                       onClick={() => handleLifecycleAction('reload', 'Restart')}

@@ -1,5 +1,6 @@
 import { App, Col, Form, Row } from 'antd'
 import { useRef } from 'react'
+import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
 import type { CallCenterFormValues, HiveCallCenterDetails, SelectOption } from '../call-center.types'
 import CallCenterBasicSection from './CallCenterBasicSection'
 import CallCenterSwitchSection from './CallCenterSwitchSection'
@@ -84,9 +85,8 @@ const CallCenterForm = ({
     // AgentForm.tsx's identical fix for the same class of issue.
     modal.confirm({
       title: 'Domain changed',
-      content:
-        'Greeting, Timeout Destination, Announce Sound, Music On Hold, and Agent Tier options will be reset, since they are scoped to the previous domain.',
-      okText: 'OK',
+      content: domainChangeMessage(),
+      okText: 'Continue',
       cancelText: 'Cancel',
       onOk: () => {
         currentDomainRef.current = value

@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { App, Button, Card, Col, Form, Input, InputNumber, Row, Select } from "antd";
+import { domainChangeMessage } from "../../../../components/common/domainChangeMessage";
 import { isDestinationNumberTaken } from "../destination.service";
 import { typeOptions } from "../destination.constants";
 import type {
@@ -102,7 +103,7 @@ const DestinationForm = ({
 
     modal.confirm({
       title: "Change domain?",
-      content: "Once you update the domain, any pre-selected values will be reset.",
+      content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",
       onOk: () => {

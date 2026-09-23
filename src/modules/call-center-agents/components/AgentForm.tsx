@@ -10,6 +10,7 @@ import {
   numericUpTo3DigitsRule,
 } from "../call-center-agents.validation";
 import { agentStatusOptions } from "../call-center-agents.constants";
+import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
 import ToggleSelectInput from "../../call-center/components/ToggleSelectInput";
 import type { CallCenterAgentFormValues, HiveCallCenterAgentDetails, SelectOption } from "../call-center-agents.types";
 
@@ -83,8 +84,8 @@ const AgentForm = ({
     // specifically so a Cancel path exists to do that restoration.
     modal.confirm({
       title: "Domain changed",
-      content: "The Contact selection will be reset, since it is scoped to the previous domain.",
-      okText: "OK",
+      content: domainChangeMessage(),
+      okText: "Continue",
       cancelText: "Cancel",
       onOk: () => {
         currentDomainRef.current = value;

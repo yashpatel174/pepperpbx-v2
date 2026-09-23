@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { App, Form, Space } from 'antd'
+import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
 import type { AnnouncementFormValues, HiveAnnouncementDetails, SelectOption } from '../announcement.types'
 import AnnouncementBasicSection from './AnnouncementBasicSection'
 import AnnouncementStructureSection from './AnnouncementStructureSection'
@@ -70,7 +71,7 @@ const AnnouncementForm = ({
 
     modal.confirm({
       title: 'Change domain?',
-      content: 'Once you update the domain, the Structure rows will be reset, since their actions are scoped to the previous domain.',
+      content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',
       onOk: () => {
