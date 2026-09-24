@@ -78,7 +78,7 @@ const CallCenterBasicSection = ({
             validateFirst
             rules={extensionRangeRule(hive)}
           >
-            <Input type="number" min={0} placeholder="Enter extension" disabled={mode === "edit" && disabled} aria-label="Extension" />
+            <Input type="number" min={2000 } max={2999} placeholder="Enter extension" disabled={mode === "edit" && disabled} aria-label="Extension" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>
@@ -260,7 +260,7 @@ const CallCenterBasicSection = ({
             tooltip="Enter the external (public) caller ID number here"
             rules={[numericUpTo20DigitsRule]}
           >
-            <Input placeholder="Enter outbound caller ID number" />
+            <Input type={"number"} min={0} placeholder="Enter outbound caller ID number" />
           </Form.Item>
         </Col>
         <Col xs={24} sm={12} md={8}>

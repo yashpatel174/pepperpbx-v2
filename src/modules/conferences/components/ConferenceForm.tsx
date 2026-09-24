@@ -150,7 +150,7 @@ const ConferenceForm = ({
               validateFirst
               rules={extensionRangeRule(hive)}
             >
-              <Input placeholder="Enter extension" disabled={mode === 'edit' && disabled} aria-label="Extension" />
+              <Input type={"number"} min={0} placeholder="Enter extension" disabled={mode === 'edit' && disabled} aria-label="Extension" />
             </Form.Item>
           </Col>
 
@@ -161,7 +161,7 @@ const ConferenceForm = ({
               tooltip="Optional PIN number to secure access to the conference."
               rules={[pinNumberRule, noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter PIN number" aria-label="PIN number" />
+              <Input type={"number"} min={0} placeholder="Enter PIN number" aria-label="PIN number" />
             </Form.Item>
           </Col>
 

@@ -38,7 +38,7 @@ const ExtensionFormBasicSection = ({
             isTaken: isExtensionNumberTaken,
           })}
         >
-          <Input placeholder="Enter extension" aria-label="Extension number" disabled={disabled} />
+          <Input type={"number"} min={100} max={999999} placeholder="Enter extension" aria-label="Extension number" disabled={disabled} />
         </Form.Item>
       </Col>
 
@@ -52,6 +52,7 @@ const ExtensionFormBasicSection = ({
           >
             <Select
               aria-label="Number of extensions to create"
+            showSearch
               options={extensionRangeOptions.map((value) => ({
                 label: String(value),
                 value,
@@ -71,7 +72,7 @@ const ExtensionFormBasicSection = ({
             noEdgeWhitespaceRule,
           ]}
         >
-          <Input placeholder="Enter account code" disabled aria-label="Account code" />
+          <Input type={"number"} placeholder="Enter account code" disabled aria-label="Account code" />
         </Form.Item>
       </Col>
 

@@ -118,7 +118,7 @@ const CallBlockBasicSection = ({
             tooltip="Optional country codeEnter the country code and caller ID number to block."
             rules={[countryCodeRule]}
           >
-            <Input placeholder="Enter country code" />
+            <Input type={"number"} min={0} placeholder="Enter country code" />
           </Form.Item>
         </Col>
 
@@ -134,7 +134,7 @@ const CallBlockBasicSection = ({
               numberRequiredIfNameEmptyRule(() => form.getFieldValue("call_block_name"), direction),
             ]}
           >
-            <Input placeholder={`Enter ${numberLabel.toLowerCase()}`} aria-label={numberLabel} />
+            <Input type={"number"} min={0} placeholder={`Enter ${numberLabel.toLowerCase()}`} aria-label={numberLabel} />
           </Form.Item>
         </Col>
 

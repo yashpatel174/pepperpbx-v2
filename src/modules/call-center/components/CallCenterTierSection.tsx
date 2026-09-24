@@ -133,6 +133,7 @@ const CallCenterTierSection = ({
                     label="Tier Level"
                   >
                     <Select
+                    showSearch
                       options={tierLevelAndPositionOptions}
                       disabled={disabled}
                       aria-label="Tier level"
@@ -146,6 +147,7 @@ const CallCenterTierSection = ({
                     label="Tier Position"
                   >
                     <Select
+                      showSearch
                       options={tierLevelAndPositionOptions}
                       disabled={disabled}
                       aria-label="Tier position"

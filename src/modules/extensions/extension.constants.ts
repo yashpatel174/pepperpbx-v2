@@ -86,6 +86,10 @@ export const extensionPermissionStrings = {
   basicView: "pbx_extensionbasic_view",
   advancedEdit: "pbx_extensionadvanced_edit",
   advancedView: "pbx_extensionadvanced_view",
+  add: "pbx_extension_add",
+  /** Global wildcards — Copy is allowed for these or `add` (extension.md §14). */
+  admin: "pbx_admin",
+  axionTech: "pbx_axiontech",
 } as const;
 
 const VOICEMAIL_PASSWORD_CHARS = "0123456789";

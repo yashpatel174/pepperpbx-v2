@@ -108,7 +108,7 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the internal caller ID number here"
               rules={[numericFieldRule]}
             >
-              <Input placeholder="Enter effective caller id number" disabled={disabled} />
+              <Input type={"number"} min={0} placeholder="Enter effective caller id number" disabled={disabled} />
             </Form.Item>
           </Col>
 
@@ -130,7 +130,7 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the external (public) caller ID number here"
               rules={[numericFieldRule]}
             >
-              <Input placeholder="Enter outbound caller id number" disabled={disabled} />
+              <Input type={"number"} min={0} placeholder="Enter outbound caller id number" disabled={disabled} />
             </Form.Item>
           </Col>
 
@@ -152,7 +152,7 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the emergency caller ID number here"
               rules={[numericFieldRule]}
             >
-              <Input placeholder="Enter emergency caller id number" disabled={disabled} />
+              <Input type={"number"} min={0} placeholder="Enter emergency caller id number" disabled={disabled} />
             </Form.Item>
           </Col>
 

@@ -22,6 +22,7 @@ const OutboundRouteExpressionSection = () => {
           >
             <Select
               allowClear
+            showSearch
               placeholder="Select dialplan expression"
               options={dialplanExpressionPresets}
               onChange={handlePresetChange}

@@ -101,7 +101,7 @@ const OutboundRouteBasicSection = ({
             validateFirst
             rules={callerIdNumberRules}
           >
-            <Input placeholder="Enter caller id number" aria-label="Outbound caller id number" />
+            <Input type={"number"} min={0} placeholder="Enter caller id number" aria-label="Outbound caller id number" />
           </Form.Item>
         </Col>
 
@@ -134,7 +134,7 @@ const OutboundRouteBasicSection = ({
               tooltip="Enter the number"
               rules={[maxTwentyDigitsRule, noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter number" />
+              <Input type={"number"} min={0} placeholder="Enter number" />
             </Form.Item>
           </Col>
         )}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { defaultPageSize } from './extension.constants'
 import {
+  copyExtension as copyExtensionRequest,
   deleteExtensions as deleteExtensionsRequest,
   fetchExtensions,
   setExtensionEnabled,
@@ -112,24 +113,14 @@ export const useExtensions = () => {
     )
   }, [])
 
-  const duplicateExtension = useCallback((id: string) => {
-    setData((prev) => {
-      const source = prev.find((extension) => extension.id === id)
-      if (!source) return prev
-
-      const usedNumbers = new Set(prev.map((extension) => extension.extension))
-      let nextNumber = Number(source.extension) + 1
-      while (usedNumbers.has(String(nextNumber))) nextNumber += 1
-
-      const clone: Extension = {
-        ...source,
-        id: `ext-${nextNumber}-${Date.now()}`,
-        extension: String(nextNumber),
-        description: source.description ? `${source.description} (Copy)` : undefined,
-      }
-      return [...prev, clone]
-    })
-  }, [])
+  /**
+   * Copy — the service creates the new record (see extension.service.ts's copyExtension) and the
+   * list refetches, so the copy survives paging/search/Show All and is a real, editable record.
+   */
+  const copyExtension = useCallback(async (extensionUuid: string, newExtension: string) => {
+    await copyExtensionRequest(extensionUuid, newExtension)
+    await load()
+  }, [load])
 
   /**
    * CSV export: returns every search-filtered record across ALL domains and pages (a page
@@ -163,7 +154,7 @@ export const useExtensions = () => {
     deleteExtensions,
     bulkToggle,
     toggleExtensionStatus,
-    duplicateExtension,
+    copyExtension,
     getExportData,
   }
 }

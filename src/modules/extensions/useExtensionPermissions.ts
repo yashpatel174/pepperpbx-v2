@@ -17,12 +17,19 @@ const useExtensionPermissions = () => {
   const canViewBasic = !permissionsActive || hasPermission(extensionPermissionStrings.basicView)
   const canEditAdvanced = !permissionsActive || hasPermission(extensionPermissionStrings.advancedEdit)
   const canViewAdvanced = !permissionsActive || hasPermission(extensionPermissionStrings.advancedView)
+  // Row-level Copy: pbx_admin OR pbx_axiontech OR pbx_extension_add (extension.md §14).
+  const canCopy =
+    !permissionsActive ||
+    hasPermission(extensionPermissionStrings.admin) ||
+    hasPermission(extensionPermissionStrings.axionTech) ||
+    hasPermission(extensionPermissionStrings.add)
 
   return {
     canEditBasic,
     canViewBasic,
     canEditAdvanced,
     canViewAdvanced,
+    canCopy,
     showAdvancedSection: canViewAdvanced || canEditAdvanced,
   }
 }

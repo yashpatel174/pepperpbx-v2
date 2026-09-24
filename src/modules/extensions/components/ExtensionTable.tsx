@@ -23,7 +23,9 @@ interface ExtensionTableProps {
   onPageChange: (page: number, pageSize: number) => void;
   onPageSizeChange: (size: number) => void;
   onEdit: (extension: Extension) => void;
-  onDuplicate: (extension: Extension) => void;
+  /** Gates Copy — "disabled unless pbx_admin/pbx_axiontech/pbx_extension_add" (extension.md §14). */
+  canCopyRow: boolean;
+  onCopy: (extension: Extension) => void;
   onDelete: (extension: Extension) => void;
   onToggleStatus: (extension: Extension) => void;
   selectedRowKeys: string[];
@@ -42,7 +44,8 @@ const ExtensionTable = ({
   onPageChange,
   onPageSizeChange,
   onEdit,
-  onDuplicate,
+  canCopyRow,
+  onCopy,
   onDelete,
   onToggleStatus,
   selectedRowKeys,
@@ -168,15 +171,20 @@ const ExtensionTable = ({
             />
           </Tooltip>
 
-          <Tooltip title="Duplicate">
-            <Button
-              type="text"
-              size="small"
-              icon={<CopyOutlined style={{ color: token.colorSuccess }} />}
-              onClick={() => onDuplicate(record)}
-              aria-label={`Duplicate extension ${record.extension}`}
-            />
-          </Tooltip>
+          {/* Copy is hidden for default/protected rows (extension.md §3/§6); the service
+              also rejects copying them. */}
+          {!record.default && (
+            <Tooltip title="Copy">
+              <Button
+                type="text"
+                size="small"
+                icon={<CopyOutlined style={{ color: token.colorSuccess }} />}
+                disabled={!canCopyRow}
+                onClick={() => onCopy(record)}
+                aria-label={`Copy extension ${record.extension}`}
+              />
+            </Tooltip>
+          )}
 
           {/* TODO: wrap with <PermissionGuard permission="extension.delete"> once RBAC
               permissions are populated from the backend (see CLAUDE.md section 11).

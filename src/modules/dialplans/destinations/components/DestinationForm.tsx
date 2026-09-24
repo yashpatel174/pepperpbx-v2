@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { App, Button, Card, Col, Form, Input, InputNumber, Row, Select } from "antd";
+import { App, Button, Card, Col, Form, Input, Row, Select } from "antd";
 import { domainChangeMessage } from "../../../../components/common/domainChangeMessage";
 import { isDestinationNumberTaken } from "../destination.service";
 import { typeOptions } from "../destination.constants";
@@ -269,7 +269,7 @@ const DestinationForm = ({
               tooltip="Enter the country code"
               rules={[countryOrTrunkPrefixRule]}
             >
-              <Input placeholder="Enter country code" />
+              <Input type={"number"} min={0} placeholder="Enter country code" />
             </Form.Item>
           </Col>
 
@@ -507,7 +507,7 @@ const DestinationForm = ({
               tooltip="Select the order"
               rules={[{ required: true, message: "Order required" }]}
             >
-              <InputNumber min={0} max={999} style={{ width: "100%" }} placeholder="Select order" aria-label="Order" />
+              <Input type={"number"} min={0}  style={{ width: "100%" }} placeholder="Select order" aria-label="Order" />
             </Form.Item>
           </Col>
 

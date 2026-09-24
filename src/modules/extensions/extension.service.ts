@@ -112,10 +112,14 @@ const cloneDetails = (details: ExtensionDetails): ExtensionDetails => ({ ...deta
  * the default domain the first time — never overwriting a choice the user persisted.
  *
  * BACKEND CONTRACT REQUIRED. A real Get Hive User Details call must expose the caller's
- * accessible domains so the list's Show All scope can be derived from them.
+ * accessible domains so the list's Show All scope can be derived from them. `domainName`
+ * mirrors Axion's `getHiveUserDetails({domain_name})` (used by Copy to fetch the source
+ * domain's autoExt/range rules); the mock returns one shared set of rules for every domain.
  */
-export const getHiveUserDetails = (): Promise<HiveUserDetails> =>
-  new Promise((resolve) => {
+export const getHiveUserDetails = (domainName?: string): Promise<HiveUserDetails> => {
+  // The mock ignores the domain; a real implementation threads it into the query param.
+  void domainName
+  return new Promise((resolve) => {
     setTimeout(() => {
       const { currentDomain, setCurrentDomain, setAvailableDomains } = useDomainStore.getState()
       const domains = mockHiveUserDetails.domainOptions.map((name) => ({ id: name, name }))
@@ -126,6 +130,7 @@ export const getHiveUserDetails = (): Promise<HiveUserDetails> =>
       resolve({ ...mockHiveUserDetails, domainOptions: [...mockHiveUserDetails.domainOptions] })
     }, 300)
   })
+}
 
 /**
  * GET /api/destinations/list/holdMusic?domain_name=... — options are never hardcoded in the
@@ -249,6 +254,45 @@ export const updateExtension = (
       }
       extensions = [...extensions.slice(0, index), updated, ...extensions.slice(index + 1)]
       resolve(cloneDetails(updated))
+    }, 300)
+  })
+
+/**
+ * PATCH /api/extensions/copy — `{ new_extension, extension_uuid }`. Matches the Axion reference
+ * Copy contract (extension.md §3/§11): the client sends only the source uuid and the new number,
+ * and the backend creates the copy within the source record's own domain. The mock behaves like
+ * that backend: the stored record is cloned in full under a new uuid and number, without the
+ * protected `default` flag or `old_extension` update metadata.
+ *
+ * BACKEND CONTRACT REQUIRED. Axion sends only the source UUID and new extension number — the
+ * backend determines how sensitive fields (SIP password, voicemail password) are copied/reset.
+ * The mock copies them as stored rather than inventing a reset rule.
+ */
+export const copyExtension = (extensionUuid: string, newExtension: string): Promise<ExtensionDetails> =>
+  new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const source = extensions.find((record) => record.extension_uuid === extensionUuid)
+      if (!source) {
+        reject(new Error(`Extension ${extensionUuid} not found.`))
+        return
+      }
+      if (source.default === 'true') {
+        reject(new Error(`Extension ${source.extension} is a default extension and cannot be copied.`))
+        return
+      }
+      if (extensions.some((record) => record.extension === newExtension)) {
+        reject(new Error(`Extension ${newExtension} already exists.`))
+        return
+      }
+      const copied: ExtensionDetails = {
+        ...source,
+        extension_uuid: `ext-${newExtension}-${Date.now()}`,
+        extension: newExtension,
+      }
+      delete copied.default
+      delete copied.old_extension
+      extensions = [...extensions, copied]
+      resolve(cloneDetails(copied))
     }, 300)
   })
 

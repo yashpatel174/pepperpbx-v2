@@ -15,8 +15,10 @@ import ExtensionFilters from "../components/ExtensionFilters";
 import ExtensionTable from "../components/ExtensionTable";
 import DeleteExtensionsModal from "../components/DeleteExtensionsModal";
 import type { DeleteTarget } from "../components/DeleteExtensionsModal";
+import CopyExtensionModal from "../components/CopyExtensionModal";
 import { extensionStatusLabels } from "../extension.constants";
 import { useExtensions } from "../useExtensions";
+import useExtensionPermissions from "../useExtensionPermissions";
 import type { Extension } from "../extension.types";
 
 type BulkAction = "toggle" | "delete";
@@ -88,9 +90,10 @@ const ExtensionsPage = () => {
     deleteExtensions,
     bulkToggle,
     toggleExtensionStatus,
-    duplicateExtension,
+    copyExtension,
     getExportData,
   } = useExtensions();
+  const { canCopy } = useExtensionPermissions();
 
   const { message, modal } = App.useApp();
   const navigate = useNavigate();
@@ -100,6 +103,7 @@ const ExtensionsPage = () => {
   const [selectedExtensionIds, setSelectedExtensionIds] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined);
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null);
+  const [copyTarget, setCopyTarget] = useState<Extension | null>(null);
 
   const hasSelection = selectedExtensionIds.length > 0;
 
@@ -145,9 +149,15 @@ const ExtensionsPage = () => {
   const handleEdit = (extension: Extension) =>
     navigate(`/account/extensions/${extension.id}/edit`);
 
-  const handleDuplicate = (extension: Extension) => {
-    duplicateExtension(extension.id);
-    message.success(`Extension ${extension.extension} duplicated.`);
+  const handleCopyRequest = (extension: Extension) => setCopyTarget(extension);
+
+  // Rejections propagate to CopyExtensionModal, which shows the error and stays open.
+  const handleCopyConfirm = async (newExtension: string) => {
+    if (!copyTarget) return;
+    await copyExtension(copyTarget.id, newExtension);
+    message.success(`Extension ${copyTarget.extension} copied to ${newExtension}.`);
+    setCopyTarget(null);
+    clearSelection();
   };
 
   // Single-row delete now goes through the same DeleteExtensionsModal (and the same delete
@@ -367,7 +377,8 @@ const ExtensionsPage = () => {
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onEdit={handleEdit}
-          onDuplicate={handleDuplicate}
+          canCopyRow={canCopy}
+          onCopy={handleCopyRequest}
           onDelete={handleDeleteRequest}
           onToggleStatus={handleToggleStatus}
           selectedRowKeys={selectedExtensionIds}
@@ -380,6 +391,13 @@ const ExtensionsPage = () => {
         targets={deleteTargets ?? []}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
+      />
+
+      <CopyExtensionModal
+        open={!!copyTarget}
+        target={copyTarget}
+        onCopy={handleCopyConfirm}
+        onCancel={() => setCopyTarget(null)}
       />
     </Space>
   );
