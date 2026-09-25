@@ -16,7 +16,7 @@ const ADD_DESTINATION_FORM_ID = 'add-destination-form'
 const AddDestinationPage = () => {
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const { canManage } = useDestinationPermissions()
+  const { canManage, canUseFreeText } = useDestinationPermissions()
 
   const [hive, setHive] = useState<HiveDestinationDetails | null>(null)
   const [actionOptions, setActionOptions] = useState<ActionOptionGroup[]>([])
@@ -131,6 +131,7 @@ const AddDestinationPage = () => {
         holdMusicOptions={holdMusicOptions}
         optionsLoading={optionsLoading}
         canManage={canManage}
+        canUseFreeText={canUseFreeText}
         onDomainConfirmed={handleDomainConfirmed}
         submitting={submitting}
         onSubmit={handleSubmit}

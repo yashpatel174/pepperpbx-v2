@@ -9,18 +9,18 @@ import AnnouncementForm from '../components/AnnouncementForm'
 import { createAnnouncement, getExecuteActionOptions, getHiveAnnouncementDetails, getPlayActionOptions } from '../announcement.service'
 import { getDefaultAnnouncementFormValues } from '../announcement.constants'
 import useAnnouncementPermissions from '../useAnnouncementPermissions'
-import type { AnnouncementFormValues, HiveAnnouncementDetails, SelectOption } from '../announcement.types'
+import type { ActionOptionGroup, AnnouncementFormValues, HiveAnnouncementDetails } from '../announcement.types'
 
 const ADD_ANNOUNCEMENT_FORM_ID = 'add-announcement-form'
 
 const AddAnnouncementPage = () => {
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const { canManageAll, canAdd, canEdit, canView } = useAnnouncementPermissions()
+  const { canManageAll, canAdd, canEdit, canView, canUseFreeText } = useAnnouncementPermissions()
 
   const [hive, setHive] = useState<HiveAnnouncementDetails | null>(null)
-  const [playOptions, setPlayOptions] = useState<SelectOption[]>([])
-  const [executeOptions, setExecuteOptions] = useState<SelectOption[]>([])
+  const [playOptions, setPlayOptions] = useState<ActionOptionGroup[]>([])
+  const [executeOptions, setExecuteOptions] = useState<ActionOptionGroup[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -129,6 +129,7 @@ const AddAnnouncementPage = () => {
         executeOptions={executeOptions}
         optionsLoading={optionsLoading}
         canManage={canAccessForm}
+        canUseFreeText={canUseFreeText}
         onDomainConfirmed={handleDomainConfirmed}
         submitting={submitting}
         onSubmit={handleSubmit}

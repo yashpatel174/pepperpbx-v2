@@ -195,6 +195,12 @@ export const exportFieldOptions: ExportFieldOption[] = [
 export const destinationPermission = "destination.manage";
 
 /**
+ * Axion's `pbx_admin || pbx_axiontech` gate on the Actions / Alternate Actions / Hold Music
+ * select ↔ free-text toggle (ToggleSelectInput's `canToggle`).
+ */
+export const destinationFreeTextPermissions = ["pbx_admin", "pbx_axiontech"] as const;
+
+/**
  * Add-mode form defaults, driven by Hive bootstrap data (default domain, account code) plus the
  * fixed Axion defaults (type inbound, context public, order 100, enabled). Edit mode never uses
  * this — it initializes from the destination details response instead.

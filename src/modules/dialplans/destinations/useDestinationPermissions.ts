@@ -1,5 +1,5 @@
 import usePermissions from '../../../hooks/usePermissions'
-import { destinationPermission } from './destination.constants'
+import { destinationFreeTextPermissions, destinationPermission } from './destination.constants'
 
 /**
  * Single coarse permission gate, matching the Axion reference's documented coarse module-admin
@@ -12,8 +12,10 @@ const useDestinationPermissions = () => {
   const { permissions, hasPermission } = usePermissions()
   const permissionsActive = permissions.length > 0
   const canManage = !permissionsActive || hasPermission(destinationPermission)
+  // Select ↔ free-text toggle on Actions / Alternate Actions / Hold Music.
+  const canUseFreeText = !permissionsActive || destinationFreeTextPermissions.some((key) => hasPermission(key))
 
-  return { canManage }
+  return { canManage, canUseFreeText }
 }
 
 export default useDestinationPermissions

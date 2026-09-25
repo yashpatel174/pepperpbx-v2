@@ -33,7 +33,10 @@ export const domainRules = [{ required: true, message: 'Domain is required' }]
 /** phrase_description: optional, no-edge-ws only (announcements.md §10). */
 export const descriptionRules = [noEdgeWhitespaceRule]
 
-/** Structure row rules — announcements.md §10. Each row's three fields, once a row exists, are all required. */
-export const structureFunctionRules = [{ required: true, message: 'Function is required.' }]
-export const structureActionRules = [{ required: true, message: 'Action is required.' }]
-export const structureOrderRules = [{ required: true, message: 'Order is required.' }]
+/**
+ * Structure row rules — announcements.md §10. Each row's three fields, once a row exists, are all
+ * required and reject leading/trailing whitespace (the Action free-text mode makes that reachable).
+ */
+export const structureFunctionRules = [{ required: true, message: 'Function is required.' }, noEdgeWhitespaceRule]
+export const structureActionRules = [{ required: true, message: 'Action is required.' }, noEdgeWhitespaceRule]
+export const structureOrderRules = [{ required: true, message: 'Order is required.' }, noEdgeWhitespaceRule]

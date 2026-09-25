@@ -1,55 +1,43 @@
-import { useState } from "react";
-import { Button, Card, Col, Form, Input, Row, Select, Space, Tooltip, Typography, theme } from "antd";
+import { Button, Card, Col, Form, Row, Select, Space, Tooltip, Typography, theme } from "antd";
 import { DeleteOutlined, PlusOutlined, QuestionCircleOutlined } from "@ant-design/icons";
+import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
 import { functionOptions, pauseActionOptions, structureOrderOptions } from "../announcement.constants";
 import { structureActionRules, structureFunctionRules, structureOrderRules } from "../announcement.validation";
-import type { AnnouncementStructureItem, SelectOption } from "../announcement.types";
+import type { ActionOptionGroup, AnnouncementStructureItem } from "../announcement.types";
 
 interface AnnouncementStructureSectionProps {
-  playOptions: SelectOption[];
-  executeOptions: SelectOption[];
+  playOptions: ActionOptionGroup[];
+  executeOptions: ActionOptionGroup[];
   optionsLoading?: boolean;
   disabled?: boolean;
+  /** Axion's pbx_admin/pbx_axiontech gate on the Execute select ↔ free-text toggle. */
+  canUseFreeText: boolean;
 }
 
+/** Shows the placeholder for a cleared ("") Action rather than an empty selection. */
+const emptyAsUnset = (value?: string) => ({ value: value || undefined });
+
 /**
- * "Structure" (`phrase_details`) — an ordered, dynamic list of Function/Action/Order rows.
- *
- * Execute Action supports two modes:
- *  - Select mode: choose from the predefined domain-scoped execute options.
- *  - Text mode: manually enter a custom dialplan action.
- *
- * The predefined option value is never edited inside Select mode.
- * For example:
- *   label: "Transfer to Remote Office"
- *   value: "transfer:301 XML remote.pepperpbx.local"
- *
- * Clicking the toggle switches the same field to a normal Input so the
- * user can edit/type a custom value.
+ * "Structure" (`phrase_details`) — an ordered, dynamic list of Function/Action/Order rows. The
+ * Action input depends on the row's Function (announcements.md §8/§9): Play → searchable grouped
+ * select of the domain's play options; Pause → fixed 0.1–5.0 durations; Execute → the shared
+ * ToggleSelectInput over the domain's grouped execute options (free-text mode for permitted users;
+ * a saved value missing from the options is shown under "Other" and kept unchanged). Only the
+ * option's `value` string is ever stored — nothing is executed client-side; the backend acts on
+ * the saved `phrase_details`.
  */
 const AnnouncementStructureSection = ({
   playOptions,
   executeOptions,
   optionsLoading,
   disabled,
+  canUseFreeText,
 }: AnnouncementStructureSectionProps) => {
   const { token } = theme.useToken();
   const form = Form.useFormInstance();
 
   const phraseDetails = (Form.useWatch<AnnouncementStructureItem[]>("phrase_details", form) ??
     []) as AnnouncementStructureItem[];
-
-  // Stores whether each Execute row is currently using the free-text input.
-  // Uses Form.List field.key so removing/reordering rows does not incorrectly
-  // apply the previous row's state to another row.
-  const [executeTextMode, setExecuteTextMode] = useState<Record<number, boolean>>({});
-
-  const handleExecuteToggle = (fieldKey: number) => {
-    setExecuteTextMode((previous) => ({
-      ...previous,
-      [fieldKey]: !previous[fieldKey],
-    }));
-  };
 
   return (
     <Card title="Structure">
@@ -59,7 +47,6 @@ const AnnouncementStructureSection = ({
             <Space direction="vertical" style={{ width: "100%" }} size="middle">
               {fields.map((field, index) => {
                 const rowFunction = phraseDetails[index]?.phrase_detail_function;
-                const isTextMode = !!executeTextMode[field.key];
 
                 return (
                   <Row key={field.key} gutter={8} align="top">
@@ -74,16 +61,8 @@ const AnnouncementStructureSection = ({
                           options={functionOptions}
                           disabled={disabled}
                           aria-label={`Function ${index + 1}`}
-                          onChange={() => {
-                            form.setFieldValue(["phrase_details", field.name, "phrase_detail_data"], undefined);
-
-                            // Reset Execute back to Select mode whenever
-                            // the function changes.
-                            setExecuteTextMode((previous) => ({
-                              ...previous,
-                              [field.key]: false,
-                            }));
-                          }}
+                          // Every Function change clears this row's Action (Order is kept).
+                          onChange={() => form.setFieldValue(["phrase_details", field.name, "phrase_detail_data"], "")}
                         />
                       </Form.Item>
                     </Col>
@@ -94,7 +73,12 @@ const AnnouncementStructureSection = ({
                         tooltip={index === 0 ? "Depends on the selected function" : undefined}
                       >
                         {rowFunction === "pause-execute" ? (
-                          <Form.Item name={[field.name, "phrase_detail_data"]} noStyle rules={structureActionRules}>
+                          <Form.Item
+                            name={[field.name, "phrase_detail_data"]}
+                            noStyle
+                            rules={structureActionRules}
+                            getValueProps={emptyAsUnset}
+                          >
                             <Select
                               placeholder="Select duration (seconds)"
                               options={pauseActionOptions}
@@ -103,49 +87,23 @@ const AnnouncementStructureSection = ({
                             />
                           </Form.Item>
                         ) : rowFunction === "execute" ? (
-                          <Row gutter={8} wrap={false}>
-                            <Col flex="auto">
-                              <Form.Item name={[field.name, "phrase_detail_data"]} noStyle rules={structureActionRules}>
-                                {isTextMode ? (
-                                  <Input
-                                    placeholder="Execute action"
-                                    disabled={disabled}
-                                    readOnly
-                                    aria-label={`Action ${index + 1}`}
-                                  />
-                                ) : (
-                                  <Select
-                                    showSearch
-                                    optionFilterProp="label"
-                                    placeholder="Select execute action"
-                                    options={executeOptions}
-                                    loading={optionsLoading}
-                                    disabled={disabled}
-                                    aria-label={`Action ${index + 1}`}
-                                  />
-                                )}
-                              </Form.Item>
-                            </Col>
-
-                            <Col flex="none">
-                              <Tooltip
-                                title={
-                                  isTextMode ? "Switch to predefined execute actions" : "Switch to custom typed action"
-                                }
-                              >
-                                <Button
-                                  type="default"
-                                  disabled={disabled}
-                                  onClick={() => handleExecuteToggle(field.key)}
-                                  aria-label={`Toggle action input type for row ${index + 1}`}
-                                >
-                                  ❮
-                                </Button>
-                              </Tooltip>
-                            </Col>
-                          </Row>
-                        ) : (
                           <Form.Item name={[field.name, "phrase_detail_data"]} noStyle rules={structureActionRules}>
+                            <ToggleSelectInput
+                              options={executeOptions}
+                              placeholder="Select execute action"
+                              loading={optionsLoading}
+                              disabled={disabled}
+                              canToggle={canUseFreeText}
+                              aria-label={`Action ${index + 1}`}
+                            />
+                          </Form.Item>
+                        ) : (
+                          <Form.Item
+                            name={[field.name, "phrase_detail_data"]}
+                            noStyle
+                            rules={structureActionRules}
+                            getValueProps={emptyAsUnset}
+                          >
                             <Select
                               showSearch
                               optionFilterProp="label"

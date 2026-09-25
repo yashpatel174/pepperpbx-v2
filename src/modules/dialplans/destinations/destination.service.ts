@@ -261,7 +261,9 @@ const toDetails = (values: DestinationFormValues, destinationUuid: string): Dest
   destination_caller_id_name: values.destination_caller_id_name || undefined,
   destination_caller_id_number: values.destination_caller_id_number || undefined,
   destination_distinctive_ring: values.destination_distinctive_ring || undefined,
-  destination_action: values.destination_type === "outbound" ? undefined : values.destination_action || undefined,
+  // Kept for outbound too: Axion hides the Actions field for outbound but never clears its value,
+  // so it stays in the submitted payload. BACKEND CONTRACT REQUIRED: whether the backend ignores it.
+  destination_action: values.destination_action || undefined,
   destination_alternate_action: values.destination_alternate_action || undefined,
   fax_uuid: values.destination_type === "inbound" ? values.fax_uuid || undefined : undefined,
   destination_hold_music: values.destination_hold_music || undefined,

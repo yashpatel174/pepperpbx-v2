@@ -6,14 +6,17 @@ import {
   mockPlayActionOptionsByDomain,
 } from './announcement.mock'
 import useDomainStore from '../../store/domain'
+import { request } from '../../services/api/apiClient'
+import { isMockMode } from '../../services/auth/auth.mock'
 import type {
+  ActionOptionGroup,
+  ActionOptionsResponse,
   Announcement,
   AnnouncementDetails,
   AnnouncementFormValues,
   AnnouncementListQuery,
   AnnouncementListResponse,
   HiveAnnouncementDetails,
-  SelectOption,
 } from './announcement.types'
 
 /**
@@ -134,26 +137,48 @@ export const getHiveAnnouncementDetails = (domainName?: string): Promise<HiveAnn
   })
 
 /**
- * GET .../phrases/playActionOptions?domain_name=... — domain-scoped music-on-hold file options
- * for Structure rows whose Function is Play (announcements.md §8/§9/§12).
+ * GET /api/phrases/playActionOptions?domain_name=... — domain-scoped, grouped music-on-hold file
+ * options for Structure rows whose Function is Play (announcements.md §8/§9/§12). Mock mode keeps
+ * returning the module's mock groups; real mode calls through apiClient (same isMockMode() gate as
+ * Destinations' option lookups) and returns the response body's `data` groups as-is.
+ *
+ * BACKEND CONTRACT REQUIRED — endpoint and `{ data: [...] }` body are from the Axion audit only.
  */
-export const getPlayActionOptions = (domainName?: string): Promise<SelectOption[]> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...(mockPlayActionOptionsByDomain[domainName ?? ''] ?? mockPlayActionOptionsByDomain[mockHiveAnnouncementDetails.defaultDomain])])
-    }, 250)
-  })
+export const getPlayActionOptions = (domainName?: string): Promise<ActionOptionGroup[]> => {
+  if (isMockMode()) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([...(mockPlayActionOptionsByDomain[domainName ?? ''] ?? mockPlayActionOptionsByDomain[mockHiveAnnouncementDetails.defaultDomain])])
+      }, 250)
+    })
+  }
+
+  return request
+    .get<ActionOptionsResponse>('/phrases/playActionOptions', { params: { domain_name: domainName } })
+    .then((response) => response.data)
+}
 
 /**
- * GET .../phrases/executeActionOptions?domain_name=... — domain-scoped dialplan-hook options for
- * Structure rows whose Function is Execute (announcements.md §8/§9/§12).
+ * GET /api/phrases/executeActionOptions?domain_name=... — domain-scoped, grouped dialplan-action
+ * options for Structure rows whose Function is Execute (announcements.md §8/§9/§12). Same mock /
+ * apiClient split as getPlayActionOptions.
+ *
+ * BACKEND CONTRACT REQUIRED — endpoint and `{ data: [...] }` body are from the Axion audit only;
+ * the option labels/values themselves come from the backend and are never hardcoded here.
  */
-export const getExecuteActionOptions = (domainName?: string): Promise<SelectOption[]> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...(mockExecuteActionOptionsByDomain[domainName ?? ''] ?? mockExecuteActionOptionsByDomain[mockHiveAnnouncementDetails.defaultDomain])])
-    }, 250)
-  })
+export const getExecuteActionOptions = (domainName?: string): Promise<ActionOptionGroup[]> => {
+  if (isMockMode()) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([...(mockExecuteActionOptionsByDomain[domainName ?? ''] ?? mockExecuteActionOptionsByDomain[mockHiveAnnouncementDetails.defaultDomain])])
+      }, 250)
+    })
+  }
+
+  return request
+    .get<ActionOptionsResponse>('/phrases/executeActionOptions', { params: { domain_name: domainName } })
+    .then((response) => response.data)
+}
 
 /**
  * Maps form values into the stored/API details shape. `phrase_description` is trimmed; every

@@ -1,5 +1,5 @@
 import usePermissions from '../../hooks/usePermissions'
-import { announcementPermissions } from './announcement.constants'
+import { announcementFreeTextPermissions, announcementPermissions } from './announcement.constants'
 
 /**
  * Four-key granular permission gate, matching the audit's documented model (`pbx_announcements_
@@ -27,8 +27,10 @@ const useAnnouncementPermissions = () => {
   const canEdit = canManageAll || hasPermission(announcementPermissions.edit)
   const canView = canManageAll || canEdit || hasPermission(announcementPermissions.view)
   const hasAnyAccess = canManageAll || canAdd || canEdit || canView
+  // Execute Action select ↔ free-text toggle in Structure rows.
+  const canUseFreeText = !permissionsActive || announcementFreeTextPermissions.some((key) => hasPermission(key))
 
-  return { canManageAll, canAdd, canEdit, canView, hasAnyAccess }
+  return { canManageAll, canAdd, canEdit, canView, hasAnyAccess, canUseFreeText }
 }
 
 export default useAnnouncementPermissions

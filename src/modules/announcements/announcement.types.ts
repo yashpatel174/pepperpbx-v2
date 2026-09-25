@@ -3,6 +3,21 @@ export interface SelectOption {
   value: string
 }
 
+/**
+ * One labeled group of Structure Action options — GET /api/phrases/playActionOptions and
+ * /api/phrases/executeActionOptions both return grouped options. Only `value` is ever stored in
+ * `phrase_detail_data`.
+ */
+export interface ActionOptionGroup {
+  label: string
+  options: SelectOption[]
+}
+
+/** Response body of the play/execute action-option endpoints — `data` is the groups array. */
+export interface ActionOptionsResponse {
+  data: ActionOptionGroup[]
+}
+
 /** Play (music-on-hold file), Pause (duration), or Execute (dialplan hook) — one Structure row's kind. */
 export type AnnouncementFunction = 'play-file' | 'pause-execute' | 'execute'
 

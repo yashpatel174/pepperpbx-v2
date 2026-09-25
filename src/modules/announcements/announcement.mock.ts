@@ -1,5 +1,5 @@
 import { MOCK_DEFAULT_DOMAIN } from '../../store/domain'
-import type { AnnouncementDetails, HiveAnnouncementDetails, SelectOption } from './announcement.types'
+import type { ActionOptionGroup, AnnouncementDetails, HiveAnnouncementDetails } from './announcement.types'
 
 /**
  * Shares MOCK_DEFAULT_DOMAIN with Extensions/Gateways/Outbound Routes (store/domain.ts) rather
@@ -29,40 +29,51 @@ export const mockHiveAnnouncementDetails: HiveAnnouncementDetails = {
  * module's own independent mock, not imported from another module's mock data — matches Outbound
  * Routes'/Destinations' documented precedent of not depending on sibling modules' mock data.
  */
-export const mockPlayActionOptionsByDomain: Record<string, SelectOption[]> = {
+export const mockPlayActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
   [DEFAULT_DOMAIN]: [
-    { label: 'default', value: 'local_stream://default' },
-    { label: 'Welcome Greeting', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/default/Welcome.wav' },
-    { label: 'Sales Announcement', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/default/Sales.wav' },
+    { label: 'Music on Hold', options: [{ label: 'default', value: 'local_stream://default' }] },
+    {
+      label: 'Recordings',
+      options: [
+        { label: 'Welcome Greeting', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/default/Welcome.wav' },
+        { label: 'Sales Announcement', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/default/Sales.wav' },
+      ],
+    },
   ],
   [BRANCH_DOMAIN]: [
-    { label: 'default', value: 'local_stream://default' },
-    { label: 'Branch Welcome', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/branch/Welcome.wav' },
+    { label: 'Music on Hold', options: [{ label: 'default', value: 'local_stream://default' }] },
+    { label: 'Recordings', options: [{ label: 'Branch Welcome', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/branch/Welcome.wav' }] },
   ],
   [REMOTE_DOMAIN]: [
-    { label: 'default', value: 'local_stream://default' },
-    { label: 'Remote Welcome', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/remote/Welcome.wav' },
+    { label: 'Music on Hold', options: [{ label: 'default', value: 'local_stream://default' }] },
+    { label: 'Recordings', options: [{ label: 'Remote Welcome', value: 'https://cloud-drive.hivepbx.com/fsstorage-ivrfiles/remote/Welcome.wav' }] },
   ],
 }
 
 /**
  * GET .../phrases/executeActionOptions?domain_name=... — domain-scoped dialplan-hook options for
  * Structure rows whose Function is "Execute" (announcements.md §8/§9/§12/§33). Same
- * self-contained-mock convention as the play options above.
+ * self-contained-mock convention as the play options above. The group labels (here and above) are
+ * mock-only placeholders — the real backend's groups/values are not confirmed by the audit.
  */
-export const mockExecuteActionOptionsByDomain: Record<string, SelectOption[]> = {
+export const mockExecuteActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
   [DEFAULT_DOMAIN]: [
-    { label: 'Transfer to Voicemail (101)', value: 'transfer:*99101 XML sip.pepperpbx.local' },
-    { label: 'Transfer to Operator', value: 'transfer:0 XML sip.pepperpbx.local' },
-    { label: 'Hangup', value: 'hangup' },
+    {
+      label: 'Transfer',
+      options: [
+        { label: 'Transfer to Voicemail (101)', value: 'transfer:*99101 XML sip.pepperpbx.local' },
+        { label: 'Transfer to Operator', value: 'transfer:0 XML sip.pepperpbx.local' },
+      ],
+    },
+    { label: 'Call Control', options: [{ label: 'Hangup', value: 'hangup' }] },
   ],
   [BRANCH_DOMAIN]: [
-    { label: 'Transfer to Branch Reception', value: 'transfer:201 XML branch.pepperpbx.local' },
-    { label: 'Hangup', value: 'hangup' },
+    { label: 'Transfer', options: [{ label: 'Transfer to Branch Reception', value: 'transfer:201 XML branch.pepperpbx.local' }] },
+    { label: 'Call Control', options: [{ label: 'Hangup', value: 'hangup' }] },
   ],
   [REMOTE_DOMAIN]: [
-    { label: 'Transfer to Remote Office', value: 'transfer:301 XML remote.pepperpbx.local' },
-    { label: 'Hangup', value: 'hangup' },
+    { label: 'Transfer', options: [{ label: 'Transfer to Remote Office', value: 'transfer:301 XML remote.pepperpbx.local' }] },
+    { label: 'Call Control', options: [{ label: 'Hangup', value: 'hangup' }] },
   ],
 }
 

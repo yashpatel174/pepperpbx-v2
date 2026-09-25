@@ -115,7 +115,7 @@ export interface DestinationFormValues {
   destination_caller_id_number?: string
   destination_context: string
   destination_distinctive_ring?: string
-  /** Hidden entirely when destination_type === 'outbound' — see DestinationForm. */
+  /** Hidden when destination_type === 'outbound', but its value is kept and submitted — see DestinationForm. */
   destination_action?: string
   destination_alternate_action?: string
   /** Only rendered when destination_type === 'inbound' — see DestinationForm. */

@@ -60,6 +60,12 @@ export const announcementPermissions = {
 }
 
 /**
+ * Axion's `pbx_admin || pbx_axiontech` gate on the Execute Action select ↔ free-text toggle
+ * (ToggleSelectInput's `canToggle`, announcements.md §8).
+ */
+export const announcementFreeTextPermissions = ['pbx_admin', 'pbx_axiontech'] as const
+
+/**
  * Add-mode form defaults. Confirmed Axion defaults (announcements.md §3/§26): `phrase_enabled`
  * true, `phrase_language` 'en'. `phrase_details` starts empty — the Structure array is optional,
  * with no minimum-rows requirement (announcements.md §10/§28), unlike Outbound Routes' Gateways.

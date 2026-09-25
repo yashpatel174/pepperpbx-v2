@@ -33,7 +33,7 @@ const toFormValues = (details: DestinationDetails): DestinationFormValues => ({ 
 const EditDestinationPage = () => {
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const { canManage } = useDestinationPermissions();
+  const { canManage, canUseFreeText } = useDestinationPermissions();
   const { destinationId } = useParams<{ destinationId: string }>();
 
   const [hive, setHive] = useState<HiveDestinationDetails | null>(null);
@@ -151,6 +151,7 @@ const EditDestinationPage = () => {
         faxOptions={faxOptions}
         holdMusicOptions={holdMusicOptions}
         canManage={canManage}
+        canUseFreeText={canUseFreeText}
         submitting={submitting}
         onSubmit={handleSubmit}
       />

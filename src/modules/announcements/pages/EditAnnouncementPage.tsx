@@ -15,7 +15,7 @@ import {
   updateAnnouncement,
 } from '../announcement.service'
 import useAnnouncementPermissions from '../useAnnouncementPermissions'
-import type { AnnouncementDetails, AnnouncementFormValues, HiveAnnouncementDetails, SelectOption } from '../announcement.types'
+import type { ActionOptionGroup, AnnouncementDetails, AnnouncementFormValues, HiveAnnouncementDetails } from '../announcement.types'
 
 const EDIT_ANNOUNCEMENT_FORM_ID = 'edit-announcement-form'
 
@@ -25,12 +25,12 @@ const toFormValues = (details: AnnouncementDetails): AnnouncementFormValues => (
 const EditAnnouncementPage = () => {
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const { canManageAll, canEdit, canView } = useAnnouncementPermissions()
+  const { canManageAll, canEdit, canView, canUseFreeText } = useAnnouncementPermissions()
   const { announcementId } = useParams<{ announcementId: string }>()
 
   const [hive, setHive] = useState<HiveAnnouncementDetails | null>(null)
-  const [playOptions, setPlayOptions] = useState<SelectOption[]>([])
-  const [executeOptions, setExecuteOptions] = useState<SelectOption[]>([])
+  const [playOptions, setPlayOptions] = useState<ActionOptionGroup[]>([])
+  const [executeOptions, setExecuteOptions] = useState<ActionOptionGroup[]>([])
   const [details, setDetails] = useState<AnnouncementDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -145,6 +145,7 @@ const EditAnnouncementPage = () => {
         playOptions={playOptions}
         executeOptions={executeOptions}
         canManage={canEditFields}
+        canUseFreeText={canUseFreeText}
         submitting={submitting}
         onSubmit={handleSubmit}
       />

@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { App, Form, Space } from 'antd'
 import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
-import type { AnnouncementFormValues, HiveAnnouncementDetails, SelectOption } from '../announcement.types'
+import type { ActionOptionGroup, AnnouncementFormValues, HiveAnnouncementDetails } from '../announcement.types'
 import AnnouncementBasicSection from './AnnouncementBasicSection'
 import AnnouncementStructureSection from './AnnouncementStructureSection'
 
@@ -10,11 +10,13 @@ export interface AnnouncementFormProps {
   /** The page owns loading — AnnouncementForm only ever mounts once real values are ready. */
   initialValues: AnnouncementFormValues
   hive: HiveAnnouncementDetails
-  playOptions: SelectOption[]
-  executeOptions: SelectOption[]
+  playOptions: ActionOptionGroup[]
+  executeOptions: ActionOptionGroup[]
   /** True while domain-dependent options are being re-fetched after a confirmed domain change. */
   optionsLoading?: boolean
   canManage: boolean
+  /** Execute Action select ↔ free-text toggle — see useAnnouncementPermissions. */
+  canUseFreeText: boolean
   submitting: boolean
   /** Called once the domain-change confirmation is accepted, so the page can re-fetch
    * domain-dependent options (play/execute actions) for the new domain. */
@@ -45,6 +47,7 @@ const AnnouncementForm = ({
   executeOptions,
   optionsLoading,
   canManage,
+  canUseFreeText,
   submitting,
   onDomainConfirmed,
   onSubmit,
@@ -109,6 +112,7 @@ const AnnouncementForm = ({
           executeOptions={executeOptions}
           optionsLoading={optionsLoading}
           disabled={disabled}
+          canUseFreeText={canUseFreeText}
         />
       </Space>
     </Form>

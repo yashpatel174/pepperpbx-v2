@@ -5,6 +5,8 @@ import { LeftOutlined } from '@ant-design/icons'
 export interface ToggleSelectOption {
   label: string
   value: string
+  /** Passed straight through to the Select option — e.g. for options with an empty value. */
+  disabled?: boolean
 }
 
 export interface ToggleSelectOptionGroup {

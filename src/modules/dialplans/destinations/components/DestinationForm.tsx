@@ -1,6 +1,8 @@
-import { useRef, useState } from "react";
-import { App, Button, Card, Col, Form, Input, Row, Select } from "antd";
+import { useMemo, useRef } from "react";
+import { App, Card, Col, Form, Input, Row, Select } from "antd";
 import { domainChangeMessage } from "../../../../components/common/domainChangeMessage";
+import ToggleSelectInput from "../../../../components/common/ToggleSelectInput";
+import type { ToggleSelectOptionGroup } from "../../../../components/common/ToggleSelectInput";
 import { isDestinationNumberTaken } from "../destination.service";
 import { typeOptions } from "../destination.constants";
 import type {
@@ -22,26 +24,21 @@ import DestinationOptions from "./DestinationOptions";
 
 const { TextArea } = Input;
 
-interface GroupedSelectOption {
-  label: string;
-  options: { label: string; value: string }[];
-}
-
-const withCurrentValueFallback = (groups: GroupedSelectOption[], currentValue?: string): GroupedSelectOption[] => {
-  if (!currentValue) return groups;
-
-  const exists = groups.some((group) => group.options.some((option) => option.value === currentValue));
-
-  if (exists) return groups;
-
-  return [
-    ...groups,
-    {
-      label: "Other",
-      options: [{ label: currentValue, value: currentValue }],
-    },
-  ];
-};
+/**
+ * Maps the service's grouped options (actions / hold music) to ToggleSelectInput groups — the
+ * stored form value is each option's raw `value`. Options with an empty value are shown but not
+ * selectable, matching Axion. Unknown current values (e.g. a stale backend value) are appended
+ * as an "Other" group by ToggleSelectInput itself, so they're displayed and submitted unchanged.
+ */
+const toToggleSelectGroups = (groups: ActionOptionGroup[] | HoldMusicGroup[]): ToggleSelectOptionGroup[] =>
+  groups.map((group) => ({
+    label: group.label,
+    options: group.options.map((option) => ({
+      label: option.label,
+      value: option.value,
+      disabled: !option.value,
+    })),
+  }));
 
 export interface DestinationFormProps {
   mode: "create" | "edit";
@@ -56,6 +53,9 @@ export interface DestinationFormProps {
   /** True while domain-dependent options are being re-fetched after a confirmed domain change. */
   optionsLoading?: boolean;
   canManage: boolean;
+  /** Axion's pbx_admin/pbx_axiontech select ↔ free-text toggle on Actions / Alternate Actions /
+   * Hold Music — see useDestinationPermissions. */
+  canUseFreeText: boolean;
   submitting: boolean;
   /** Create mode only — called once the domain-change confirmation is accepted, so the page can
    * re-fetch domain-dependent options (hive/action/fax/hold-music) for the new domain. */
@@ -81,6 +81,7 @@ const DestinationForm = ({
   holdMusicOptions,
   optionsLoading,
   canManage,
+  canUseFreeText,
   submitting,
   onDomainConfirmed,
   onSubmit,
@@ -90,10 +91,6 @@ const DestinationForm = ({
   const { modal } = App.useApp();
   const destinationType = Form.useWatch("destination_type", form);
   const currentDomainRef = useRef(initialValues.domain_name);
-
-  const [showHoldMusicValue, setShowHoldMusicValue] = useState(false);
-  const [showActionValue, setShowActionValue] = useState(false);
-  const [showAlternateActionValue, setShowAlternateActionValue] = useState(false);
 
   const handleDomainChange = (value: string) => {
     if (mode !== "create" || value === currentDomainRef.current) {
@@ -109,17 +106,15 @@ const DestinationForm = ({
       onOk: () => {
         currentDomainRef.current = value;
 
+        // Axion resets the three domain-dependent selects to "". fax_uuid keeps its pre-existing
+        // reset to undefined (its options are domain-scoped too, so a stale uuid would be invalid).
         form.setFieldsValue({
           domain_name: value,
-          destination_action: undefined,
-          destination_alternate_action: undefined,
+          destination_action: "",
+          destination_alternate_action: "",
           fax_uuid: undefined,
-          destination_hold_music: undefined,
+          destination_hold_music: "",
         });
-
-        setShowHoldMusicValue(false);
-        setShowActionValue(false);
-        setShowAlternateActionValue(false);
 
         onDomainConfirmed?.(value);
       },
@@ -131,119 +126,18 @@ const DestinationForm = ({
     });
   };
 
-  const handleToggleHoldMusicValue = () => {
-    const selectedValue = form.getFieldValue("destination_hold_music");
-
-    if (!selectedValue) {
-      return;
-    }
-
-    setShowHoldMusicValue((previous) => !previous);
-  };
-
-  const handleHoldMusicChange = (value: string) => {
-    form.setFieldValue("destination_hold_music", value);
-
-    // Whenever a new option is selected, start by showing its label.
-    setShowHoldMusicValue(false);
-  };
-
-  const handleActionToggle = () => {
-    const selectedValue = form.getFieldValue("destination_action");
-
-    if (!selectedValue) {
-      return;
-    }
-
-    setShowActionValue((previous) => !previous);
-  };
-
-  const handleActionChange = (value: string) => {
-    form.setFieldValue("destination_action", value);
-
-    // Whenever a new option is selected, start by showing its label.
-    setShowActionValue(false);
-  };
-
-  const handleAlternateActionToggle = () => {
-    const selectedValue = form.getFieldValue("destination_alternate_action");
-
-    if (!selectedValue) {
-      return;
-    }
-
-    setShowAlternateActionValue((previous) => !previous);
-  };
-
-  const handleAlternateActionChange = (value: string) => {
-    form.setFieldValue("destination_alternate_action", value);
-
-    // Whenever a new option is selected, start by showing its label.
-    setShowAlternateActionValue(false);
-  };
-
-  // Grouped Select options (Music on Hold / Recordings / Streams, per group) — the displayed
-  // text is each option's label, the stored form value is its value (e.g. the recording URL),
-  // matching GET /api/destinations/list/holdMusic's group/option shape.
-  const holdMusicSelectOptions = withCurrentValueFallback(
-    holdMusicOptions.map((group) => ({
-      label: group.label,
-      options: group.options.map((option) => ({
-        label: option.label,
-        value: option.value,
-      })),
-    })),
-    initialValues.destination_hold_music,
-  );
-
-  const selectedHoldMusicValue = form.getFieldValue("destination_hold_music");
-
-  const displayedHoldMusicOptions = holdMusicSelectOptions.map((group) => ({
-    ...group,
-    options: group.options.map((option) => ({
-      ...option,
-      label: showHoldMusicValue && option.value === selectedHoldMusicValue ? option.value : option.label,
-    })),
-  }));
-
-  // Grouped Select options (Announcements / Call Center / Extensions, per group), matching
-  // GET /api/destinations/list/actions' group/option shape. Alternate Actions binds to the same
-  // fetched groups as Actions — only the "Other" fallback value differs per field.
-  const actionGroupSelectOptions: GroupedSelectOption[] = actionOptions.map((group) => ({
-    label: group.label,
-    options: group.options.map((option) => ({
-      label: option.label,
-      value: option.value,
-    })),
-  }));
-
-  const actionSelectOptions = withCurrentValueFallback(actionGroupSelectOptions, initialValues.destination_action);
-
-  const alternateActionSelectOptions = withCurrentValueFallback(
-    actionGroupSelectOptions,
-    initialValues.destination_alternate_action,
-  );
-
-  const selectedActionValue = form.getFieldValue("destination_action");
-  const selectedAlternateActionValue = form.getFieldValue("destination_alternate_action");
-
-  const displayedActionOptions = actionSelectOptions.map((group) => ({
-    ...group,
-    options: group.options.map((option) => ({
-      ...option,
-      label: showActionValue && option.value === selectedActionValue ? option.value : option.label,
-    })),
-  }));
-
-  const displayedAlternateActionOptions = alternateActionSelectOptions.map((group) => ({
-    ...group,
-    options: group.options.map((option) => ({
-      ...option,
-      label: showAlternateActionValue && option.value === selectedAlternateActionValue ? option.value : option.label,
-    })),
-  }));
+  // GET /api/destinations/list/actions groups — Actions and Alternate Actions bind to the same
+  // fetched options, each as its own independent single-string form field.
+  const actionSelectOptions = useMemo(() => toToggleSelectGroups(actionOptions), [actionOptions]);
+  // GET /api/destinations/list/holdMusic groups (Music on Hold / Recordings / Streams).
+  const holdMusicSelectOptions = useMemo(() => toToggleSelectGroups(holdMusicOptions), [holdMusicOptions]);
 
   const disabled = !canManage;
+
+  // Axion keeps destination_action in form state (and in the payload) when an outbound type hides
+  // the field. Ant Design's onFinish omits unmounted fields, so the stored value is merged back.
+  const handleFinish = (values: DestinationFormValues) =>
+    onSubmit({ ...values, destination_action: form.getFieldValue("destination_action") });
 
   return (
     <Form<DestinationFormValues>
@@ -251,7 +145,7 @@ const DestinationForm = ({
       form={form}
       layout="vertical"
       initialValues={initialValues}
-      onFinish={onSubmit}
+      onFinish={handleFinish}
       disabled={submitting || disabled}
     >
       <Card>
@@ -362,63 +256,40 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
+          {/* Hidden for outbound, but its value is kept (not cleared) — see handleFinish. */}
           {destinationType !== "outbound" && (
             <Col xs={24} sm={12} md={8}>
-              <Form.Item label="Actions" tooltip="Select the actions">
-                <Row gutter={8} wrap={false}>
-                  <Col flex="auto">
-                    <Form.Item name="destination_action" noStyle rules={[noEdgeWhitespaceRule]}>
-                      <Select
-                        showSearch={!showActionValue}
-                        allowClear={!showActionValue}
-                        optionFilterProp="label"
-                        placeholder="Select actions"
-                        options={displayedActionOptions}
-                        loading={optionsLoading}
-                        aria-label="Destination action"
-                        value={form.getFieldValue("destination_action")}
-                        onChange={handleActionChange}
-                        open={showActionValue ? false : undefined}
-                      />
-                    </Form.Item>
-                  </Col>
-
-                  <Col flex="none">
-                    <Button type="default" onClick={handleActionToggle} disabled={submitting || disabled}>
-                      ❮
-                    </Button>
-                  </Col>
-                </Row>
+              <Form.Item
+                name="destination_action"
+                label="Actions"
+                tooltip="Select the actions"
+                rules={[noEdgeWhitespaceRule]}
+              >
+                <ToggleSelectInput
+                  options={actionSelectOptions}
+                  placeholder="Select actions"
+                  loading={optionsLoading}
+                  canToggle={canUseFreeText}
+                  aria-label="Destination action"
+                />
               </Form.Item>
             </Col>
           )}
 
           <Col xs={24} sm={12} md={8}>
-            <Form.Item label="Alternate Actions" tooltip="Select the alternate actions">
-              <Row gutter={8} wrap={false}>
-                <Col flex="auto">
-                  <Form.Item name="destination_alternate_action" noStyle rules={[noEdgeWhitespaceRule]}>
-                    <Select
-                      showSearch={!showAlternateActionValue}
-                      allowClear={!showAlternateActionValue}
-                      optionFilterProp="label"
-                      placeholder="Select alternate actions"
-                      options={displayedAlternateActionOptions}
-                      loading={optionsLoading}
-                      aria-label="Destination alternate action"
-                      value={form.getFieldValue("destination_alternate_action")}
-                      onChange={handleAlternateActionChange}
-                      open={showAlternateActionValue ? false : undefined}
-                    />
-                  </Form.Item>
-                </Col>
-
-                <Col flex="none">
-                  <Button type="default" onClick={handleAlternateActionToggle} disabled={submitting || disabled}>
-                    ❮
-                  </Button>
-                </Col>
-              </Row>
+            <Form.Item
+              name="destination_alternate_action"
+              label="Alternate Actions"
+              tooltip="Select the alternate actions"
+              rules={[noEdgeWhitespaceRule]}
+            >
+              <ToggleSelectInput
+                options={actionSelectOptions}
+                placeholder="Select alternate actions"
+                loading={optionsLoading}
+                canToggle={canUseFreeText}
+                aria-label="Destination alternate action"
+              />
             </Form.Item>
           </Col>
 
@@ -439,31 +310,19 @@ const DestinationForm = ({
           )}
 
           <Col xs={24} sm={12} md={8}>
-            <Form.Item label="Hold Music" tooltip="Select the MOH category here">
-              <Row gutter={8} wrap={false}>
-                <Col flex="auto">
-                  <Form.Item name="destination_hold_music" noStyle rules={[noEdgeWhitespaceRule]}>
-                    <Select
-                      showSearch={!showHoldMusicValue}
-                      allowClear={!showHoldMusicValue}
-                      optionFilterProp="label"
-                      placeholder="Select hold music"
-                      options={displayedHoldMusicOptions}
-                      loading={optionsLoading}
-                      aria-label="Hold music"
-                      value={form.getFieldValue("destination_hold_music")}
-                      onChange={handleHoldMusicChange}
-                      open={showHoldMusicValue ? false : undefined}
-                    />
-                  </Form.Item>
-                </Col>
-
-                <Col flex="none">
-                  <Button type="default" onClick={handleToggleHoldMusicValue} disabled={submitting || disabled}>
-                    ❮
-                  </Button>
-                </Col>
-              </Row>
+            <Form.Item
+              name="destination_hold_music"
+              label="Hold Music"
+              tooltip="Select the MOH category here"
+              rules={[noEdgeWhitespaceRule]}
+            >
+              <ToggleSelectInput
+                options={holdMusicSelectOptions}
+                placeholder="Select hold music"
+                loading={optionsLoading}
+                canToggle={canUseFreeText}
+                aria-label="Hold music"
+              />
             </Form.Item>
           </Col>
 
