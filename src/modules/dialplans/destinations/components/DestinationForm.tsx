@@ -174,7 +174,7 @@ const DestinationForm = ({
               tooltip="Enter the trunk prefix."
               rules={[countryOrTrunkPrefixRule]}
             >
-              <Input placeholder="Enter trunk prefix" />
+              <Input type={"number"} min={0} placeholder="Enter trunk prefix" />
             </Form.Item>
           </Col>
 
@@ -185,7 +185,7 @@ const DestinationForm = ({
               tooltip="Enter the area code."
               rules={[areaCodeRule]}
             >
-              <Input placeholder="Enter area code" />
+              <Input type={"number"} min={0} placeholder="Enter area code" />
             </Form.Item>
           </Col>
 
@@ -197,7 +197,7 @@ const DestinationForm = ({
               validateFirst
               rules={destinationNumberRules(isDestinationNumberTaken, excludeUuid)}
             >
-              <Input placeholder="Enter destination" aria-label="Destination number" />
+              <Input type={"number"} min={0} placeholder="Enter destination" aria-label="Destination number" />
             </Form.Item>
           </Col>
 
@@ -219,7 +219,7 @@ const DestinationForm = ({
               tooltip="Enter the caller ID name"
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter caller id name" />
+              <Input type={"number"} min={0} placeholder="Enter caller id name" />
             </Form.Item>
           </Col>
 
@@ -230,7 +230,7 @@ const DestinationForm = ({
               tooltip="Enter the caller ID number"
               rules={[callerIdNumberRule]}
             >
-              <Input placeholder="Enter caller id number" />
+              <Input type={"number"} min={0} placeholder="Enter caller id number" />
             </Form.Item>
           </Col>
 
