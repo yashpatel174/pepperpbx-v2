@@ -51,23 +51,14 @@ const ModuleHeader = ({ title, count, primaryAction, actions = [], filters, tool
         <div style={{ width: '100%' }}>{toolbar}</div>
       ) : (
         <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
+          {/* Groups may shrink to the row width (never past it), so on narrow screens their
+              buttons/filters wrap onto new lines instead of overflowing. Unchanged when they fit. */}
           {filters && (
-            <Space wrap size="middle" align="center" style={{ flex: '0 0 auto' }}>
+            <Space wrap size="middle" align="center" style={{ flex: '0 1 auto', minWidth: 0, maxWidth: '100%' }}>
               {filters}
             </Space>
           )}
-          <Space wrap size="middle" style={{ flex: '0 0 auto' }}>
-            {primaryAction && (
-              <Button
-                type="primary"
-                icon={primaryAction.icon}
-                onClick={primaryAction.onClick}
-                loading={primaryAction.loading}
-                disabled={primaryAction.disabled}
-              >
-                {primaryAction.label}
-              </Button>
-            )}
+          <Space wrap size="middle" style={{ flex: '0 1 auto', minWidth: 0, maxWidth: '100%' }}>
             {actions.map(action => (
               <Button
                 key={action.key}
@@ -79,6 +70,17 @@ const ModuleHeader = ({ title, count, primaryAction, actions = [], filters, tool
                 {action.label}
               </Button>
             ))}
+             {primaryAction && (
+              <Button
+                type="primary"
+                icon={primaryAction.icon}
+                onClick={primaryAction.onClick}
+                loading={primaryAction.loading}
+                disabled={primaryAction.disabled}
+              >
+                {primaryAction.label}
+              </Button>
+            )}
           </Space>
         </Flex>
       )}

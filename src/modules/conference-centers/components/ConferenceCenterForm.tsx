@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
-import { App, Card, Col, Form, Input, Row, Select, Switch } from 'antd'
+import { App, Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from 'antd'
 import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
 import ToggleSelectInput from '../../../components/common/ToggleSelectInput'
 import { pinLengthOptions } from '../conference-center.constants'
 import { extensionRules, nameRules, noEdgeWhitespaceRule, pinLengthRules } from '../conference-center.validation'
 import useConferenceCenterPermissions from '../useConferenceCenterPermissions'
 import type { ConferenceCenterFormValues, GreetingOption, HiveUserConferenceDetails } from '../conference-center.types'
+import { QuestionCircleOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -50,6 +51,7 @@ const ConferenceCenterForm = ({
   onDomainConfirmed,
   onSubmit,
 }: ConferenceCenterFormProps) => {
+ const { token } = theme.useToken();
   const [form] = Form.useForm<ConferenceCenterFormValues>()
   const { modal } = App.useApp()
   // TODO: Axion gates the Greeting select/text toggle on `pbx_admin || pbx_axiontech`; no
@@ -181,10 +183,19 @@ const ConferenceCenterForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} lg={8}>
-            <Form.Item name="conference_center_enabled" label="Enabled" tooltip="Enable or disable this conference center" valuePropName="checked">
-              <Switch aria-label="Enabled" />
-            </Form.Item>
+           <Col xs={24} sm={12} md={8}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 32 }}>
+              <Form.Item name="conference_center_enabled" valuePropName="checked" noStyle>
+                <Switch aria-label="Enabled" />
+              </Form.Item>
+              <span>Enabled</span>
+              <Tooltip title="Select enabled">
+              <QuestionCircleOutlined
+                aria-label="Enabled"
+                style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help", flexShrink: 0 }}
+              />
+            </Tooltip>
+            </div>
           </Col>
         </Row>
       </Card>

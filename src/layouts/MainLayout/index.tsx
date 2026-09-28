@@ -44,6 +44,9 @@ const MainLayout: React.FC = () => {
           marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
           transition: 'margin-left 0.2s',
           minHeight: `calc(100vh - ${headerHeight}px)`,
+          // Flex item beside the Sider: without this it grows to its widest child (e.g. a wide
+          // table), causing page-level horizontal scroll instead of the table scrolling itself.
+          minWidth: 0,
         }}>
           <PageBreadcrumb />
           <PageContent></PageContent>

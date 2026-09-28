@@ -30,7 +30,7 @@ const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: Anno
 
   return (
     <Card>
-      <Row gutter={16} align={"middle"}>
+      <Row gutter={16} >
         <Col xs={24} sm={12} md={8}>
           <Form.Item name="phrase_name" label="Name" tooltip="Enter a name for this announcement" rules={nameRules}>
             <Input placeholder="Enter announcement name" aria-label="Announcement name" />
