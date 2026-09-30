@@ -19,7 +19,6 @@ const AddConferenceProfilePage = () => {
   const { canManageAll, canAdd, canEdit, canView } = useConferenceProfilePermissions()
 
   const [submitting, setSubmitting] = useState(false)
-  const [formValid, setFormValid] = useState(false)
 
   const canAccessForm = canManageAll || canAdd
 
@@ -56,7 +55,7 @@ const AddConferenceProfilePage = () => {
               </Button>
               {/* TODO: wrap with <PermissionGuard permission="conference.add"> once RBAC is populated. */}
               {canAccessForm && (
-                <Button type="primary" htmlType="submit" form={ADD_FORM_ID} loading={submitting} disabled={!formValid}>
+                <Button type="primary" htmlType="submit" form={ADD_FORM_ID} loading={submitting}>
                   Save
                 </Button>
               )}
@@ -72,7 +71,6 @@ const AddConferenceProfilePage = () => {
           canManage={canAccessForm}
           submitting={submitting}
           onSubmit={handleSubmit}
-          onValidityChange={setFormValid}
         />
       ) : (
         <PermissionDenied />

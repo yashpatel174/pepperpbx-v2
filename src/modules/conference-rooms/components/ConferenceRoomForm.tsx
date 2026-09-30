@@ -38,8 +38,6 @@ export interface ConferenceRoomFormProps {
   /** Add only: the domain change was confirmed; the page re-fetches the domain's hive, centers and profiles. */
   onDomainConfirmed?: (domainName: string) => void;
   onSubmit: (values: ConferenceRoomFormValues) => void;
-  /** Reports whether the whole form currently passes validation — the page disables Save while false (Axion's `disabled={!isValid}`, §3/§10). */
-  onValidityChange?: (valid: boolean) => void;
 }
 
 /** The True/False selects hold strings; the form model keeps real booleans. */
@@ -85,27 +83,11 @@ const ConferenceRoomForm = ({
   submitting,
   onDomainConfirmed,
   onSubmit,
-  onValidityChange,
 }: ConferenceRoomFormProps) => {
   const [form] = Form.useForm<ConferenceRoomFormValues>();
   const { modal } = App.useApp();
   const currentDomainRef = useRef(initialValues.domain_name);
   const awaitingDomainHiveRef = useRef(false);
-
-  // Re-check validity on every value change without showing errors on untouched fields
-  // (Ant Design's `validateOnly`). Only the latest check may report.
-  const values = Form.useWatch([], form);
-  useEffect(() => {
-    if (!onValidityChange) return;
-    let active = true;
-    form.validateFields({ validateOnly: true }).then(
-      () => active && onValidityChange(true),
-      () => active && onValidityChange(false),
-    );
-    return () => {
-      active = false;
-    };
-  }, [values, form, onValidityChange]);
 
   // After a confirmed domain change, the next hive the page delivers belongs to the new domain.
   useEffect(() => {

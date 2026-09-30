@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Card, Col, Form, Input, Row, Space, Switch, theme, Tooltip } from "antd";
 import ConferenceControlDetailsSection from "./ConferenceControlDetailsSection";
 import { nameRules, noEdgeWhitespaceRule } from "../conference-control.validation";
@@ -16,8 +15,6 @@ export interface ConferenceControlFormProps {
   canManage: boolean;
   submitting: boolean;
   onSubmit: (values: ConferenceControlFormValues) => void;
-  /** Reports whether the whole form currently passes validation — the page disables Save while false (Axion's `disabled={!isValid}`, §10). */
-  onValidityChange?: (valid: boolean) => void;
 }
 
 /**
@@ -32,26 +29,10 @@ const ConferenceControlForm = ({
   canManage,
   submitting,
   onSubmit,
-  onValidityChange,
 }: ConferenceControlFormProps) => {
   const { token } = theme.useToken();
 
   const [form] = Form.useForm<ConferenceControlFormValues>();
-
-  // Re-check validity on every value change without showing errors on untouched fields
-  // (Ant Design's `validateOnly`). Only the latest check may report.
-  const values = Form.useWatch([], form);
-  useEffect(() => {
-    if (!onValidityChange) return;
-    let active = true;
-    form.validateFields({ validateOnly: true }).then(
-      () => active && onValidityChange(true),
-      () => active && onValidityChange(false),
-    );
-    return () => {
-      active = false;
-    };
-  }, [values, form, onValidityChange]);
 
   return (
     <Form<ConferenceControlFormValues>

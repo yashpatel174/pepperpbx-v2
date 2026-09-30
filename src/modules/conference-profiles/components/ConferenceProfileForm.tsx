@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Card, Col, Form, Input, Row, Space, Switch, theme, Tooltip } from 'antd'
 import { QuestionCircleOutlined } from '@ant-design/icons'
 import ConferenceProfileParamsSection from './ConferenceProfileParamsSection'
@@ -16,8 +15,6 @@ export interface ConferenceProfileFormProps {
   canManage: boolean
   submitting: boolean
   onSubmit: (values: ConferenceProfileFormValues) => void
-  /** Reports whether the whole form currently passes validation — the page disables Save while false (Axion's `disabled={!isValid}`, §10). */
-  onValidityChange?: (valid: boolean) => void
 }
 
 /**
@@ -25,24 +22,9 @@ export interface ConferenceProfileFormProps {
  * (conference-profiles.md §8). In Edit mode it also renders the "Profile Parameters" card; Add
  * never does, preserving Axion's two-step create-then-edit flow (§3/§26).
  */
-const ConferenceProfileForm = ({ mode, formId, initialValues, canManage, submitting, onSubmit, onValidityChange }: ConferenceProfileFormProps) => {
+const ConferenceProfileForm = ({ mode, formId, initialValues, canManage, submitting, onSubmit }: ConferenceProfileFormProps) => {
   const { token } = theme.useToken()
   const [form] = Form.useForm<ConferenceProfileFormValues>()
-
-  // Re-check validity on every value change without showing errors on untouched fields
-  // (Ant Design's `validateOnly`). Only the latest check may report.
-  const values = Form.useWatch([], form)
-  useEffect(() => {
-    if (!onValidityChange) return
-    let active = true
-    form.validateFields({ validateOnly: true }).then(
-      () => active && onValidityChange(true),
-      () => active && onValidityChange(false)
-    )
-    return () => {
-      active = false
-    }
-  }, [values, form, onValidityChange])
 
   return (
     <Form<ConferenceProfileFormValues>

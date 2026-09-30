@@ -47,7 +47,6 @@ const EditConferenceRoomPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [formValid, setFormValid] = useState(false)
   // Remounts the form so it picks up the server-confirmed record after a save.
   const [formKey, setFormKey] = useState(0)
 
@@ -145,7 +144,7 @@ const EditConferenceRoomPage = () => {
               </Button>
               {/* TODO: wrap with <PermissionGuard permission="conference.edit"> once RBAC is populated. */}
               {canEditFields && (
-                <Button type="primary" htmlType="submit" form={EDIT_FORM_ID} loading={submitting} disabled={!formValid}>
+                <Button type="primary" htmlType="submit" form={EDIT_FORM_ID} loading={submitting}>
                   Save
                 </Button>
               )}
@@ -165,7 +164,6 @@ const EditConferenceRoomPage = () => {
           canManage={canEditFields}
           submitting={submitting}
           onSubmit={handleSubmit}
-          onValidityChange={setFormValid}
         />
       ) : (
         <PermissionDenied />
