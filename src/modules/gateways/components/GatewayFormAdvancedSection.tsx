@@ -34,7 +34,7 @@ const GatewayFormAdvancedSection = () => {
           tooltip="Select the extension to be affected"
           rules={[noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input type={'number'} />
         </Form.Item>
       </Col>
 

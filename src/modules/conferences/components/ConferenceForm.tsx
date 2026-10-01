@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { App, Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from 'antd'
 import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { extensionReuseNote } from '../../../components/common/extensionReuseNote'
 import {
   descriptionRules,
   emailRule,
@@ -147,6 +148,7 @@ const ConferenceForm = ({
               name="conference_extension"
               label="Extension"
               tooltip={`Must be between ${hive.extensionRangeStart} and ${hive.extensionRangeEnd}, optionally prefixed with "**"`}
+              extra={<span style={{ color: token.colorError }}>{extensionReuseNote}</span>}
               validateFirst
               rules={extensionRangeRule(hive)}
             >

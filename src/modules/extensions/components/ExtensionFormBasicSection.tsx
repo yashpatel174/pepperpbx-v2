@@ -1,4 +1,5 @@
-import { Card, Col, Form, Input, Row, Select } from 'antd'
+import { Card, Col, Form, Input, Row, Select, theme } from 'antd'
+import { extensionReuseNote } from '../../../components/common/extensionReuseNote'
 import { extensionRangeOptions } from '../extension.constants'
 import { isExtensionNumberTaken } from '../extension.service'
 import type { HiveUserDetails } from '../extension.types'
@@ -21,7 +22,10 @@ const ExtensionFormBasicSection = ({
   excludeUuid,
   hive,
   disabled,
-}: ExtensionFormBasicSectionProps) => (
+}: ExtensionFormBasicSectionProps) => {
+  const { token } = theme.useToken()
+
+  return (
   <Card >
     <Row gutter={16}>
       <Col xs={24} md={8}>
@@ -29,6 +33,7 @@ const ExtensionFormBasicSection = ({
           name="extension"
           label="Extension"
           tooltip="Enter the extension number"
+          extra={<span style={{ color: token.colorError }}>{extensionReuseNote}</span>}
           validateFirst
           rules={extensionNumberRules({
             additionalExtStart: hive.additionalExtStart,
@@ -94,6 +99,7 @@ const ExtensionFormBasicSection = ({
       )}
     </Row>
   </Card>
-)
+  )
+}
 
 export default ExtensionFormBasicSection

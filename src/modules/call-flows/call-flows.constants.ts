@@ -92,4 +92,4 @@ export const callFlowDeleteWarning =
   'Note: Please ensure that this call flow is not linked to any other records before proceeding, as deleting it may affect related data.'
 
 /** Axion's `CommonExtInput` note under the extension field (§26). */
-export const extensionReuseNote = 'If you modify the extension, make sure it is not used in any other application.'
+export { extensionReuseNote } from '../../components/common/extensionReuseNote'

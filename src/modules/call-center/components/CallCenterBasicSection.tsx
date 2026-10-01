@@ -1,4 +1,5 @@
-import { Card, Col, Form, Input, Row, Select } from "antd";
+import { Card, Col, Form, Input, Row, Select, theme } from "antd";
+import { extensionReuseNote } from "../../../components/common/extensionReuseNote";
 import {
   descriptionRules,
   extensionRangeRule,
@@ -54,6 +55,7 @@ const CallCenterBasicSection = ({
   // this reuses the module's own highest-privilege tier as a placeholder. Replace with a real
   // permission check once the backend contract for this exact Axion behavior is confirmed.
   const { canManageAll } = useCallCenterPermissions();
+  const { token } = theme.useToken();
 
   return (
     <Card title="Queue Details">
@@ -75,6 +77,7 @@ const CallCenterBasicSection = ({
             name="queue_extension"
             label="Extension"
             tooltip={`Must be between ${hive.extensionRangeStart} and ${hive.extensionRangeEnd}`}
+            extra={<span style={{ color: token.colorError }}>{extensionReuseNote}</span>}
             validateFirst
             rules={extensionRangeRule(hive)}
           >
