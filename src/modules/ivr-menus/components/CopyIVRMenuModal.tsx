@@ -89,7 +89,7 @@ const CopyIVRMenuModal = ({ open, target, hive, hiveError, onRetryHive, submitti
           validateFirst
           rules={hive ? extensionRules(hive) : [{ required: true, message: 'Extension required in number' }]}
         >
-          <Input placeholder={hive ? 'Enter extension' : 'Loading…'} disabled={!hive || submitting} inputMode="numeric" aria-label="New extension" />
+          <Input placeholder={hive ? 'Enter extension' : 'Loading…'} disabled={!hive || submitting} type={'number'} aria-label="New extension" />
         </Form.Item>
       </Form>
     </Modal>

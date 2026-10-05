@@ -41,12 +41,12 @@ export const mockActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
       label: "Ring Groups",
       options: [
         {
-          label: "Ring Group - Sales (**8000)",
-          value: "transfer:**8000 XML sip.axionhq.hivepbx.com",
+          label: "Ring Group - Sales (8000)",
+          value: "transfer:8000 XML sip.axionhq.hivepbx.com",
         },
         {
-          label: "Ring Group - Support (**8001)",
-          value: "transfer:**8001 XML sip.axionhq.hivepbx.com",
+          label: "Ring Group - Support (8001)",
+          value: "transfer:8001 XML sip.axionhq.hivepbx.com",
         },
       ],
     },
@@ -67,8 +67,8 @@ export const mockActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
       label: "IVR",
       options: [
         {
-          label: "IVR - Main Menu (**5000)",
-          value: "transfer:**5000 XML sip.axionhq.hivepbx.com",
+          label: "IVR - Main Menu (5000)",
+          value: "transfer:5000 XML sip.axionhq.hivepbx.com",
         },
       ],
     },
@@ -137,8 +137,8 @@ export const mockActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
       label: "Ring Groups",
       options: [
         {
-          label: "Ring Group - Branch Support (**8000)",
-          value: "transfer:**8000 XML sip.axionhq.hivepbx.com",
+          label: "Ring Group - Branch Support (8000)",
+          value: "transfer:8000 XML sip.axionhq.hivepbx.com",
         },
       ],
     },
@@ -155,8 +155,8 @@ export const mockActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
       label: "IVR",
       options: [
         {
-          label: "IVR - Branch Main Menu (**5000)",
-          value: "transfer:**5000 XML sip.axionhq.hivepbx.com",
+          label: "IVR - Branch Main Menu (5000)",
+          value: "transfer:5000 XML sip.axionhq.hivepbx.com",
         },
       ],
     },
@@ -189,8 +189,8 @@ export const mockActionOptionsByDomain: Record<string, ActionOptionGroup[]> = {
       label: "Ring Groups",
       options: [
         {
-          label: "Ring Group - Remote Support (**8000)",
-          value: "transfer:**8000 XML sip.axionhq.hivepbx.com",
+          label: "Ring Group - Remote Support (8000)",
+          value: "transfer:8000 XML sip.axionhq.hivepbx.com",
         },
       ],
     },
