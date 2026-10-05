@@ -110,7 +110,13 @@ const CallCenterTable = ({
       dataIndex: "description",
       key: "description",
       ellipsis: true,
-      render: (value?: string) => (value ? <Tooltip title={value}>{value}</Tooltip> : <Text type="secondary">—</Text>),
+      render: (value?: string) => (value ? <Tooltip title={value}> <div  style={{
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto",
+          overflowY: "hidden",
+          whiteSpace: "nowrap",
+        }}  >{value}</div></Tooltip> : <Text type="secondary">—</Text>),
       sorter: (a, b) => compareOptional(a.description, b.description),
     },
 

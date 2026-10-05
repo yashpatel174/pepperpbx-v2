@@ -38,7 +38,13 @@ const renderOptional = (value?: string) => (value ? value : dash)
 const renderTruncated = (value?: string) =>
   value ? (
     <Tooltip title={value}>
-      <div style={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{value}</div>
+      <div  style={{
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto",
+          overflowY: "hidden",
+          whiteSpace: "nowrap",
+        }}>{value}</div>
     </Tooltip>
   ) : (
     dash

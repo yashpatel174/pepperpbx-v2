@@ -204,7 +204,13 @@ const CallBlockTable = ({
       dataIndex: 'call_block_description',
       key: 'call_block_description',
       ellipsis: true,
-      render: (value?: string) => (value ? <Tooltip title={value}>{value}</Tooltip> : <Text type="secondary">—</Text>),
+      render: (value?: string) => (value ? <Tooltip title={value}> <div  style={{
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto",
+          overflowY: "hidden",
+          whiteSpace: "nowrap",
+        }}  >{value}</div></Tooltip> : <Text type="secondary">—</Text>),
       sorter: (a, b) => compareOptional(a.call_block_description, b.call_block_description),
     },
 

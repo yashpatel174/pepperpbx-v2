@@ -28,7 +28,13 @@ interface ConferenceCenterTableProps {
 
 const compareOptional = (a?: string, b?: string) => (a ?? '').localeCompare(b ?? '')
 
-const renderTruncated = (value?: string) => (value ? <Tooltip title={value}>{value}</Tooltip> : <Text type="secondary">—</Text>)
+const renderTruncated = (value?: string) => (value ? <Tooltip title={value}> <div  style={{
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto",
+          overflowY: "hidden",
+          whiteSpace: "nowrap",
+        }}  >{value}</div></Tooltip> : <Text type="secondary">—</Text>)
 
 /**
  * Columns per conference-centers.md §5: Domain (Show All only), Name, Extension, Greeting, PIN
