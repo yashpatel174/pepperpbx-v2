@@ -1,11 +1,18 @@
 import { useEffect, useState, useRef } from 'react';
-import { Layout, Menu, theme } from 'antd';
+import { Collapse, Layout, Menu, theme } from 'antd';
 import type { MenuItemType } from 'antd/es/menu/interface';
 import { AdminRouterItem, routes } from '../../router';
 import { useLocation, useNavigate } from 'react-router-dom';
 import useResponsive from '../../hooks/useResponsive';
 
 const { Sider } = Layout;
+
+/**
+ * Expanded sidebar width. Sized so the longest second-level labels ("Conference Profiles",
+ * "Conference Controls" at the menu's bold fontSizeLG) fit untruncated even with a classic
+ * scrollbar showing. MainLayout offsets the content by the same value.
+ */
+export const SIDEBAR_WIDTH = 256
 
 type OrderedMenuItem = MenuItemType & { order?: number; children?: MenuItemType[] }
 
@@ -34,7 +41,7 @@ const withoutOrder = (item: OrderedMenuItem): OrderedMenuItem => ({
   children: item.children,
 })
 
-const getMenuItems = (routes: AdminRouterItem[]): MenuItemType[] => {
+const getMenuItems = (routes: AdminRouterItem[]): OrderedMenuItem[] => {
   // Routes that declare `meta.group` are bucketed under one shared parent menu entry —
   // this lets separate module files (e.g. Extensions, later Gateways) land under the same
   // "Account" parent without any of them nesting in the actual route tree. See router/index.tsx.
@@ -79,13 +86,31 @@ const getMenuItems = (routes: AdminRouterItem[]): MenuItemType[] => {
     .map(withoutOrder)
 }
 
+/** Consecutive standalone items render as one Menu; each `meta.group` renders as its own panel. */
+type SidebarSegment = { group: OrderedMenuItem } | { items: OrderedMenuItem[] }
+
+const toSegments = (items: OrderedMenuItem[]) =>
+  items.reduce<SidebarSegment[]>((segments, item) => {
+    if (item.children?.length) {
+      segments.push({ group: item })
+      return segments
+    }
+    const last = segments[segments.length - 1]
+    if (last && 'items' in last) last.items.push(item)
+    else segments.push({ items: [item] })
+    return segments
+  }, [])
+
+/** Inline Menu items sit at itemMarginInline (4) + inlineIndent (24); group headers align to it. */
+const MENU_ITEM_INSET = 28
+
 /**
- * PageSidebar
- * @param props {autoCollapse?: boolean} automatic collapes menu when click another menu
- * @returns
+ * PageSidebar — expanded, groups are an accordion of Ant Design `Collapse` panels (one open at a
+ * time) and standalone items stay plain Menu items, all built from the route metadata via
+ * getMenuItems. Collapsed (desktop icon rail) keeps the single inline Menu with hover pop-outs,
+ * which panels can't provide.
  */
 type PageSidebarProps = {
-  autoCollapse?: boolean
   height?: string | number
   /** Fixed-position top offset, in px — must match the Header's actual rendered height. */
   topOffset?: number
@@ -94,12 +119,17 @@ type PageSidebarProps = {
 }
 
 const PageSidebar = (props: PageSidebarProps) => {
-  const { autoCollapse = true, height = '100%', topOffset = 64, collapsed: externalCollapsed, onCollapse } = props
+  const { height = '100%', topOffset = 64, collapsed: externalCollapsed, onCollapse } = props
   const { token } = theme.useToken()
   const menuItems = getMenuItems(routes)
   const navigate = useNavigate()
-  const [lastOpenedMenu, setLastOpenedMenu] = useState<string[]>([])
   const location = useLocation()
+  // Accordion state shared by every group panel: at most one open. Starts on the group that holds
+  // the current route, so a deep link lands with its section expanded.
+  const [openGroup, setOpenGroup] = useState<string | undefined>(() => {
+    const activeGroup = menuItems.find((item) => item.children?.some((child) => child.key === location.pathname))
+    return activeGroup ? String(activeGroup.key) : undefined
+  })
 
   // Responsive breakpoints
   const { isMobile } = useResponsive()
@@ -130,8 +160,7 @@ const PageSidebar = (props: PageSidebarProps) => {
     }
   }
 
-  const onSwitchMenu = ({ key, keyPath }: { key: string; keyPath: string[] }) => {
-    if (autoCollapse && keyPath.slice(1)) setLastOpenedMenu(keyPath.slice(1))
+  const onSwitchMenu = ({ key }: { key: string }) => {
     navigate(key)
     // Auto collapse sidebar on mobile after navigation
     if (isMobile && !collapsed) {
@@ -139,16 +168,70 @@ const PageSidebar = (props: PageSidebarProps) => {
     }
   }
 
-  const onOpenChange = (openKeys: string[]) => {
-    setLastOpenedMenu(openKeys)
-  }
+  const menuStyle = { fontSize: token.fontSizeLG, fontWeight: token.fontWeightStrong }
+  const selectedKeys = [location.pathname]
+
+  // Several Menus share the column, so their own right borders are dropped to avoid a broken line.
+  const renderExpanded = () =>
+    toSegments(menuItems).map((segment) =>
+      'items' in segment ? (
+        <Menu
+          key={`items-${String(segment.items[0].key)}`}
+          mode="inline"
+          items={segment.items}
+          selectedKeys={selectedKeys}
+          onClick={onSwitchMenu}
+          style={{ ...menuStyle, borderInlineEnd: 'none' }}
+        />
+      ) : (
+        <Collapse
+          key={`group-${String(segment.group.key)}`}
+          ghost
+          expandIconPlacement="end"
+          activeKey={openGroup === String(segment.group.key) ? [openGroup] : []}
+          onChange={(keys) => setOpenGroup(keys.length > 0 ? String(segment.group.key) : undefined)}
+          styles={{
+            header: { paddingInlineStart: MENU_ITEM_INSET, paddingInlineEnd: token.paddingMD, alignItems: 'center' },
+            body: { padding: 0 },
+          }}
+          items={[
+            {
+              key: String(segment.group.key),
+              label: (
+                <span style={{ ...menuStyle, display: 'flex', alignItems: 'center', gap: token.marginSM }}>
+                  {segment.group.icon}
+                  {segment.group.label}
+                </span>
+              ),
+              children: (
+                <Menu
+                  mode="inline"
+                  // Children keep the indentation they had as second-level submenu items.
+                  inlineIndent={48}
+                  items={segment.group.children}
+                  selectedKeys={selectedKeys}
+                  onClick={onSwitchMenu}
+                  style={{ ...menuStyle, borderInlineEnd: 'none' }}
+                />
+              ),
+            },
+          ]}
+        />
+      ),
+    )
 
   return (
     <Sider
       theme='light'
       style={{
         height,
-        overflow: 'auto',
+        // Own vertical scroll: thin, token-coloured thumb on a transparent track (light + dark),
+        // and scroll chaining stopped so reaching the end never scrolls the page behind.
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        overscrollBehavior: 'contain',
+        scrollbarWidth: 'thin',
+        scrollbarColor: `${token.colorTextQuaternary} transparent`,
         position: 'fixed',
         left: 0,
         top: topOffset,
@@ -161,20 +244,22 @@ const PageSidebar = (props: PageSidebarProps) => {
       onCollapse={handleCollapse}
       breakpoint="lg"
       collapsedWidth={isMobile ? 0 : 80}
-      width={200}
+      width={SIDEBAR_WIDTH}
       trigger={null}
     >
-      <Menu
-        openKeys={collapsed ? undefined : lastOpenedMenu}
-        onOpenChange={collapsed ? undefined : onOpenChange}
-        selectedKeys={[location.pathname]}
-        mode="inline"
-        items={menuItems}
-        onClick={onSwitchMenu}
-        inlineCollapsed={collapsed}
-        triggerSubMenuAction={collapsed ? 'hover' : 'click'}
-        style={{ fontSize: token.fontSizeLG, fontWeight: token.fontWeightStrong }}
-      />
+      {collapsed ? (
+        <Menu
+          selectedKeys={selectedKeys}
+          mode="inline"
+          items={menuItems}
+          onClick={onSwitchMenu}
+          inlineCollapsed
+          triggerSubMenuAction="hover"
+          style={menuStyle}
+        />
+      ) : (
+        renderExpanded()
+      )}
     </Sider>
   )
 }

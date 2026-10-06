@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { Layout, theme } from 'antd';
-import PageSidebar from './Sidebar';
+import PageSidebar, { SIDEBAR_WIDTH } from './Sidebar';
 import PageContent from './Content';
 import PageBreadcrumb from './Breadcrumb';
 import Headerbar from './Header';
@@ -41,7 +41,7 @@ const MainLayout: React.FC = () => {
           onCollapse={setCollapsed}
         />
         <Layout style={{
-          marginLeft: isMobile ? 0 : (collapsed ? 80 : 200),
+          marginLeft: isMobile ? 0 : (collapsed ? 80 : SIDEBAR_WIDTH),
           transition: 'margin-left 0.2s',
           minHeight: `calc(100vh - ${headerHeight}px)`,
           // Flex item beside the Sider: without this it grows to its widest child (e.g. a wide
