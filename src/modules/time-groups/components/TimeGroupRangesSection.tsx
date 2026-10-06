@@ -336,7 +336,7 @@ const TimeGroupRangeFields = ({ index, name, disabled, onRemove, timeZoneOptions
                       height: 36,
                       minWidth: 36,
                       borderRadius: "50%",
-                      border: `1px solid ${selected ? "var(--ant-color-primary)" : "var(--ant-color-border)"}`,
+                      border: `1px solid "var(--ant-color-primary)" : "var(--ant-color-border)"}`,
                       backgroundColor: selected ? "var(--ant-color-primary)" : "transparent",
                       color: selected ? "var(--ant-color-text-light-solid)" : "var(--ant-color-text)",
                       display: "inline-flex",
@@ -431,7 +431,7 @@ const TimeGroupRangeFields = ({ index, name, disabled, onRemove, timeZoneOptions
               flexWrap: "wrap",
               columnGap: 48,
               rowGap: 12,
-              gap: 8,
+              gap: 44,
               width: "100%",
             }}
           >
