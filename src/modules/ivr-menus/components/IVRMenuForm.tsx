@@ -3,6 +3,7 @@ import { Alert, App, Button, Card, Col, Form, Input, Row, Select, Space, Switch,
 import { QuestionCircleOutlined } from "@ant-design/icons";
 import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
 import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
+import RingBackSelect from "../../ring-groups/components/RingBackSelect";
 import IVRMenuOptions from "./IVRMenuOptions";
 import IVRMenuAdvancedSection from "./IVRMenuAdvancedSection";
 import { domainScopedResetValues, extensionReuseNote, languageOptions } from "../ivr-menu.constants";
@@ -304,8 +305,7 @@ const IVRMenuForm = ({
                 tooltip="What the caller hears while the destination is being called"
               >
                 {/* Axion's `SelectWithTag` (§8): pick a listed ring back or type any value, e.g. `tone_stream://…`. */}
-                <Select
-                  showSearch
+                <RingBackSelect
                   options={options.ringbackOptions}
                   placeholder="Select or type ring back"
                   loading={optionsLoading}

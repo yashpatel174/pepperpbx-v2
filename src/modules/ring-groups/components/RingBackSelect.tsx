@@ -9,6 +9,7 @@ interface RingBackSelectProps {
   onChange?: (value?: string) => void
   options: RingGroupOption[]
   placeholder?: string
+  loading?: boolean
   disabled?: boolean
   'aria-label'?: string
 }
@@ -22,7 +23,7 @@ const optionValues = (options: RingGroupOption[]): string[] =>
  * offered as an extra option, and a stored value missing from the list (a custom one, on Edit) is
  * kept as an option so it still displays. Nothing is created server-side — the value is just text.
  */
-const RingBackSelect = ({ value, onChange, options, placeholder, disabled, 'aria-label': ariaLabel }: RingBackSelectProps) => {
+const RingBackSelect = ({ value, onChange, options, placeholder, loading, disabled, 'aria-label': ariaLabel }: RingBackSelectProps) => {
   const [search, setSearch] = useState('')
 
   const selectOptions = useMemo(() => {
@@ -46,6 +47,7 @@ const RingBackSelect = ({ value, onChange, options, placeholder, disabled, 'aria
       }}
       options={selectOptions}
       placeholder={placeholder}
+      loading={loading}
       disabled={disabled}
       aria-label={ariaLabel}
     />

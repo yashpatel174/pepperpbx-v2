@@ -1,4 +1,5 @@
-import { Card, Col, Form, Input, Row, Select } from 'antd'
+import { Card, Col, Form, Input, Row } from 'antd'
+import RingBackSelect from '../../ring-groups/components/RingBackSelect'
 import ToggleSelectInput from '../../../components/common/ToggleSelectInput'
 import {
   confirmAttemptsRules,
@@ -42,7 +43,7 @@ const IVRMenuAdvancedSection = ({ soundOptions, optionsLoading, disabled }: IVRM
       </Col>
       <Col {...colProps}>
         <Form.Item name="ivr_menu_exit_sound" label="Exit Sound" tooltip="Played when leaving the menu" rules={[noEdgeWhitespaceRule]}>
-          <Select showSearch options={soundOptions} placeholder="Select or type exit sound" loading={optionsLoading} disabled={disabled} aria-label="Exit sound" />
+          <RingBackSelect options={soundOptions} placeholder="Select or type exit sound" loading={optionsLoading} disabled={disabled} aria-label="Exit sound" />
         </Form.Item>
       </Col>
       <Col {...colProps}>
