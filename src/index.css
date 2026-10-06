@@ -24,4 +24,72 @@ input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+/*
+ * Larger, easier-to-hit Checkbox.Group (used by Time Groups' Months / Days of Month).
+ * Sizing only — colours stay Ant Design's. The box and its tick are resized with the same formula
+ * Ant Design derives from `controlInteractiveSize` (tick = size/14 × 5 wide, × 8 tall), so the
+ * checkmark stays proportional and centred without transform: scale().
+ */
+.large-checkbox-group {
+  --large-checkbox-size: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  width: 100%;
+}
+
+.large-checkbox-group .ant-checkbox-wrapper {
+  /* Slightly larger text, relative to the theme's font size. */
+  font-size: 1.07em;
+  /* Even rhythm for short labels (e.g. "1" vs "31") without forcing long ones to wrap. */
+  min-width: 3.5em;
+}
+
+.large-checkbox-group .ant-checkbox {
+  width: var(--large-checkbox-size);
+  height: var(--large-checkbox-size);
+}
+
+.large-checkbox-group .ant-checkbox::after {
+  top: calc(var(--large-checkbox-size) / 2 - 1px);
+  inset-inline-start: calc(var(--large-checkbox-size) / 4 - 1px);
+  width: calc(var(--large-checkbox-size) / 14 * 5);
+  height: calc(var(--large-checkbox-size) / 14 * 8);
+}
+
+/*
+ * Fixed-row layouts for Months (6 + 6) and Days of Month (19 + 12). They switch on from the space
+ * the group actually has (a container query on its Form.Item control, so an open/collapsed sidebar
+ * counts), not the viewport. Below each threshold the base rule above keeps natural wrapping, so
+ * nothing overflows or clips. Columns are never narrower than their label (`max-content`).
+ */
+.ant-form-item-control-input-content:has(> .large-checkbox-group) {
+  container-type: inline-size;
+}
+
+/* Months: 6 per row once ~6 × "September" fits. */
+@container (min-width: 760px) {
+  .large-checkbox-group--months {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(max-content, 1fr));
+  }
+}
+
+/* Days of Month: 19 per row (1–19, then 20–31). Tighter label padding and gap so 19 fit. */
+@container (min-width: 920px) {
+  .large-checkbox-group--month-days {
+    display: grid;
+    grid-template-columns: repeat(19, minmax(max-content, 1fr));
+    column-gap: 4px;
+  }
+
+  .large-checkbox-group--month-days .ant-checkbox-wrapper {
+    min-width: 0;
+  }
+
+  .large-checkbox-group--month-days .ant-checkbox + span {
+    padding-inline: 6px 0;
+  }
+}
  
