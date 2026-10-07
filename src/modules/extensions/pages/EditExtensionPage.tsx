@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import ModuleHeader from "../../../components/common/ModuleHeader";
+import FormPageToolbar from "../../../components/common/FormPageToolbar";
+import { isNotFoundError } from "../../../services/api/apiError";
 import LoadingState from "../../../components/feedback/LoadingState";
 import EmptyState from "../../../components/feedback/EmptyState";
 import ErrorState from "../../../components/feedback/ErrorState";
@@ -69,6 +70,7 @@ const EditExtensionPage = () => {
   const [oldExtNumber, setOldExtNumber] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formKey, setFormKey] = useState(0);
 
@@ -77,6 +79,7 @@ const EditExtensionPage = () => {
       if (!extensionUuid) return;
       if (withSpinner) setLoading(true);
       setError(null);
+      setNotFound(false);
       try {
         const [hiveDetails, extensionDetails] = await Promise.all([
           getHiveUserDetails(),
@@ -86,8 +89,13 @@ const EditExtensionPage = () => {
         setDetails(extensionDetails);
         setOldExtNumber(extensionDetails.extension);
         setFormKey((key) => key + 1);
-      } catch {
-        setError("Failed to load this extension.");
+      } catch (err) {
+        // An unknown id gets a record-scoped EmptyState; retrying it can't help.
+        if (isNotFoundError(err)) {
+          setNotFound(true);
+        } else {
+          setError("Failed to load this extension.");
+        }
       } finally {
         if (withSpinner) setLoading(false);
       }
@@ -129,7 +137,7 @@ const EditExtensionPage = () => {
     return <LoadingState rows={10} />;
   }
 
-  if (!details || !hive) {
+  if (notFound || !details || !hive) {
     return (
       <EmptyState
         description="Extension not found."
@@ -143,28 +151,15 @@ const EditExtensionPage = () => {
       <ModuleHeader
         title="Edit Extension"
         toolbar={
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
+          <FormPageToolbar onBack={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
             </Button>
 
-            <Space>
-              <Button onClick={handleCancel} disabled={submitting}>
-                Cancel
-              </Button>
-
-              <Button type="primary" htmlType="submit" form={EDIT_EXTENSION_FORM_ID} loading={submitting}>
-                Save
-              </Button>
-            </Space>
-          </div>
+            <Button type="primary" htmlType="submit" form={EDIT_EXTENSION_FORM_ID} loading={submitting}>
+              Save
+            </Button>
+          </FormPageToolbar>
         }
       />
       <ExtensionForm

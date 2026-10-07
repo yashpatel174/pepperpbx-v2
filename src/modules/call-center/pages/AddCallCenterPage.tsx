@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
-import { ArrowLeftOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
+import FormPageToolbar from '../../../components/common/FormPageToolbar'
 import LoadingState from '../../../components/feedback/LoadingState'
 import ErrorState from '../../../components/feedback/ErrorState'
 import CallCenterForm from '../components/CallCenterForm'
@@ -156,21 +156,16 @@ const AddCallCenterPage = () => {
       <ModuleHeader
         title="Add Call Center Queue"
         toolbar={
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
+          <FormPageToolbar onBack={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
             </Button>
-            <Space>
-              <Button onClick={handleCancel} disabled={submitting}>
-                Cancel
+            {canAccessForm && (
+              <Button type="primary" htmlType="submit" form={ADD_CALL_CENTER_FORM_ID} loading={submitting}>
+                Save
               </Button>
-              {canAccessForm && (
-                <Button type="primary" htmlType="submit" form={ADD_CALL_CENTER_FORM_ID} loading={submitting}>
-                  Save
-                </Button>
-              )}
-            </Space>
-          </div>
+            )}
+          </FormPageToolbar>
         }
       />
       {hasOptionsError && (

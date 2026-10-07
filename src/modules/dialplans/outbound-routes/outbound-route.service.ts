@@ -7,6 +7,7 @@ import {
   mockSbcDomains,
 } from './outbound-route.mock'
 import useDomainStore from '../../../store/domain'
+import type { ApiError } from '../../../services/api/apiError'
 import type {
   HiveOutboundRouteDetails,
   OutboundRoute,
@@ -104,7 +105,8 @@ export const getOutboundRouteDetails = (dialplanUuid: string): Promise<OutboundR
       const details = outboundRoutes.find((record) => record.dialplan_uuid === dialplanUuid)
 
       if (!details) {
-        reject(new Error(`Outbound route ${dialplanUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Outbound route ${dialplanUuid} not found.` }
+        reject(notFound)
         return
       }
 

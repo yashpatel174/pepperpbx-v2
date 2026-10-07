@@ -1,6 +1,7 @@
 import { defaultPageSize } from './gateway.constants'
 import { mockGateways as seedGateways, mockHiveGatewayDetails, mockSbcDomains, mockSipProfiles } from './gateway.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   Gateway,
   GatewayDetails,
@@ -94,7 +95,8 @@ export const getGatewayDetails = (gatewayUuid: string): Promise<GatewayDetails> 
     setTimeout(() => {
       const details = gateways.find((record) => record.gateway_uuid === gatewayUuid)
       if (!details) {
-        reject(new Error(`Gateway ${gatewayUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Gateway ${gatewayUuid} not found.` }
+        reject(notFound)
         return
       }
       // sbcDomainIp null→'' normalization + description trim, per the Axion reference.

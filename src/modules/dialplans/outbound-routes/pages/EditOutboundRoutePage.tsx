@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
-import { ArrowLeftOutlined, CodeOutlined } from "@ant-design/icons";
+import { CodeOutlined } from "@ant-design/icons";
 import ModuleHeader from "../../../../components/common/ModuleHeader";
+import FormPageToolbar from "../../../../components/common/FormPageToolbar";
+import { isNotFoundError } from "../../../../services/api/apiError";
 import LoadingState from "../../../../components/feedback/LoadingState";
 import EmptyState from "../../../../components/feedback/EmptyState";
 import ErrorState from "../../../../components/feedback/ErrorState";
@@ -40,6 +42,7 @@ const EditOutboundRoutePage = () => {
   const [details, setDetails] = useState<OutboundRouteDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formKey, setFormKey] = useState(0);
 
@@ -48,6 +51,7 @@ const EditOutboundRoutePage = () => {
       if (!routeId) return;
       if (withSpinner) setLoading(true);
       setError(null);
+      setNotFound(false);
       try {
         const routeDetails = await getOutboundRouteDetails(routeId);
         // Always supply the route's own domain here — matches Gateways'/Destinations' documented
@@ -64,8 +68,13 @@ const EditOutboundRoutePage = () => {
         setSbcDomains(sbc);
         setGatewayOptions(gateways);
         setFormKey((key) => key + 1);
-      } catch {
-        setError("Failed to load this outbound route.");
+      } catch (err) {
+        // An unknown id gets a record-scoped EmptyState; retrying it can't help.
+        if (isNotFoundError(err)) {
+          setNotFound(true);
+        } else {
+          setError("Failed to load this outbound route.");
+        }
       } finally {
         if (withSpinner) setLoading(false);
       }
@@ -108,7 +117,7 @@ const EditOutboundRoutePage = () => {
     return <LoadingState rows={10} />;
   }
 
-  if (!details || !hive) {
+  if (notFound || !details || !hive) {
     return (
       <EmptyState
         description="Outbound route not found."
@@ -122,37 +131,32 @@ const EditOutboundRoutePage = () => {
       <ModuleHeader
         title="Edit Outbound Route"
         toolbar={
-          <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
-            </Button>
-            <Space>
-              {/* Reaches the raw dialplan-XML screen. The audit gates this button (and the whole
-                  XML screen) to Axion-only users (`pbx_axiontech`) — outbound-routes.md §3/§25/§34.
-                  RBAC is foundation-only here (see CLAUDE.md's RBAC section), so this stays
-                  reachable by any canManage user for now.
-                  TODO: wrap with <PermissionGuard permission="outboundRoute.xmlEdit"> once RBAC
-                  permissions are populated from the backend and an Axion-only-equivalent concept
-                  is confirmed. */}
+          <FormPageToolbar onBack={handleCancel}>
+            {/* Reaches the raw dialplan-XML screen. The audit gates this button (and the whole
+                XML screen) to Axion-only users (`pbx_axiontech`) — outbound-routes.md §3/§25/§34.
+                RBAC is foundation-only here (see CLAUDE.md's RBAC section), so this stays
+                reachable by any canManage user for now.
+                TODO: wrap with <PermissionGuard permission="outboundRoute.xmlEdit"> once RBAC
+                permissions are populated from the backend and an Axion-only-equivalent concept
+                is confirmed. */}
 
-              <Button onClick={handleCancel} disabled={submitting}>
-                Cancel
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
+            </Button>
+            {canManage && (
+              <Button type="primary" htmlType="submit" form={EDIT_OUTBOUND_ROUTE_FORM_ID} loading={submitting}>
+                Save
               </Button>
-              {canManage && (
-                <Button type="primary" htmlType="submit" form={EDIT_OUTBOUND_ROUTE_FORM_ID} loading={submitting}>
-                  Save
-                </Button>
-              )}
-              {canManage && (
-                <Button type="primary"
-                  icon={<CodeOutlined />}
-                  onClick={() => navigate(`/dialplans/outbound-routes/${details.dialplan_uuid}/xml`)}
-                >
-                  XML
-                </Button>
-              )}
-            </Space>
-          </div>
+            )}
+            {canManage && (
+              <Button type="primary"
+                icon={<CodeOutlined />}
+                onClick={() => navigate(`/dialplans/outbound-routes/${details.dialplan_uuid}/xml`)}
+              >
+                XML
+              </Button>
+            )}
+          </FormPageToolbar>
         }
       />
       <OutboundRouteForm

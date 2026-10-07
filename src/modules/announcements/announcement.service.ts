@@ -7,6 +7,7 @@ import {
 } from './announcement.mock'
 import useDomainStore from '../../store/domain'
 import { request } from '../../services/api/apiClient'
+import type { ApiError } from '../../services/api/apiError'
 import { isMockMode } from '../../services/auth/auth.mock'
 import type {
   ActionOptionGroup,
@@ -95,7 +96,8 @@ export const getAnnouncementDetails = (phraseUuid: string): Promise<Announcement
       const details = announcements.find((record) => record.phrase_uuid === phraseUuid)
 
       if (!details) {
-        reject(new Error(`Announcement ${phraseUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Announcement ${phraseUuid} not found.` }
+        reject(notFound)
         return
       }
 

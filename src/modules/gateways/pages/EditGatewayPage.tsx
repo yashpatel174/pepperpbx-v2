@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
-import { ArrowLeftOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
+import FormPageToolbar from '../../../components/common/FormPageToolbar'
+import { isNotFoundError } from '../../../services/api/apiError'
 import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
@@ -60,6 +61,7 @@ const EditGatewayPage = () => {
   const [details, setDetails] = useState<GatewayDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [formKey, setFormKey] = useState(0)
 
@@ -68,6 +70,7 @@ const EditGatewayPage = () => {
       if (!gatewayUuid) return
       if (withSpinner) setLoading(true)
       setError(null)
+      setNotFound(false)
       try {
         const gatewayDetails = await getGatewayDetails(gatewayUuid)
         // Always supply the gateway's own domain here — the Axion reference has a confirmed bug
@@ -82,8 +85,13 @@ const EditGatewayPage = () => {
         setSbcDomains(sbc)
         setSipProfiles(profiles)
         setFormKey((key) => key + 1)
-      } catch {
-        setError('Failed to load this gateway.')
+      } catch (err) {
+        // An unknown id gets a record-scoped EmptyState; retrying it can't help.
+        if (isNotFoundError(err)) {
+          setNotFound(true)
+        } else {
+          setError('Failed to load this gateway.')
+        }
       } finally {
         if (withSpinner) setLoading(false)
       }
@@ -124,7 +132,7 @@ const EditGatewayPage = () => {
     return <LoadingState rows={10} />
   }
 
-  if (!details || !hive) {
+  if (notFound || !details || !hive) {
     return (
       <EmptyState
         description="Gateway not found."
@@ -138,19 +146,14 @@ const EditGatewayPage = () => {
       <ModuleHeader
         title="Edit Gateway"
         toolbar={
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
-            </Button>
-            <Space>
-              <Button onClick={handleCancel} disabled={submitting}>Cancel</Button>
-              {canManage && (
-                <Button type="primary" htmlType="submit" form={EDIT_GATEWAY_FORM_ID} loading={submitting}>
-                  Save
-                </Button>
-              )}
-            </Space>
-          </div>
+          <FormPageToolbar onBack={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting}>Cancel</Button>
+            {canManage && (
+              <Button type="primary" htmlType="submit" form={EDIT_GATEWAY_FORM_ID} loading={submitting}>
+                Save
+              </Button>
+            )}
+          </FormPageToolbar>
         }
       />
       <GatewayForm

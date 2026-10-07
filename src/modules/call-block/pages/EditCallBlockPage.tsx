@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
-import { ArrowLeftOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
+import FormPageToolbar from '../../../components/common/FormPageToolbar'
+import { isNotFoundError } from '../../../services/api/apiError'
 import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
@@ -34,6 +35,7 @@ const EditCallBlockPage = () => {
   const [details, setDetails] = useState<CallBlockDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [formKey, setFormKey] = useState(0)
 
@@ -47,6 +49,7 @@ const EditCallBlockPage = () => {
       if (!callBlockId) return
       if (withSpinner) setLoading(true)
       setError(null)
+      setNotFound(false)
       try {
         const callBlockDetails = await getCallBlockDetails(callBlockId)
         // Always supply the record's own domain here — matches the fix already established for
@@ -62,8 +65,13 @@ const EditCallBlockPage = () => {
         setExtensionOptions(extensions)
         setActionOptions(actions)
         setFormKey((key) => key + 1)
-      } catch {
-        setError('Failed to load this call block.')
+      } catch (err) {
+        // An unknown id gets a record-scoped EmptyState; retrying it can't help.
+        if (isNotFoundError(err)) {
+          setNotFound(true)
+        } else {
+          setError('Failed to load this call block.')
+        }
       } finally {
         if (withSpinner) setLoading(false)
       }
@@ -109,7 +117,7 @@ const EditCallBlockPage = () => {
     return <LoadingState rows={10} />
   }
 
-  if (!details || !hive) {
+  if (notFound || !details || !hive) {
     return <EmptyState description="Call block not found." action={<Button onClick={handleCancel}>Back to Call Block</Button>} />
   }
 
@@ -118,21 +126,16 @@ const EditCallBlockPage = () => {
       <ModuleHeader
         title="Edit Call Block"
         toolbar={
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
+          <FormPageToolbar onBack={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
             </Button>
-            <Space>
-              <Button onClick={handleCancel} disabled={submitting}>
-                Cancel
+            {canAccessForm && (
+              <Button type="primary" htmlType="submit" form={EDIT_CALL_BLOCK_FORM_ID} loading={submitting} disabled={!canEditFields}>
+                Save
               </Button>
-              {canAccessForm && (
-                <Button type="primary" htmlType="submit" form={EDIT_CALL_BLOCK_FORM_ID} loading={submitting} disabled={!canEditFields}>
-                  Save
-                </Button>
-              )}
-            </Space>
-          </div>
+            )}
+          </FormPageToolbar>
         }
       />
       <CallBlockForm

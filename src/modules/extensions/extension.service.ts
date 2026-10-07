@@ -1,6 +1,7 @@
 import { defaultPageSize, searchableExtensionFields } from './extension.constants'
 import { mockExtensions as seedExtensions, mockHiveUserDetails, mockHoldMusicOptions } from './extension.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   Extension,
   ExtensionDetails,
@@ -155,7 +156,8 @@ export const getExtensionDetails = (extensionUuid: string): Promise<ExtensionDet
     setTimeout(() => {
       const details = extensions.find((record) => record.extension_uuid === extensionUuid)
       if (!details) {
-        reject(new Error(`Extension ${extensionUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Extension ${extensionUuid} not found.` }
+        reject(notFound)
         return
       }
       resolve(cloneDetails(details))

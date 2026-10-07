@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import ModuleHeader from "../../../../components/common/ModuleHeader";
+import FormPageToolbar from "../../../../components/common/FormPageToolbar";
+import { isNotFoundError } from "../../../../services/api/apiError";
 import LoadingState from "../../../../components/feedback/LoadingState";
 import EmptyState from "../../../../components/feedback/EmptyState";
 import ErrorState from "../../../../components/feedback/ErrorState";
@@ -43,6 +44,7 @@ const EditDestinationPage = () => {
   const [details, setDetails] = useState<DestinationDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notFound, setNotFound] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formKey, setFormKey] = useState(0);
 
@@ -51,6 +53,7 @@ const EditDestinationPage = () => {
       if (!destinationId) return;
       if (withSpinner) setLoading(true);
       setError(null);
+      setNotFound(false);
       try {
         const destinationDetails = await getDestinationDetails(destinationId);
         const [hiveDetails, actions, fax, holdMusic] = await Promise.all([
@@ -66,8 +69,13 @@ const EditDestinationPage = () => {
         setHoldMusicOptions(holdMusic);
         setFormKey((key) => key + 1);
       } catch(err) {
-        console.error("Failed to load destination:", err);
-        setError("Failed to load this destination.");
+        // An unknown id gets a record-scoped EmptyState; retrying it can't help.
+        if (isNotFoundError(err)) {
+          setNotFound(true);
+        } else {
+          console.error("Failed to load destination:", err);
+          setError("Failed to load this destination.");
+        }
       } finally {
         if (withSpinner) setLoading(false);
       }
@@ -109,7 +117,7 @@ const EditDestinationPage = () => {
     return <LoadingState rows={10} />;
   }
 
-  if (!details || !hive) {
+  if (notFound || !details || !hive) {
     return (
       <EmptyState
         description="Destination not found."
@@ -123,21 +131,16 @@ const EditDestinationPage = () => {
       <ModuleHeader
         title="Edit Destination"
         toolbar={
-          <div style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
+          <FormPageToolbar onBack={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
             </Button>
-            <Space>
-              <Button onClick={handleCancel} disabled={submitting}>
-                Cancel
+            {canManage && (
+              <Button type="primary" htmlType="submit" form={EDIT_DESTINATION_FORM_ID} loading={submitting}>
+                Save
               </Button>
-              {canManage && (
-                <Button type="primary" htmlType="submit" form={EDIT_DESTINATION_FORM_ID} loading={submitting}>
-                  Save
-                </Button>
-              )}
-            </Space>
-          </div>
+            )}
+          </FormPageToolbar>
         }
       />
       <DestinationForm

@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Space, theme, Tooltip } from 'antd'
-import { ArrowLeftOutlined, CaretRightOutlined, ReloadOutlined, StopOutlined } from '@ant-design/icons'
+import { CaretRightOutlined, ReloadOutlined, StopOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
+import FormPageToolbar from '../../../components/common/FormPageToolbar'
 import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
@@ -213,66 +214,61 @@ const EditCallCenterPage = () => {
       <ModuleHeader
         title="Edit Call Center Queue"
         toolbar={
-          <div style={{ width: '100%', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
-            </Button>
-            <Space wrap>
-              {canEditFields && (
-                <>
-                  <Tooltip title="Start">
-                    <Button
-                      icon={<CaretRightOutlined />}
-                      loading={lifecycleAction === 'load'}
-                      disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'load')}
-                      style={{
+          <FormPageToolbar onBack={handleCancel}>
+            {canEditFields && (
+              <>
+                <Tooltip title="Start">
+                  <Button
+                    icon={<CaretRightOutlined />}
+                    loading={lifecycleAction === 'load'}
+                    disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'load')}
+                    style={{
+                      color: '#fff',
+                      backgroundColor: token.colorSuccess,
+                      borderColor: token.colorSuccess,
+                    }}
+                    onClick={() => handleLifecycleAction('load', 'Start')}
+                  >
+                    Start
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Stop">
+                  <Button
+                    icon={<StopOutlined />}
+                     style={{
                         color: '#fff',
-                        backgroundColor: token.colorSuccess,
-                        borderColor: token.colorSuccess,
+                        backgroundColor: token.colorError,
+                        borderColor: token.colorError,
                       }}
-                      onClick={() => handleLifecycleAction('load', 'Start')}
-                    >
-                      Start
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="Stop">
-                    <Button
-                      icon={<StopOutlined />}
-                       style={{
-                          color: '#fff',
-                          backgroundColor: token.colorError,
-                          borderColor: token.colorError,
-                        }}
-                      loading={lifecycleAction === 'unload'}
-                      disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'unload')}
-                      onClick={() => handleLifecycleAction('unload', 'Stop')}
-                    >
-                      Stop
-                    </Button>
-                  </Tooltip>
-                  <Tooltip title="Restart">
-                    <Button
-                      icon={<ReloadOutlined />}
-                      type='primary'
-                      loading={lifecycleAction === 'reload'}
-                      disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'reload')}
-                      onClick={() => handleLifecycleAction('reload', 'Restart')}
-                    >
-                      Restart
-                    </Button>
-                  </Tooltip>
-                </>
-              )}
-              <Button onClick={handleCancel} disabled={submitting}>
-                Cancel
+                    loading={lifecycleAction === 'unload'}
+                    disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'unload')}
+                    onClick={() => handleLifecycleAction('unload', 'Stop')}
+                  >
+                    Stop
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Restart">
+                  <Button
+                    icon={<ReloadOutlined />}
+                    type='primary'
+                    loading={lifecycleAction === 'reload'}
+                    disabled={submitting || (lifecycleAction !== null && lifecycleAction !== 'reload')}
+                    onClick={() => handleLifecycleAction('reload', 'Restart')}
+                  >
+                    Restart
+                  </Button>
+                </Tooltip>
+              </>
+            )}
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
+            </Button>
+            {canAccessForm && (
+              <Button type="primary" htmlType="submit" form={EDIT_CALL_CENTER_FORM_ID} loading={submitting} disabled={!canEditFields}>
+                Save
               </Button>
-              {canAccessForm && (
-                <Button type="primary" htmlType="submit" form={EDIT_CALL_CENTER_FORM_ID} loading={submitting} disabled={!canEditFields}>
-                  Save
-                </Button>
-              )}
-            </Space>
-          </div>
+            )}
+          </FormPageToolbar>
         }
       />
       <CallCenterForm

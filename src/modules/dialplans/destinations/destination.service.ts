@@ -13,6 +13,7 @@ import {
 } from "./destination.mock";
 import useDomainStore from "../../../store/domain";
 import { request } from "../../../services/api/apiClient";
+import type { ApiError } from "../../../services/api/apiError";
 import { isMockMode } from "../../../services/auth/auth.mock";
 import type {
   ActionOptionGroup,
@@ -134,7 +135,8 @@ export const getDestinationDetails = (destinationUuid: string): Promise<Destinat
       const details = destinations.find((record) => record.destination_uuid === destinationUuid);
 
       if (!details) {
-        reject(new Error(`Destination ${destinationUuid} not found.`));
+        const notFound: ApiError = { status: 404, message: `Destination ${destinationUuid} not found.` };
+        reject(notFound);
         return;
       }
 

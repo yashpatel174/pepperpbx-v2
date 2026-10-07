@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
-import { ArrowLeftOutlined } from '@ant-design/icons'
 import ModuleHeader from '../../../components/common/ModuleHeader'
+import FormPageToolbar from '../../../components/common/FormPageToolbar'
 import LoadingState from '../../../components/feedback/LoadingState'
 import ErrorState from '../../../components/feedback/ErrorState'
 import GatewayForm from '../components/GatewayForm'
@@ -96,19 +96,14 @@ const AddGatewayPage = () => {
       <ModuleHeader
         title="Add Gateway"
         toolbar={
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Button type="primary" icon={<ArrowLeftOutlined />} onClick={handleCancel}>
-              Back
-            </Button>
-            <Space>
-              <Button onClick={handleCancel} disabled={submitting}>Cancel</Button>
-              {canManage && (
-                <Button type="primary" htmlType="submit" form={ADD_GATEWAY_FORM_ID} loading={submitting}>
-                  Save
-                </Button>
-              )}
-            </Space>
-          </div>
+          <FormPageToolbar onBack={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting}>Cancel</Button>
+            {canManage && (
+              <Button type="primary" htmlType="submit" form={ADD_GATEWAY_FORM_ID} loading={submitting}>
+                Save
+              </Button>
+            )}
+          </FormPageToolbar>
         }
       />
       <GatewayForm

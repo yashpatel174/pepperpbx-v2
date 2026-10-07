@@ -7,6 +7,7 @@ import {
   mockRecentCallsByDomain,
 } from './call-block.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   BlockRecentCallsPayload,
   CallBlock,
@@ -103,7 +104,8 @@ export const getCallBlockDetails = (callBlockUuid: string): Promise<CallBlockDet
       const details = callBlocks.find((record) => record.call_block_uuid === callBlockUuid)
 
       if (!details) {
-        reject(new Error(`Call block ${callBlockUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Call block ${callBlockUuid} not found.` }
+        reject(notFound)
         return
       }
 
