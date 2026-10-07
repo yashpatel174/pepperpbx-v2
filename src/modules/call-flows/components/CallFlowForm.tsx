@@ -177,7 +177,7 @@ const CallFlowForm = ({
             <Form.Item
               name={normal ? "call_flow_label" : "call_flow_alternate_label"}
               label={normal ? "Destination Label" : "Alternate Label"}
-              tooltip={normal ? "Enter the destination lable" : "Enter the  alternate destination label"}
+              tooltip={normal ? "Enter the destination label" : "Enter the  alternate destination label"}
               validateFirst
               rules={normal ? destinationLabelRules : alternateLabelRules}
             >

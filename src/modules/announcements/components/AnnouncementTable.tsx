@@ -1,10 +1,11 @@
-import { Button, Space, Table, Tag, theme, Tooltip, Typography } from 'antd'
+import { Button, Space, Table, theme, Tooltip, Typography } from 'antd'
 import type { TableColumnsType, TableProps } from 'antd'
-import { CheckCircleOutlined, DeleteOutlined, EditOutlined, MinusCircleOutlined } from '@ant-design/icons'
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import ISO6391 from 'iso-639-1'
 import { defaultPageSize, announcementStatusLabels, pageSizeOptions } from '../announcement.constants'
 import type { Announcement } from '../announcement.types'
 import useStripedTableRow from '../../../components/common/useStripedTableRow'
+import StatusToggleTag from '../../../components/common/StatusToggleTag'
 
 const { Text } = Typography
 
@@ -107,26 +108,15 @@ const AnnouncementTable = ({
         const isEnabled = record.enabled
 
         return (
-          <Tooltip title={canToggleRow ? `Click to ${isEnabled ? 'disable' : 'enable'}` : undefined}>
-            <Tag
-              icon={isEnabled ? <CheckCircleOutlined style={{ color: '#fff' }} /> : <MinusCircleOutlined style={{ color: '#fff' }} />}
-              style={{
-                cursor: canToggleRow ? 'pointer' : 'not-allowed',
-                opacity: canToggleRow ? 1 : 0.6,
-                backgroundColor: isEnabled ? '#00D27A' : '#f16b3e',
-                color: '#fff',
-                borderColor: isEnabled ? '#00D27A' : '#f16b3e',
-                fontWeight: 500,
-                borderRadius: '999px',
-                padding: '4px 14px',
-                minHeight: '28px',
-                lineHeight: '20px',
-              }}
-              onClick={() => canToggleRow && onToggleStatus(record)}
-            >
-              {announcementStatusLabels[isEnabled ? 'enabled' : 'disabled']}
-            </Tag>
-          </Tooltip>
+          <StatusToggleTag
+            enabled={isEnabled}
+            tooltip={canToggleRow ? `Click to ${isEnabled ? 'disable' : 'enable'}` : undefined}
+            iconStyle={{ color: '#fff' }}
+            style={{ cursor: canToggleRow ? 'pointer' : 'not-allowed', opacity: canToggleRow ? 1 : 0.6 }}
+            onClick={() => canToggleRow && onToggleStatus(record)}
+          >
+            {announcementStatusLabels[isEnabled ? 'enabled' : 'disabled']}
+          </StatusToggleTag>
         )
       },
     },

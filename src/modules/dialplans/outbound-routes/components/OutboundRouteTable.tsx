@@ -1,9 +1,10 @@
-import { Button, Space, Table, Tag, theme, Tooltip, Typography } from 'antd'
+import { Button, Space, Table, theme, Tooltip, Typography } from 'antd'
 import type { TableColumnsType, TableProps } from 'antd'
-import { CheckCircleOutlined, CopyOutlined, DeleteOutlined, EditOutlined, MinusCircleOutlined } from '@ant-design/icons'
+import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { defaultPageSize, outboundRouteStatusLabels, pageSizeOptions } from '../outbound-route.constants'
 import type { OutboundRoute } from '../outbound-route.types'
 import useStripedTableRow from '../../../../components/common/useStripedTableRow'
+import StatusToggleTag from '../../../../components/common/StatusToggleTag'
 
 const { Text } = Typography
 
@@ -114,25 +115,14 @@ const OutboundRouteTable = ({
         const isEnabled = record.enabled
 
         return (
-          <Tooltip title={`Click to ${isEnabled ? 'disable' : 'enable'}`}>
-            <Tag
-              icon={isEnabled ? <CheckCircleOutlined style={{ color: '#fff' }} /> : <MinusCircleOutlined style={{ color: '#fff' }} />}
-              style={{
-                cursor: 'pointer',
-                backgroundColor: isEnabled ? '#00D27A' : '#f16b3e',
-                color: '#fff',
-                borderColor: isEnabled ? '#00D27A' : '#f16b3e',
-                fontWeight: 500,
-                borderRadius: '999px',
-                padding: '4px 14px',
-                minHeight: '28px',
-                lineHeight: '20px',
-              }}
-              onClick={() => onToggleStatus(record)}
-            >
-              {outboundRouteStatusLabels[isEnabled ? 'enabled' : 'disabled']}
-            </Tag>
-          </Tooltip>
+          <StatusToggleTag
+            enabled={isEnabled}
+            tooltip={`Click to ${isEnabled ? 'disable' : 'enable'}`}
+            iconStyle={{ color: '#fff' }}
+            onClick={() => onToggleStatus(record)}
+          >
+            {outboundRouteStatusLabels[isEnabled ? 'enabled' : 'disabled']}
+          </StatusToggleTag>
         )
       },
     },

@@ -1,15 +1,14 @@
-import { Button, Space, Table, Tag, theme, Tooltip, Typography } from "antd";
+import { Button, Space, Table, theme, Tooltip, Typography } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
 import {
-  CheckCircleOutlined,
   CopyOutlined,
   DeleteOutlined,
   EditOutlined,
-  MinusCircleOutlined,
 } from "@ant-design/icons";
 import { callFlowToggleKeyLabels, pageSizeOptions, pendingToggleKey } from "../call-flows.constants";
 import type { CallFlow, CallFlowToggleKey } from "../call-flows.types";
 import useStripedTableRow from "../../../components/common/useStripedTableRow";
+import StatusToggleTag from "../../../components/common/StatusToggleTag";
 
 const { Text } = Typography;
 
@@ -110,37 +109,25 @@ const CallFlowsTable = ({
     };
 
     return (
-      <Tooltip title={canToggleRow ? `Click to ${isEnabled ? "disable" : "enable"}` : undefined}>
-        <Tag
-          role="button"
-          tabIndex={canToggleRow ? 0 : -1}
-          aria-disabled={!clickable}
-          aria-label={`${callFlowToggleKeyLabels[toggleKey]} for ${
-            record.call_flow_name
-          } is ${isEnabled ? "enabled" : "disabled"}${canToggleRow ? ", click to toggle" : ""}`}
-          icon={isEnabled ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
-          onClick={toggle}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              toggle();
-            }
-          }}
-          style={{
-            cursor: "pointer",
-            backgroundColor: isEnabled ? "#00D27A" : "#f16b3e",
-            color: "#fff",
-            borderColor: isEnabled ? "#00D27A" : "#f16b3e",
-            fontWeight: 500,
-            borderRadius: "999px",
-            padding: "4px 14px",
-            minHeight: "28px",
-            lineHeight: "20px",
-          }}
-        >
-          {isEnabled ? "Enabled" : "Disabled"}
-        </Tag>
-      </Tooltip>
+      <StatusToggleTag
+        enabled={isEnabled}
+        tooltip={canToggleRow ? `Click to ${isEnabled ? "disable" : "enable"}` : undefined}
+        role="button"
+        tabIndex={canToggleRow ? 0 : -1}
+        aria-disabled={!clickable}
+        aria-label={`${callFlowToggleKeyLabels[toggleKey]} for ${
+          record.call_flow_name
+        } is ${isEnabled ? "enabled" : "disabled"}${canToggleRow ? ", click to toggle" : ""}`}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
+        }}
+      >
+        {isEnabled ? "Enabled" : "Disabled"}
+      </StatusToggleTag>
     );
   };
 

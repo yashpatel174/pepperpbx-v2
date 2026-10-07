@@ -1,9 +1,10 @@
-import { Button, Space, Table, Tag, theme, Tooltip, Typography } from 'antd'
+import { Button, Space, Table, theme, Tooltip, Typography } from 'antd'
 import type { TableColumnsType, TableProps } from 'antd'
-import { CheckCircleOutlined, CopyOutlined, DeleteOutlined, EditOutlined, MinusCircleOutlined } from '@ant-design/icons'
+import { CopyOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { formatStrategy, pageSizeOptions, ringGroupStatusLabels } from '../ring-group.constants'
 import type { RingGroup } from '../ring-group.types'
 import useStripedTableRow from '../../../components/common/useStripedTableRow'
+import StatusToggleTag from '../../../components/common/StatusToggleTag'
 
 const { Text } = Typography
 
@@ -101,35 +102,24 @@ const RingGroupTable = ({
     const label = isEnabled ? ringGroupStatusLabels.enabled : ringGroupStatusLabels.disabled
 
     return (
-      <Tooltip title={canToggleRow ? `Click to ${isEnabled ? 'disable' : 'enable'}` : undefined}>
-        <Tag
-          role="button"
-          tabIndex={canToggleRow ? 0 : -1}
-          aria-disabled={!clickable}
-          aria-label={`Ring group ${record.ring_group_name} is ${label.toLowerCase()}${canToggleRow ? ', click to toggle' : ''}`}
-          icon={isEnabled ? <CheckCircleOutlined /> : <MinusCircleOutlined />}
-          onClick={toggle}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault()
-              toggle()
-            }
-          }}
-          style={{
-            cursor: canToggleRow ? 'pointer' : 'default',
-            backgroundColor: isEnabled ? '#00D27A' : '#f16b3e',
-            color: '#fff',
-            borderColor: isEnabled ? '#00D27A' : '#f16b3e',
-            fontWeight: 500,
-            borderRadius: '999px',
-            padding: '4px 14px',
-            minHeight: '28px',
-            lineHeight: '20px',
-          }}
-        >
-          {label}
-        </Tag>
-      </Tooltip>
+      <StatusToggleTag
+        enabled={isEnabled}
+        tooltip={canToggleRow ? `Click to ${isEnabled ? 'disable' : 'enable'}` : undefined}
+        role="button"
+        tabIndex={canToggleRow ? 0 : -1}
+        aria-disabled={!clickable}
+        aria-label={`Ring group ${record.ring_group_name} is ${label.toLowerCase()}${canToggleRow ? ', click to toggle' : ''}`}
+        onClick={toggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            toggle()
+          }
+        }}
+        style={{ cursor: canToggleRow ? 'pointer' : 'default' }}
+      >
+        {label}
+      </StatusToggleTag>
     )
   }
 
