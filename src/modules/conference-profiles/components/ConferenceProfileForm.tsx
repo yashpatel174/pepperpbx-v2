@@ -1,5 +1,5 @@
-import { Card, Col, Form, Input, Row, Space, Switch, theme, Tooltip } from 'antd'
-import { QuestionCircleOutlined } from '@ant-design/icons'
+import { Card, Col, Form, Input, Row, Space } from 'antd'
+import FormSwitchField from '../../../components/common/FormSwitchField'
 import ConferenceProfileParamsSection from './ConferenceProfileParamsSection'
 import { nameRules, noEdgeWhitespaceRule } from '../conference-profile.validation'
 import type { ConferenceProfileFormValues } from '../conference-profile.types'
@@ -23,7 +23,6 @@ export interface ConferenceProfileFormProps {
  * never does, preserving Axion's two-step create-then-edit flow (§3/§26).
  */
 const ConferenceProfileForm = ({ mode, formId, initialValues, canManage, submitting, onSubmit }: ConferenceProfileFormProps) => {
-  const { token } = theme.useToken()
   const [form] = Form.useForm<ConferenceProfileFormValues>()
 
   return (
@@ -52,15 +51,7 @@ const ConferenceProfileForm = ({ mode, formId, initialValues, canManage, submitt
 
             <Col xs={24} sm={12} lg={8}>
               <Form.Item>
-                <Space align="center" size={8}>
-                  <Form.Item name="profile_enabled" valuePropName="checked" noStyle>
-                    <Switch aria-label="Enabled" />
-                  </Form.Item>
-                  <span>Enabled</span>
-                  <Tooltip title="Select enabled">
-                    <QuestionCircleOutlined aria-label="Enabled help" style={{ color: token.colorTextTertiary, fontSize: 12, cursor: 'help' }} />
-                  </Tooltip>
-                </Space>
+                <FormSwitchField name="profile_enabled" label="Enabled" tooltip="Select enabled" />
               </Form.Item>
             </Col>
           </Row>

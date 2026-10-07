@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 
 interface ToggleConferenceCentersModalProps {
   open: boolean
@@ -13,39 +13,18 @@ interface ToggleConferenceCentersModalProps {
  * spinner never renders — conference-centers.md §16/§28).
  */
 const ToggleConferenceCentersModal = ({ open, onConfirm, onCancel }: ToggleConferenceCentersModalProps) => {
-  const { message } = App.useApp()
-  const [toggling, setToggling] = useState(false)
-
-  const handleConfirm = async () => {
-    setToggling(true)
-    try {
-      await onConfirm()
-    } catch {
-      message.error('Toggle failed.')
-    } finally {
-      setToggling(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle Conference Centers"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={toggling} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
       width={440}
+      errorMessage="Toggle failed."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Typography.Paragraph>Do you really want to toggle this?</Typography.Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

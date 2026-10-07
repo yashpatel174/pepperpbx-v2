@@ -9,7 +9,7 @@ import ErrorState from '../../../components/feedback/ErrorState'
 import AgentForm from '../components/AgentForm'
 import { getCallCenterAgentContactOptions, getCallCenterAgentDetails, getHiveCallCenterAgentDetails, updateCallCenterAgent } from '../call-center-agents.service'
 import useCallCenterAgentPermissions from '../useCallCenterAgentPermissions'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import type { CallCenterAgentDetails, CallCenterAgentFormValues, HiveCallCenterAgentDetails, SelectOption } from '../call-center-agents.types'
 
 const EDIT_AGENT_FORM_ID = 'edit-call-center-agent-form'
@@ -82,12 +82,12 @@ const EditCallCenterAgentPage = () => {
     setSubmitting(true)
     try {
       await updateCallCenterAgent(details.call_center_agent_uuid, values)
-      message.success('Call center agent updated successfully.')
+      message.success(`Call center agent "${values.agent_name}" updated successfully.`)
       // Matches the established cross-module convention (call-center.md §3/§19): Update success
       // re-fetches details and re-populates the same Edit page in place, no navigation.
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update call center agent.')
+      message.error(getApiErrorMessage(err, 'Failed to update call center agent.'))
     } finally {
       setSubmitting(false)
     }

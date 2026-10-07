@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Alert, App, Button, Modal, Typography } from 'antd'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const { Paragraph, Text } = Typography
 
@@ -32,8 +33,8 @@ const DeleteExtensionsModal = ({ open, targets, onConfirm, onCancel }: DeleteExt
     setPendingChoice(withVoicemail)
     try {
       await onConfirm(withVoicemail)
-    } catch {
-      message.error('Delete failed.')
+    } catch (err) {
+      message.error(getApiErrorMessage(err, 'Delete failed.'))
     } finally {
       setDeleting(false)
       setPendingChoice(null)
@@ -42,7 +43,7 @@ const DeleteExtensionsModal = ({ open, targets, onConfirm, onCancel }: DeleteExt
 
   const footer = (
     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-      <Button disabled={deleting} onClick={onCancel}>Close</Button>
+      <Button disabled={deleting} onClick={onCancel}>Cancel</Button>
       <Button
         danger
         loading={deleting && pendingChoice === true}
@@ -83,7 +84,7 @@ const DeleteExtensionsModal = ({ open, targets, onConfirm, onCancel }: DeleteExt
         type="warning"
         showIcon
         style={{ marginTop: 16 }}
-        message="Note: Please ensure that this extension is not linked to any other records before proceeding, as deleting it may affect related data."
+        title="Note: Please ensure that this extension is not linked to any other records before proceeding, as deleting it may affect related data."
       />
     </Modal>
   )

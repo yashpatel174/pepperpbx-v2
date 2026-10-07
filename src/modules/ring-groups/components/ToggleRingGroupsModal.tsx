@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 
 interface ToggleRingGroupsModalProps {
   open: boolean
@@ -15,41 +14,20 @@ interface ToggleRingGroupsModalProps {
  * in-flight state Axion's never did (§28).
  */
 const ToggleRingGroupsModal = ({ open, count, onConfirm, onCancel }: ToggleRingGroupsModalProps) => {
-  const { message } = App.useApp()
-  const [toggling, setToggling] = useState(false)
-
-  const handleConfirm = async () => {
-    setToggling(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to toggle ring groups.'))
-    } finally {
-      setToggling(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle Ring Group"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={toggling} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
       width={440}
+      errorMessage="Failed to toggle ring groups."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Typography.Paragraph>
         Do you really want to toggle {count === 1 ? 'this ring group' : `these ${count} ring groups`}?
       </Typography.Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

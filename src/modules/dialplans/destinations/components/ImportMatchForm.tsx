@@ -49,7 +49,7 @@ const ImportMatchForm = ({ formId, matchedFields, unmatchedDbFields, csvColumns,
         <Card title="Matched Fields" style={{ marginBottom: 16 }}>
           <Row gutter={16}>
             {matchedEntries.map(([dbField, csvColumn]) => (
-              <Col xs={24} sm={12} md={8} key={dbField}>
+              <Col xs={24} sm={12} lg={8} key={dbField}>
                 <Form.Item label={dbField}>
                   <Input value={csvColumn} disabled aria-label={`${dbField} matched column`} />
                 </Form.Item>
@@ -67,7 +67,7 @@ const ImportMatchForm = ({ formId, matchedFields, unmatchedDbFields, csvColumns,
             {unmatchedDbFields.map((dbField) => {
               const required = requiredImportMatchFields.includes(dbField)
               return (
-                <Col xs={24} sm={12} md={8} key={dbField}>
+                <Col xs={24} sm={12} lg={8} key={dbField}>
                   <Form.Item
                     name={dbField}
                     label={dbField}

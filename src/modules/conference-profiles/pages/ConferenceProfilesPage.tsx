@@ -94,7 +94,7 @@ const ConferenceProfilesPage = () => {
     setTogglePending(uuid, true)
     try {
       await toggleConferenceProfilesStatus([uuid])
-      message.success(`Conference profile ${profile.profile_name} ${profile.profile_enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Conference profile "${profile.profile_name}" ${profile.profile_enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to update conference profile ${profile.profile_name}.`))
     } finally {
@@ -152,13 +152,16 @@ const ConferenceProfilesPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <ConferenceProfileFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-          </>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <ConferenceProfileFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

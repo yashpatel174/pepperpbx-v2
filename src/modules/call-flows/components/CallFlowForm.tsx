@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
-import { Alert, App, Button, Card, Col, Form, Input, Row, Select, Space, Switch, theme, Tooltip } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { App, Card, Col, Form, Input, Row, Select, Space, theme } from "antd";
+import ErrorState from "../../../components/feedback/ErrorState";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
-import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
+import { domainChangeMessage, domainChangeTitle } from "../../../components/common/domainChangeMessage";
 import { extensionReuseNote, toFeatureCode } from "../call-flows.constants";
 import {
   alternateDestinationRules,
@@ -112,7 +113,7 @@ const CallFlowForm = ({
     if (value === previousDomain) return;
 
     modal.confirm({
-      title: "Domain changed",
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",
@@ -131,24 +132,7 @@ const CallFlowForm = ({
   };
 
   const switchWithHelp = (name: "call_flow_enabled" | "call_flow_status", label: string, help: string) => (
-    <Space align="center" size={8} style={{ whiteSpace: "nowrap" }}>
-      <Form.Item name={name} valuePropName="checked" noStyle>
-        <Switch aria-label={label} />
-      </Form.Item>
-
-      <span style={{ whiteSpace: "nowrap" }}>{label}</span>
-
-      <Tooltip title={help}>
-        <QuestionCircleOutlined
-          aria-label={`${label} help`}
-          style={{
-            color: token.colorTextTertiary,
-            fontSize: 12,
-            cursor: "help",
-          }}
-        />
-      </Tooltip>
-    </Space>
+    <FormSwitchField name={name} label={label} tooltip={help} style={{ whiteSpace: "nowrap" }} />
   );
 
   const destinationSection = (kind: "normal" | "alternate") => {
@@ -299,16 +283,11 @@ const CallFlowForm = ({
         </Card>
 
         {optionsError && (
-          <Alert
+          <ErrorState
             type="warning"
-            showIcon
             message="Some data couldn't be loaded"
             description="The destination and sound options for this domain failed to load."
-            action={
-              <Button size="small" onClick={onRetryOptions} disabled={false}>
-                Retry
-              </Button>
-            }
+            onRetry={onRetryOptions}
           />
         )}
 

@@ -110,7 +110,7 @@ const CallFlowsPage = () => {
     setTogglePending(key, true)
     try {
       await toggleCallFlowsKey([flow.call_flow_uuid], toggleKey)
-      message.success(`${callFlowToggleKeyLabels[toggleKey]} ${flow[toggleKey] ? 'disabled' : 'enabled'} for ${flow.call_flow_name}.`)
+      message.success(`${callFlowToggleKeyLabels[toggleKey]} ${flow[toggleKey] ? 'disabled' : 'enabled'} successfully for call flow "${flow.call_flow_name}".`)
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to update call flow ${flow.call_flow_name}.`))
     } finally {
@@ -122,7 +122,7 @@ const CallFlowsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeCallFlows(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Call flow "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
     // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
     const remaining = selectedIds.filter((id) => !ids.includes(id))
@@ -169,7 +169,7 @@ const CallFlowsPage = () => {
     setCopySubmitting(true)
     try {
       await duplicateCallFlow(copyTarget.call_flow_uuid, values)
-      message.success(`Call flow ${copyTarget.call_flow_name} copied.`)
+      message.success(`Call flow "${copyTarget.call_flow_name}" copied successfully.`)
       closeCopy()
       clearSelection()
     } catch (err) {
@@ -238,22 +238,25 @@ const CallFlowsPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <CallFlowsFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {canShowAll && (
-              // TODO: gate with <PermissionGuard permission="callflow.manage"> (pbx_callflow_all) once RBAC is populated.
-              <Tooltip title="Show call flows across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call flows" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <CallFlowsFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {canShowAll && (
+                // TODO: gate with <PermissionGuard permission="callflow.manage"> (pbx_callflow_all) once RBAC is populated.
+                <Tooltip title="Show call flows across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call flows" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

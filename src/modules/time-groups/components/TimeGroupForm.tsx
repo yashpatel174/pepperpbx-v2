@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { App, Card, Col, Form, Input, Row, Select, Space } from 'antd'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import { getDefaultTimeGroupFormValues, orderOptions } from '../time-group.constants'
 import { descriptionRules, domainRules, mainOrderRules, nameRules } from '../time-group.validation'
 import TimeGroupRangesSection from './TimeGroupRangesSection'
@@ -56,7 +56,7 @@ const TimeGroupForm = ({ mode, formId, initialValues, hive, canManage, submittin
     if (value === previousDomain) return
 
     modal.confirm({
-      title: 'Domain changed',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',

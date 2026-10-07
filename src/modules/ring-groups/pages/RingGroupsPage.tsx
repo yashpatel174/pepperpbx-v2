@@ -111,7 +111,7 @@ const RingGroupsPage = () => {
     setTogglePending(group.ring_group_uuid, true)
     try {
       await toggleRingGroupsEnabled([group.ring_group_uuid])
-      message.success(`Ring group ${group.ring_group_name} ${group.ring_group_enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Ring group "${group.ring_group_name}" ${group.ring_group_enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to update ring group ${group.ring_group_name}.`))
     } finally {
@@ -123,7 +123,7 @@ const RingGroupsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeRingGroups(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Ring group "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
     // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
     const remaining = selectedIds.filter((id) => !ids.includes(id))
@@ -170,7 +170,7 @@ const RingGroupsPage = () => {
     setCopySubmitting(true)
     try {
       await duplicateRingGroup(copyTarget.ring_group_uuid, values)
-      message.success(`Ring group ${copyTarget.ring_group_name} copied.`)
+      message.success(`Ring group "${copyTarget.ring_group_name}" copied successfully.`)
       closeCopy()
       clearSelection()
     } catch (err) {
@@ -239,21 +239,24 @@ const RingGroupsPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <RingGroupFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {canShowAll && (
-              <Tooltip title="Show ring groups across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all ring groups" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <RingGroupFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {canShowAll && (
+                <Tooltip title="Show ring groups across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all ring groups" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

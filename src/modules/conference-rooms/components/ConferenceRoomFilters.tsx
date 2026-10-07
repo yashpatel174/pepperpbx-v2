@@ -16,7 +16,7 @@ const ConferenceRoomFilters = ({ value, onChange, onSearch }: ConferenceRoomFilt
     value={value}
     onChange={(e) => onChange(e.target.value)}
     onSearch={onSearch}
-    style={{ width: '100%', maxWidth: 240 }}
+    style={{ width: '100%', maxWidth: 200 }}
     aria-label="Search conference rooms"
   />
 )

@@ -1,4 +1,7 @@
 import type { HiveUserConferenceDetails } from './conference-center.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Ant Design validation rules for the shared Add/Edit Conference Center form — the audit's Yup
@@ -6,7 +9,6 @@ import type { HiveUserConferenceDetails } from './conference-center.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** Optional `**` prefix followed by digits. */
 const EXTENSION_PATTERN = /^(?:\*\*)?\d+$/
 const PIN_LENGTH_PATTERN = /^\d{1,20}$/
@@ -15,11 +17,6 @@ export const nameRules = [
   { required: true, message: 'Name is required' },
   { pattern: ALPHANUMERIC_WITH_SPACE_PATTERN, message: 'Name should be only of alphabets and numbers' },
 ]
-
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 /**
  * Required, `**?digits`, numeric part inside the hive's range and not in its exclusion list. The

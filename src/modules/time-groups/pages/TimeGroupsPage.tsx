@@ -94,7 +94,7 @@ const TimeGroupsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeTimeGroups(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Time group "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
     // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
     const remaining = selectedIds.filter((id) => !ids.includes(id))
@@ -115,7 +115,7 @@ const TimeGroupsPage = () => {
     setCopySubmitting(true)
     try {
       await duplicateTimeGroup(copyTarget.dialplan_uuid, name)
-      message.success(`Time group ${copyTarget.dialplan_name} copied.`)
+      message.success(`Time group "${copyTarget.dialplan_name}" copied successfully.`)
       setCopyTarget(null)
       clearSelection()
     } catch (err) {
@@ -176,22 +176,25 @@ const TimeGroupsPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <TimeGroupFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {canShowAll && (
-              // TODO: gate with <PermissionGuard permission="timegroup.manage"> (pbx_timeconditions_all) once RBAC is populated.
-              <Tooltip title="Show time groups across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all time groups" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <TimeGroupFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {canShowAll && (
+                // TODO: gate with <PermissionGuard permission="timegroup.manage"> (pbx_timeconditions_all) once RBAC is populated.
+                <Tooltip title="Show time groups across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all time groups" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

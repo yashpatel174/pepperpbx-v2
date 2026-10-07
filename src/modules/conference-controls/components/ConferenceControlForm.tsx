@@ -1,8 +1,8 @@
-import { Card, Col, Form, Input, Row, Space, Switch, theme, Tooltip } from "antd";
+import { Card, Col, Form, Input, Row, Space } from "antd";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import ConferenceControlDetailsSection from "./ConferenceControlDetailsSection";
 import { nameRules, noEdgeWhitespaceRule } from "../conference-control.validation";
 import type { ConferenceControlFormValues } from "../conference-control.types";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 
 const { TextArea } = Input;
 
@@ -30,7 +30,6 @@ const ConferenceControlForm = ({
   submitting,
   onSubmit,
 }: ConferenceControlFormProps) => {
-  const { token } = theme.useToken();
 
   const [form] = Form.useForm<ConferenceControlFormValues>();
 
@@ -64,24 +63,7 @@ const ConferenceControlForm = ({
             </Col>
             <Col xs={24} sm={12} lg={8}>
               <Form.Item >
-                <Space align="center" size={8}>
-                  <Form.Item name="control_enabled" valuePropName="checked" noStyle>
-                    <Switch aria-label="Enabled" />
-                  </Form.Item>
-
-                  <span>Enabled</span>
-
-                  <Tooltip title="Select enabled">
-                    <QuestionCircleOutlined
-                      aria-label="Enabled"
-                      style={{
-                        color: token.colorTextTertiary,
-                        fontSize: 12,
-                        cursor: "help",
-                      }}
-                    />
-                  </Tooltip>
-                </Space>
+                <FormSwitchField name="control_enabled" label="Enabled" tooltip="Select enabled" />
               </Form.Item>
             </Col>
           </Row>

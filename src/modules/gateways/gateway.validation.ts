@@ -1,3 +1,7 @@
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
+
 /**
  * Shared Ant Design validation rules for the Add/Edit Gateway form. Kept here (not inline in
  * GatewayForm) so Add and Edit use the exact same validators. Gateway-owned — deliberately not
@@ -6,16 +10,10 @@
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
 const NUMERIC_TWENTY_PATTERN = /^\+?[0-9]{0,20}$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 // IP (optional :port) or a domain name (optional :port) — Gateway's proxy/realm/hostname fields
 // are "IP-or-domain format", not CIDR notation (that's an Extensions-specific need).
 const IP_OR_PORT_PATTERN = /^(?:(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])(:\d{1,5})?$/
 const DOMAIN_OR_PORT_PATTERN = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d{1,5})?$/
-
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 export const gatewayNameRule = {
   pattern: ALPHANUMERIC_WITH_SPACE_PATTERN,

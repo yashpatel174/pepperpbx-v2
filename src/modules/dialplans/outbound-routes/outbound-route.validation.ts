@@ -1,3 +1,7 @@
+import { noEdgeWhitespaceRule } from '../../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
+
 /**
  * Shared Ant Design validation rules for the Add/Edit Outbound Route form. Kept here (not inline
  * in the form sections) so both modes use the exact same validators. Outbound-Routes-owned —
@@ -6,18 +10,12 @@
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 const DIGITS_PATTERN = (max: number) => new RegExp(`^\\d{0,${max}}$`)
 const REQUIRED_DIGITS_PATTERN = (max: number) => new RegExp(`^\\d{1,${max}}$`)
 const IP_OR_PORT_PATTERN = /^(?:(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])(:\d{1,5})?$/
 const DOMAIN_OR_PORT_PATTERN = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(:\d{1,5})?$/
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** outbound_route_name: required, alphanumeric + space — matches the audit's `alphaNumericWithSpace` rule. */
 export const routeNameRule = {
   pattern: ALPHANUMERIC_WITH_SPACE_PATTERN,

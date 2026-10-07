@@ -1,5 +1,5 @@
-import { Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Card, Col, Form, Input, Row, Select } from "antd";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import { GLOBAL_DOMAIN_OPTION } from "../gateway.constants";
 import { isGatewayNameTaken } from "../gateway.service";
 import type { HiveGatewayDetails, SbcDomainOption, SipProfileOption } from "../gateway.types";
@@ -29,12 +29,11 @@ const GatewayFormBasicSection = ({
   registerEnabled,
   onDomainChange,
 }: GatewayFormBasicSectionProps) => {
-  const { token } = theme.useToken();
 
   return (
   <Card>
     <Row gutter={16}>
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="gateway"
           label="Gateway"
@@ -59,7 +58,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="username"
           label="Username"
@@ -76,7 +75,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="password"
           label="Password"
@@ -95,13 +94,13 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item name="from_user" label="From User" tooltip="Enter the from user here" rules={[noEdgeWhitespaceRule]}>
           <Input placeholder="Enter from user" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="domain_name"
           label="Domain"
@@ -132,7 +131,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="sbcDomainIp"
           label="SBC Domain"
@@ -148,7 +147,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="proxy"
           label="Proxy"
@@ -167,7 +166,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="realm"
           label="Realm"
@@ -179,7 +178,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="expire_seconds"
           label="Expire Seconds"
@@ -196,7 +195,7 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="retry_seconds"
           label="Retry Seconds"
@@ -213,19 +212,19 @@ const GatewayFormBasicSection = ({
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item name="context" label="Context" tooltip="Enter the context here" rules={[noEdgeWhitespaceRule]}>
-          <Input placeholder="public" />
+          <Input placeholder="Enter context" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item name="profile" label="Profile" tooltip="Enter the profile here">
           <Select allowClear placeholder="Select SIP profile" options={sipProfiles} loading={optionsLoading} />
         </Form.Item>
       </Col>
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <div
           style={{
             display: "flex",
@@ -235,73 +234,18 @@ const GatewayFormBasicSection = ({
             minHeight: 32,
           }}
         >
-          {/* Register */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minHeight: 32,
-              minWidth: 120,
-            }}
-          >
-            <Form.Item name="register" valuePropName="checked" noStyle>
-              <Switch aria-label="Register" />
-            </Form.Item>
-
-            <span>Register</span>
-
-            <Tooltip title="Choose whether to register">
-              <QuestionCircleOutlined
-                aria-label="Register information"
-                style={{
-                  color: token.colorTextTertiary,
-                  fontSize: 12,
-                  cursor: "help",
-                  flexShrink: 0,
-                }}
-              />
-            </Tooltip>
-          </div>
-
-          {/* Enabled */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              minHeight: 32,
-              minWidth: 120,
-            }}
-          >
-            <Form.Item name="enabled" valuePropName="checked" noStyle>
-              <Switch aria-label="Enabled" />
-            </Form.Item>
-
-            <span>Enabled</span>
-
-            <Tooltip title="Set the status of the gateway">
-              <QuestionCircleOutlined
-                aria-label="Enabled information"
-                style={{
-                  color: token.colorTextTertiary,
-                  fontSize: 12,
-                  cursor: "help",
-                  flexShrink: 0,
-                }}
-              />
-            </Tooltip>
-          </div>
+          <FormSwitchField name="register" label="Register" tooltip="Choose whether to register" style={{ minHeight: 32, minWidth: 120 }} />
+          <FormSwitchField name="enabled" label="Enabled" tooltip="Set the status of the gateway" style={{ minHeight: 32, minWidth: 120 }} />
         </div>
       </Col>
-      <Col xs={24} md={16}>
+      <Col xs={24} lg={16}>
         <Form.Item
           name="description"
           label="Description"
           tooltip="Enter the description"
           rules={[noEdgeWhitespaceRule]}
         >
-          <TextArea rows={3} placeholder="Optional description" />
+          <TextArea rows={3} placeholder="Enter description" />
         </Form.Item>
       </Col>
     </Row>

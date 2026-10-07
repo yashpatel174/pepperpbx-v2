@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { App, Form, Input, Modal } from 'antd'
+import ErrorState from '../../../components/feedback/ErrorState'
 import { extensionRangeRule, nameFormatRule, nameRequiredRule, noEdgeWhitespaceRule } from '../conference.validation'
 import type { Conference, ConferenceHiveDetails } from '../conference.types'
 
@@ -13,6 +14,9 @@ interface CopyConferenceModalProps {
    * conference's domain"), which this module does not reproduce (see ConferencesPage.tsx's
    * handleCopyClick). Null while the page is still fetching it. */
   hive: ConferenceHiveDetails | null
+  /** The hive bootstrap failed — shows an inline Retry instead of an endless loading Copy button. */
+  hiveError: boolean
+  onRetryHive: () => void
   submitting: boolean
   onSubmit: (values: { name: string; extension: string }) => void | Promise<void>
   onCancel: () => void
@@ -27,7 +31,7 @@ interface CopyFormValues {
  * Copy modal — a small inline form, not a full page, matching conferences.md §9/§20's Copy popup
  * (New Name + New Extension). Copies within the source record's own domain (not user-selectable).
  */
-const CopyConferenceModal = ({ open, target, hive, submitting, onSubmit, onCancel }: CopyConferenceModalProps) => {
+const CopyConferenceModal = ({ open, target, hive, hiveError, onRetryHive, submitting, onSubmit, onCancel }: CopyConferenceModalProps) => {
   const [form] = Form.useForm<CopyFormValues>()
   const { message } = App.useApp()
 
@@ -53,9 +57,15 @@ const CopyConferenceModal = ({ open, target, hive, submitting, onSubmit, onCance
       onCancel={submitting ? undefined : onCancel}
       onOk={handleOk}
       okText="Copy"
-      confirmLoading={submitting || !hive}
+      confirmLoading={submitting || (!hive && !hiveError)}
+      okButtonProps={{ disabled: hiveError }}
       destroyOnHidden
     >
+      {hiveError && (
+        <div style={{ marginBottom: 16 }}>
+          <ErrorState message="Failed to load domain details for copy." onRetry={onRetryHive} />
+        </div>
+      )}
       <Form<CopyFormValues> form={form} layout="vertical">
         <Form.Item
           name="new_conference_name"

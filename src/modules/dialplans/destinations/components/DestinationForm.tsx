@@ -1,6 +1,6 @@
 import { useMemo, useRef } from "react";
 import { App, Card, Col, Form, Input, Row, Select } from "antd";
-import { domainChangeMessage } from "../../../../components/common/domainChangeMessage";
+import { domainChangeMessage, domainChangeTitle } from "../../../../components/common/domainChangeMessage";
 import ToggleSelectInput from "../../../../components/common/ToggleSelectInput";
 import type { ToggleSelectOptionGroup } from "../../../../components/common/ToggleSelectInput";
 import { isDestinationNumberTaken } from "../destination.service";
@@ -99,7 +99,7 @@ const DestinationForm = ({
     }
 
     modal.confirm({
-      title: "Change domain?",
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",
@@ -150,13 +150,13 @@ const DestinationForm = ({
     >
       <Card>
         <Row gutter={16}>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="destination_type" label="Type" tooltip="Select the type" rules={[{ required: true }]}>
               <Select options={typeOptions} aria-label="Destination type" placeholder="Select type" />
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_prefix"
               label="Country Code"
@@ -167,7 +167,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_trunk_prefix"
               label="Trunk Prefix"
@@ -178,7 +178,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_area_code"
               label="Area Code"
@@ -189,7 +189,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_number"
               label="Destination"
@@ -201,7 +201,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_cid_name_prefix"
               label="Caller ID Name Prefix"
@@ -212,7 +212,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_caller_id_name"
               label="Caller ID Name"
@@ -223,7 +223,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_caller_id_number"
               label="Caller ID Number"
@@ -234,7 +234,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_context"
               label="Context"
@@ -245,20 +245,20 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_distinctive_ring"
               label="Distinctive Ring"
               tooltip="Enter the sound for a distinctive ring."
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="distinctive ring" />
+              <Input placeholder="Enter distinctive ring" />
             </Form.Item>
           </Col>
 
           {/* Hidden for outbound, but its value is kept (not cleared) — see handleFinish. */}
           {destinationType !== "outbound" && (
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} lg={8}>
               <Form.Item
                 name="destination_action"
                 label="Actions"
@@ -276,7 +276,7 @@ const DestinationForm = ({
             </Col>
           )}
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_alternate_action"
               label="Alternate Actions"
@@ -294,7 +294,7 @@ const DestinationForm = ({
           </Col>
 
           {destinationType === "inbound" && (
-            <Col xs={24} sm={12} md={8}>
+            <Col xs={24} sm={12} lg={8}>
               <Form.Item name="fax_uuid" label="Fax Detection" tooltip="Select the Fax Detection">
                 <Select
                   showSearch
@@ -309,7 +309,7 @@ const DestinationForm = ({
             </Col>
           )}
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_hold_music"
               label="Hold Music"
@@ -326,7 +326,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_accountcode"
               label="Account Code"
@@ -337,7 +337,7 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="domain_name"
               label="Domain"
@@ -359,18 +359,18 @@ const DestinationForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="destination_order"
               label="Order"
               tooltip="Select the order"
               rules={[{ required: true, message: "Order required" }]}
             >
-              <Input type={"number"} min={0}  style={{ width: "100%" }} placeholder="Select order" aria-label="Order" />
+              <Input type={"number"} min={0}  style={{ width: "100%" }} placeholder="Enter order" aria-label="Order" />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={16}>
+          <Col xs={24} lg={16}>
             <Form.Item
               name="destination_description"
               label="Description"

@@ -1,6 +1,6 @@
 import { App, Col, Form, Row } from 'antd'
 import { useEffect, useRef } from 'react'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import type { CallCenterFormValues, HiveCallCenterDetails, SelectOption } from '../call-center.types'
 import CallCenterBasicSection from './CallCenterBasicSection'
 import CallCenterSwitchSection from './CallCenterSwitchSection'
@@ -95,7 +95,7 @@ const CallCenterForm = ({
     // modal.info) is used specifically so a Cancel path exists to do that restoration — matches
     // AgentForm.tsx's identical fix for the same class of issue.
     modal.confirm({
-      title: 'Domain changed',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',

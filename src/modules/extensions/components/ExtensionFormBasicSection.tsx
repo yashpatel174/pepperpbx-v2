@@ -28,7 +28,7 @@ const ExtensionFormBasicSection = ({
   return (
   <Card >
     <Row gutter={16}>
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="extension"
           label="Extension"
@@ -48,7 +48,7 @@ const ExtensionFormBasicSection = ({
       </Col>
 
       {mode === 'create' && (
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="range"
             label="Range"
@@ -67,7 +67,7 @@ const ExtensionFormBasicSection = ({
         </Col>
       )}
 
-      <Col xs={24} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="accountcode"
           label="Account Code"
@@ -82,7 +82,7 @@ const ExtensionFormBasicSection = ({
       </Col>
 
       {mode === 'edit' && (
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="password"
             label="Password"

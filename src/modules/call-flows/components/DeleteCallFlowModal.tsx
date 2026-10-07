@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Alert, App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Alert, Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 import { callFlowDeleteWarning } from '../call-flows.constants'
 
 const { Paragraph, Text } = Typography
@@ -22,37 +21,18 @@ interface DeleteCallFlowModalProps {
  * elsewhere" warning. Stays open until the request settles and on failure, as Axion's does.
  */
 const DeleteCallFlowModal = ({ open, targets, onConfirm, onCancel }: DeleteCallFlowModalProps) => {
-  const { message } = App.useApp()
-  const [deleting, setDeleting] = useState(false)
   const single = targets.length === 1
 
-  const handleConfirm = async () => {
-    setDeleting(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to delete call flow.'))
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Delete Call Flow"
-      onCancel={deleting ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={deleting} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button danger type="primary" loading={deleting} onClick={handleConfirm}>
-            Delete
-          </Button>
-        </div>
-      }
+      confirmText="Delete"
+      danger
       width={480}
+      errorMessage="Failed to delete call flow."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>
         Are you sure you want to delete {single ? <Text strong>{targets[0]?.name}</Text> : `these ${targets.length} call flows`}?
@@ -66,8 +46,8 @@ const DeleteCallFlowModal = ({ open, targets, onConfirm, onCancel }: DeleteCallF
           ))}
         </ul>
       )}
-      <Alert type="warning" showIcon message={callFlowDeleteWarning} />
-    </Modal>
+      <Alert type="warning" showIcon title={callFlowDeleteWarning} />
+    </ConfirmActionModal>
   )
 }
 

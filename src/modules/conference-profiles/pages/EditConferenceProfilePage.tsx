@@ -86,7 +86,7 @@ const EditConferenceProfilePage = () => {
       setSubmitting(false)
       return
     }
-    message.success('Conference profile updated successfully.')
+    message.success(`Conference profile "${values.profile_name}" updated successfully.`)
     // Stay on this page and reload the server-confirmed record (conference-profiles.md §3/§19). The
     // save already succeeded, so a failed refresh only warns: the form stays mounted with the
     // submitted values instead of being replaced by ErrorState.

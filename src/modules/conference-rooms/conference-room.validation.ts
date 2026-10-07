@@ -1,5 +1,8 @@
 import type { FormRule } from 'antd'
 import type { ConferenceRoomFormValues } from './conference-room.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Ant Design validation rules for the shared Add/Edit Conference Room form — the audit's Yup schema
@@ -7,13 +10,7 @@ import type { ConferenceRoomFormValues } from './conference-room.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 const NUMERIC_PATTERN = /^\d+$/
-
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 export const nameRules = [
   { required: true, message: 'Name required' },

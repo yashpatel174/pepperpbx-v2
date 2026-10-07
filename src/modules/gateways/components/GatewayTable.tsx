@@ -70,14 +70,6 @@ const GatewayTable = ({
   };
 
   const columns: TableColumnsType<Gateway> = [
-    {
-      title: "Gateway",
-      dataIndex: "gateway",
-      key: "gateway",
-      width: 160,
-      sorter: (a, b) => a.gateway.localeCompare(b.gateway),
-    },
-
     ...(showAll
       ? [
           {
@@ -89,6 +81,14 @@ const GatewayTable = ({
           },
         ]
       : []),
+
+    {
+      title: "Gateway",
+      dataIndex: "gateway",
+      key: "gateway",
+      width: 160,
+      sorter: (a, b) => a.gateway.localeCompare(b.gateway),
+    },
 
     {
       title: "Context",

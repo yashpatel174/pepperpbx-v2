@@ -106,7 +106,7 @@ const IVRMenusPage = () => {
     setTogglePending(menu.ivr_menu_uuid, true)
     try {
       await toggleRow(menu.ivr_menu_uuid)
-      message.success(`${menu.ivr_menu_name} ${menu.ivr_menu_enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`IVR menu "${menu.ivr_menu_name}" ${menu.ivr_menu_enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to update IVR menu ${menu.ivr_menu_name}.`))
     } finally {
@@ -118,7 +118,7 @@ const IVRMenusPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeIVRMenus(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `IVR menu "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
     setDeleteIsBulk(false)
   }
@@ -160,7 +160,7 @@ const IVRMenusPage = () => {
     setCopySubmitting(true)
     try {
       await duplicateIVRMenu(copyTarget.ivr_menu_uuid, values)
-      message.success(`IVR menu ${copyTarget.ivr_menu_name} copied.`)
+      message.success(`IVR menu "${copyTarget.ivr_menu_name}" copied successfully.`)
       closeCopy()
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to copy IVR menu ${copyTarget.ivr_menu_name}.`))
@@ -228,22 +228,25 @@ const IVRMenusPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <IVRMenuFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {canShowAll && (
-              // TODO: gate with <PermissionGuard permission="pbx_ivrmenus_all"> once RBAC is populated.
-              <Tooltip title="Show IVR menus across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all IVR menus" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <IVRMenuFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {canShowAll && (
+                // TODO: gate with <PermissionGuard permission="pbx_ivrmenus_all"> once RBAC is populated.
+                <Tooltip title="Show IVR menus across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all IVR menus" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

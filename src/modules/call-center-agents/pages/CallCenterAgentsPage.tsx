@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { App, Button, Flex, Select, Space, Switch, Tooltip, Typography } from 'antd'
+import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { ArrowLeftOutlined, PlusOutlined, UndoOutlined, UserSwitchOutlined } from '@ant-design/icons'
 import ErrorState from '../../../components/feedback/ErrorState'
 import LoadingState from '../../../components/feedback/LoadingState'
@@ -46,6 +46,8 @@ const CallCenterAgentsPage = () => {
   const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
 
   const hasSelection = selectedAgentIds.length > 0
 
@@ -75,6 +77,7 @@ const CallCenterAgentsPage = () => {
   const handleEdit = (agent: CallCenterAgent) => navigate(`/call-center/agents/${agent.id}/edit`)
 
   const handleDeleteRequest = (agent: CallCenterAgent) => {
+    setDeleteIsBulk(false)
     setDeleteTargets([{ id: agent.id, name: agent.name }])
   }
 
@@ -82,14 +85,18 @@ const CallCenterAgentsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeCallCenterAgents(ids)
-    message.success(`${ids.length} call center agent${ids.length === 1 ? '' : 's'} deleted.`)
+    message.success(ids.length === 1 ? `Call center agent "${deleteTargets[0].name}" deleted successfully.` : `${ids.length} call center agents deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedAgentIds((selected) => selected.filter((id) => !ids.includes(id)))
+    setDeleteIsBulk(false)
   }
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null)
-    clearSelection()
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection()
+    setDeleteIsBulk(false)
   }
 
   const handleApplyBulkAction = () => {
@@ -100,6 +107,7 @@ const CallCenterAgentsPage = () => {
     // another page would be silently dropped. The friendly label comes from agentLabelByIdRef
     // (accumulated across every page fetched this session, see above), falling back to the raw id
     // only if a selected agent was somehow never fetched.
+    setDeleteIsBulk(true)
     setDeleteTargets(selectedAgentIds.map((id) => ({ id, name: agentLabelByIdRef.current.get(id) ?? id })))
   }
 
@@ -120,43 +128,6 @@ const CallCenterAgentsPage = () => {
     </Space>
   )
 
-  const defaultToolbar = (
-    <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
-      <Flex wrap gap="middle" align="center" style={{ flex: '1 1 260px', minWidth: 0 }}>
-        <Tooltip title="Reset filters">
-          <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-        </Tooltip>
-
-        <AgentFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-
-        {canManage && (
-          <Tooltip title="Show call center agents across all accessible domains">
-            <Space size="small">
-              <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call center agents" />
-              <span>Show All</span>
-            </Space>
-          </Tooltip>
-        )}
-      </Flex>
-
-      <Flex wrap gap="middle" align="center" style={{ flex: '0 0 auto' }}>
-        <Button type='primary' icon={<ArrowLeftOutlined />} onClick={handleBack}>
-          Back
-        </Button>
-        <Button icon={<UserSwitchOutlined />} onClick={handleStatus}>
-          Status
-        </Button>
-        {canManage && (
-          // TODO: wrap with <PermissionGuard permission="callCenterAgent.manage"> once RBAC
-          // permissions are populated from the backend.
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Add Agent
-          </Button>
-        )}
-      </Flex>
-    </Flex>
-  )
-
   if (error) {
     return <ErrorState message={error} onRetry={refresh} />
   }
@@ -167,7 +138,45 @@ const CallCenterAgentsPage = () => {
 
   return (
     <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
-      <ModuleHeader title="Call Center Agents" count={totalRecords} toolbar={hasSelection ? selectionToolbar : defaultToolbar} />
+      <ModuleHeader
+        title="Call Center Agents"
+        count={totalRecords}
+        primaryAction={
+          canManage
+            ? {
+                // TODO: wrap with <PermissionGuard permission="callCenterAgent.manage"> once RBAC
+                // permissions are populated from the backend.
+                key: 'add',
+                label: 'Add Agent',
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        actions={[
+          { key: 'back', label: 'Back', icon: <ArrowLeftOutlined />, onClick: handleBack },
+          // The Agent Status page itself requires the same manage permission.
+          ...(canManage ? [{ key: 'status', label: 'Status', icon: <UserSwitchOutlined />, onClick: handleStatus }] : []),
+        ]}
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
+        filters={
+          canManage ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <AgentFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              <Tooltip title="Show call center agents across all accessible domains">
+                <Space size="small">
+                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call center agents" />
+                  <span>Show All</span>
+                </Space>
+              </Tooltip>
+            </>
+          ) : undefined
+        }
+        toolbar={hasSelection ? selectionToolbar : undefined}
+      />
 
       {!canManage ? (
         <PermissionDenied />

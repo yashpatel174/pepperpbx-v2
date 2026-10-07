@@ -191,6 +191,7 @@ const CallCenterTable = ({
   return (
     <Table<CallCenter>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

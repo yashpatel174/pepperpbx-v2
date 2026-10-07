@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { Alert, Button, Form, Input, Modal } from 'antd'
+import { Form, Input, Modal } from 'antd'
+import ErrorState from '../../../components/feedback/ErrorState'
 import { extensionReuseNote, toFeatureCode } from '../call-flows.constants'
 import { describeExtensionRange, extensionRules, featureCodeRules, nameRules } from '../call-flows.validation'
 import type { CallFlow, CallFlowHiveDetails } from '../call-flows.types'
@@ -88,17 +89,9 @@ const CopyCallFlowModal = ({ open, target, hive, hiveError, onRetryHive, submitt
       destroyOnHidden
     >
       {hiveError && (
-        <Alert
-          type="error"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message="Couldn't load the extension settings for this domain."
-          action={
-            <Button size="small" onClick={onRetryHive}>
-              Retry
-            </Button>
-          }
-        />
+        <div style={{ marginBottom: 16 }}>
+          <ErrorState message="Couldn't load the extension settings for this domain." onRetry={onRetryHive} />
+        </div>
       )}
       <Form<CopyFormValues> form={form} layout="vertical" disabled={submitting} onValuesChange={handleValuesChange}>
         <Form.Item name="new_call_flow_name" label="Name" validateFirst rules={nameRules}>

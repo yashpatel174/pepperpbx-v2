@@ -28,7 +28,7 @@ const AddConferenceProfilePage = () => {
     setSubmitting(true)
     try {
       const uuid = await createConferenceProfile(values)
-      message.success('Conference profile created successfully.')
+      message.success(`Conference profile "${values.profile_name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new record's Edit page, where
       // the profile parameters can be added (conference-profiles.md §3/§14). Unreachable until RBAC is populated.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView

@@ -98,7 +98,7 @@ const TimeConditionsPage = () => {
     setTogglePending(uuid, true)
     try {
       await toggleTimeCondition(uuid)
-      message.success(`Time condition ${item.time_condition_name} ${item.time_condition_enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Time condition "${item.time_condition_name}" ${item.time_condition_enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to update time condition ${item.time_condition_name}.`))
     } finally {
@@ -110,7 +110,7 @@ const TimeConditionsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeTimeConditions(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Time condition "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
     // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
     const remaining = selectedIds.filter((id) => !ids.includes(id))
@@ -171,22 +171,25 @@ const TimeConditionsPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <TimeConditionsFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {canShowAll && (
-              // TODO: gate with <PermissionGuard permission="timecondition.manage"> (pbx_timeconditions_all) once RBAC is populated.
-              <Tooltip title="Show time conditions across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all time conditions" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <TimeConditionsFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {canShowAll && (
+                // TODO: gate with <PermissionGuard permission="timecondition.manage"> (pbx_timeconditions_all) once RBAC is populated.
+                <Tooltip title="Show time conditions across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all time conditions" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

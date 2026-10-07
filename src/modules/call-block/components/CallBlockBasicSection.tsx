@@ -1,5 +1,5 @@
-import { Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Card, Col, Form, Input, Row, Select } from "antd";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import { callBlockDirectionOptions, callBlockNumberLabel } from "../call-block.constants";
 import {
   countryCodeRule,
@@ -45,7 +45,6 @@ const CallBlockBasicSection = ({
   disabled,
   onDomainChange,
 }: CallBlockBasicSectionProps) => {
-  const { token } = theme.useToken();
   const form = Form.useFormInstance();
   const direction = (Form.useWatch("call_block_direction", form) as CallBlockDirection | undefined) ?? "inbound";
   const numberLabel = callBlockNumberLabel(direction);
@@ -53,7 +52,7 @@ const CallBlockBasicSection = ({
   return (
     <Card>
       <Row gutter={16}>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="call_block_direction"
             label="Direction"
@@ -64,7 +63,7 @@ const CallBlockBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item name="extension_uuid" label="Extension" tooltip="The extension this rule applies to (optional)">
             <Select
               showSearch
@@ -77,7 +76,7 @@ const CallBlockBasicSection = ({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="call_block_name"
             label="Caller ID Name"
@@ -93,7 +92,7 @@ const CallBlockBasicSection = ({
             <Input placeholder="Enter caller ID name" aria-label="Caller ID name" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="call_block_action"
             label="Action"
@@ -111,7 +110,7 @@ const CallBlockBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="call_block_country_code"
             label="Country Code"
@@ -122,7 +121,7 @@ const CallBlockBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="call_block_number"
             label={numberLabel}
@@ -138,7 +137,7 @@ const CallBlockBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="domain_name"
             label="Domain"
@@ -157,7 +156,7 @@ const CallBlockBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} md={16}>
+        <Col xs={24} lg={16}>
           <Form.Item
             name="call_block_description"
             label="Description"
@@ -167,19 +166,14 @@ const CallBlockBasicSection = ({
             <TextArea rows={3} placeholder="Enter description" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 32 }}>
-            <Form.Item name="call_block_enabled" valuePropName="checked" noStyle>
-              <Switch disabled={disabled} aria-label="Enabled" />
-            </Form.Item>
-            <span>Enabled</span>
-            <Tooltip title="Set to true to enable call blocking for this number">
-              <QuestionCircleOutlined
-                aria-label="Enabled information"
-                style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help", flexShrink: 0 }}
-              />
-            </Tooltip>
-          </div>
+        <Col xs={24} sm={12} lg={8}>
+          <FormSwitchField
+            name="call_block_enabled"
+            label="Enabled"
+            tooltip="Set to true to enable call blocking for this number"
+            disabled={disabled}
+            style={{ minHeight: 32 }}
+          />
         </Col>
       </Row>
     </Card>

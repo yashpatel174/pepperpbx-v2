@@ -59,15 +59,6 @@ const AgentTable = ({
   };
 
   const columns: TableColumnsType<CallCenterAgent> = [
-    {
-      title: "Agent Name",
-      dataIndex: "name",
-      key: "name",
-      ellipsis: true,
-      render: (value: string) => <Tooltip title={value}>{value}</Tooltip>,
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-
     ...(showAll
       ? [
           {
@@ -79,6 +70,15 @@ const AgentTable = ({
           },
         ]
       : []),
+
+    {
+      title: "Agent Name",
+      dataIndex: "name",
+      key: "name",
+      ellipsis: true,
+      render: (value: string) => <Tooltip title={value}>{value}</Tooltip>,
+      sorter: (a, b) => a.name.localeCompare(b.name),
+    },
 
     {
       title: "Agent ID",
@@ -166,6 +166,7 @@ const AgentTable = ({
   return (
     <Table<CallCenterAgent>
       rowKey="id"
+      showSorterTooltip={false}
       columns={columns}
       dataSource={data}
       loading={loading}

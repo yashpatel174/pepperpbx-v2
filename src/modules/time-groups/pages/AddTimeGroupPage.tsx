@@ -61,7 +61,7 @@ const AddTimeGroupPage = () => {
     setSubmitting(true)
     try {
       const uuid = await createTimeGroup(values)
-      message.success('Time group created successfully.')
+      message.success(`Time group "${values.name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new record's Edit page
       // (§3 Create step 6). Unreachable until RBAC is populated.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView

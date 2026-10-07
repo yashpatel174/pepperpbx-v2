@@ -7,7 +7,7 @@ import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
 import PermissionDenied from '../../../components/feedback/PermissionDenied'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import ConferenceRoomForm from '../components/ConferenceRoomForm'
 import {
   getConferenceCenterOptions,
@@ -27,6 +27,7 @@ import type {
 } from '../conference-room.types'
 
 const EDIT_FORM_ID = 'edit-conference-room-form'
+const optionsErrorFallback = 'The conference center or profile options for this domain failed to load.'
 
 /** Details already arrive normalized (real booleans, numeric max members, trimmed description). */
 const toFormValues = (details: ConferenceRoomDetails): ConferenceRoomFormValues => ({ ...details })
@@ -46,6 +47,7 @@ const EditConferenceRoomPage = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [notFound, setNotFound] = useState(false)
+  const [optionsError, setOptionsError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   // Remounts the form so it picks up the server-confirmed record after a save.
   const [formKey, setFormKey] = useState(0)
@@ -60,13 +62,19 @@ const EditConferenceRoomPage = () => {
       if (withSpinner) setLoading(true)
       setError(null)
       setNotFound(false)
+      setOptionsError(null)
       try {
         const record = await getConferenceRoomById(conferenceRoomUuid)
+        // Option lists fail on their own: an inline Retry is shown instead of blocking the form.
+        const onOptionsError = (err: unknown) => {
+          setOptionsError(getApiErrorMessage(err, optionsErrorFallback))
+          return []
+        }
         // Bootstrap with the record's own domain (Axion calls it with no domain on Edit).
         const [hiveDetails, centers, profiles] = await Promise.all([
           getHiveUserDetails(record.domain_name),
-          getConferenceCenterOptions(record.domain_name).catch(() => []),
-          getProfileOptions(record.domain_name).catch(() => []),
+          getConferenceCenterOptions(record.domain_name).catch(onOptionsError),
+          getProfileOptions(record.domain_name).catch(onOptionsError),
         ])
         setDetails(record)
         setHive(hiveDetails)
@@ -97,16 +105,31 @@ const EditConferenceRoomPage = () => {
 
   const handleCancel = () => navigate(conferenceRoomPaths.list)
 
+  const retryOptions = async () => {
+    if (!details) return
+    setOptionsError(null)
+    try {
+      const [centers, profiles] = await Promise.all([
+        getConferenceCenterOptions(details.domain_name),
+        getProfileOptions(details.domain_name),
+      ])
+      setConferenceCenterOptions(centers)
+      setProfileOptions(profiles)
+    } catch (err) {
+      setOptionsError(getApiErrorMessage(err, optionsErrorFallback))
+    }
+  }
+
   const handleSubmit = async (values: ConferenceRoomFormValues) => {
     if (!details) return
     setSubmitting(true)
     try {
       await updateConferenceRoom(details.conference_room_uuid, values)
-      message.success('Conference room updated successfully.')
+      message.success(`Conference room "${values.conference_room_name}" updated successfully.`)
       // Stay on this page and reload the server-confirmed record (conference-rooms.md §3/§19).
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update conference room.')
+      message.error(getApiErrorMessage(err, 'Failed to update conference room.'))
     } finally {
       setSubmitting(false)
     }
@@ -152,6 +175,9 @@ const EditConferenceRoomPage = () => {
           </div>
         }
       />
+      {optionsError && (
+        <ErrorState type="warning" message="Some data couldn't be loaded" description={optionsError} onRetry={retryOptions} />
+      )}
       {canAccessForm ? (
         <ConferenceRoomForm
           key={formKey}

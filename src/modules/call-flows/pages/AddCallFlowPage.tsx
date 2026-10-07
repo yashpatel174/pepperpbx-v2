@@ -80,7 +80,7 @@ const AddCallFlowPage = () => {
     setSubmitting(true)
     try {
       const uuid = await createCallFlow(values)
-      message.success('Call flow created successfully.')
+      message.success(`Call flow "${values.call_flow_name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new record's Edit page
       // (§3). Unreachable until RBAC is populated.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView

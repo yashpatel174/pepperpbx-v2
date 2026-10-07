@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
@@ -7,14 +8,29 @@ import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import PermissionDenied from '../../../components/feedback/PermissionDenied'
 import ModuleHeader from '../../../components/common/ModuleHeader'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 import GatewayFilters from '../components/GatewayFilters'
 import GatewayTable from '../components/GatewayTable'
 import { useGateways } from '../useGateways'
 import useGatewayPermissions from '../useGatewayPermissions'
 import type { Gateway } from '../gateway.types'
 import type { StartStopAction } from '../gateway.service'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 type BulkAction = 'start' | 'stop' | 'toggle' | 'delete'
+
+/** The action awaiting confirmation in the shared ConfirmActionModal. */
+interface PendingConfirm {
+  title: string
+  content: ReactNode
+  confirmText: string
+  danger?: boolean
+  errorMessage: string
+  /** Bulk actions clear the selection when cancelled; row actions leave it alone. */
+  bulk: boolean
+  /** Performs the action and its success feedback; a rejection keeps the modal open. */
+  run: () => Promise<void>
+}
 
 const GatewaysPage = () => {
   const {
@@ -40,11 +56,14 @@ const GatewaysPage = () => {
   } = useGateways()
 
   const { canManage } = useGatewayPermissions()
-  const { message, modal } = App.useApp()
+  const { message } = App.useApp()
   const navigate = useNavigate()
 
   const [selectedGatewayIds, setSelectedGatewayIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
+  const [pendingConfirm, setPendingConfirm] = useState<PendingConfirm | null>(null)
+  // Kept separate from pendingConfirm so the dialog keeps its content through the close animation.
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   const hasSelection = selectedGatewayIds.length > 0
 
@@ -72,35 +91,38 @@ const GatewaysPage = () => {
 
   const handleEdit = (gateway: Gateway) => navigate(`/account/gateways/${gateway.id}/edit`)
 
+  const openConfirm = (confirm: PendingConfirm) => {
+    setPendingConfirm(confirm)
+    setConfirmOpen(true)
+  }
+
   const handleCopy = (gateway: Gateway) => {
-    modal.confirm({
+    openConfirm({
       title: 'Copy Gateway',
       content: 'Do you really want to copy this gateway?',
-      okText: 'Copy',
-      onOk: async () => {
-        try {
-          await copyGateway(gateway.id)
-          message.success(`Gateway ${gateway.gateway} copied.`)
-        } catch (err) {
-          message.error(err instanceof Error ? err.message : `Failed to copy gateway ${gateway.gateway}.`)
-        }
+      confirmText: 'Copy',
+      errorMessage: `Failed to copy gateway ${gateway.gateway}.`,
+      bulk: false,
+      run: async () => {
+        await copyGateway(gateway.id)
+        message.success(`Gateway "${gateway.gateway}" copied successfully.`)
       },
     })
   }
 
   const handleDeleteRow = (gateway: Gateway) => {
-    modal.confirm({
+    openConfirm({
       title: 'Delete Gateway',
       content: `Are you sure you want to delete gateway ${gateway.gateway}?`,
-      okText: 'Delete',
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await removeGateways([gateway.id])
-          message.success(`Gateway ${gateway.gateway} deleted.`)
-        } catch (err) {
-          message.error(err instanceof Error ? err.message : `Failed to delete gateway ${gateway.gateway}.`)
-        }
+      confirmText: 'Delete',
+      danger: true,
+      errorMessage: `Failed to delete gateway ${gateway.gateway}.`,
+      bulk: false,
+      run: async () => {
+        await removeGateways([gateway.id])
+        message.success(`Gateway "${gateway.gateway}" deleted successfully.`)
+        // Drop only the deleted row — an unrelated multi-page selection stays intact.
+        setSelectedGatewayIds((ids) => ids.filter((id) => id !== gateway.id))
       },
     })
   }
@@ -109,9 +131,9 @@ const GatewaysPage = () => {
   const handleToggleEnabled = async (gateway: Gateway) => {
     try {
       await toggleGatewaysStatus([gateway.id])
-      message.success(`Gateway ${gateway.gateway} ${gateway.enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Gateway "${gateway.gateway}" ${gateway.enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update gateway ${gateway.gateway}.`)
+      message.error(getApiErrorMessage(err, `Failed to update gateway ${gateway.gateway}.`))
     }
   }
 
@@ -119,9 +141,9 @@ const GatewaysPage = () => {
     const action: StartStopAction = gateway.status === 'Stopped' ? 'start' : 'stop'
     try {
       await startStopSelected([gateway.id], action)
-      message.success(`Gateway ${gateway.gateway} ${action === 'start' ? 'started' : 'stopped'}.`)
+      message.success(`Gateway "${gateway.gateway}" ${action === 'start' ? 'started' : 'stopped'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update gateway ${gateway.gateway}.`)
+      message.error(getApiErrorMessage(err, `Failed to update gateway ${gateway.gateway}.`))
     }
   }
 
@@ -135,7 +157,7 @@ const GatewaysPage = () => {
       // Display-only: names are resolved from gatewayLabelByIdRef purely for the confirmation
       // list. `ids` (passed to removeGateways below) is untouched — always the raw selected
       // gateway_uuid values, never a display value.
-      modal.confirm({
+      openConfirm({
         title: 'Delete Gateway',
         content: (
           <div>
@@ -147,39 +169,35 @@ const GatewaysPage = () => {
             </ul>
           </div>
         ),
-        okText: 'Delete',
-        okButtonProps: { danger: true },
-        onOk: async () => {
-          try {
-            await removeGateways(ids)
-            message.success(`${count} gateway${plural} deleted.`)
-          } catch (err) {
-            message.error(err instanceof Error ? err.message : 'Failed to delete selected gateways.')
-          } finally {
-            clearSelection()
-          }
+        confirmText: 'Delete',
+        danger: true,
+        errorMessage: 'Failed to delete selected gateways.',
+        bulk: true,
+        run: async () => {
+          await removeGateways(ids)
+          message.success(
+            count === 1
+              ? `Gateway "${gatewayLabelByIdRef.current.get(ids[0]) ?? ids[0]}" deleted successfully.`
+              : `${count} gateway${plural} deleted.`
+          )
+          clearSelection()
         },
-        onCancel: clearSelection,
       })
       return
     }
 
     if (bulkAction === 'toggle') {
-      modal.confirm({
+      openConfirm({
         title: 'Toggle Gateways',
         content: `Do you really want to toggle the status of ${count === 1 ? 'this gateway' : `these ${count} gateways`}?`,
-        okText: 'Toggle',
-        onOk: async () => {
-          try {
-            await toggleGatewaysStatus(ids)
-            message.success(`${count} gateway${plural} toggled.`)
-          } catch (err) {
-            message.error(err instanceof Error ? err.message : 'Failed to toggle selected gateways.')
-          } finally {
-            clearSelection()
-          }
+        confirmText: 'Toggle',
+        errorMessage: 'Failed to toggle selected gateways.',
+        bulk: true,
+        run: async () => {
+          await toggleGatewaysStatus(ids)
+          message.success(`${count} gateway${plural} toggled.`)
+          clearSelection()
         },
-        onCancel: clearSelection,
       })
       return
     }
@@ -193,23 +211,32 @@ const GatewaysPage = () => {
     }
     const registeringCount = registeringIds.length
     const registeringPlural = registeringCount === 1 ? '' : 's'
+    const action = bulkAction
 
-    modal.confirm({
-      title: bulkAction === 'start' ? 'Start Gateways' : 'Stop Gateways',
-      content: `Do you really want to ${bulkAction} this?`,
-      okText: bulkAction === 'start' ? 'Start' : 'Stop',
-      onOk: async () => {
-        try {
-          await startStopSelected(registeringIds, bulkAction)
-          message.success(`${registeringCount} gateway${registeringPlural} ${bulkAction === 'start' ? 'started' : 'stopped'}.`)
-        } catch (err) {
-          message.error(err instanceof Error ? err.message : `Failed to ${bulkAction} selected gateways.`)
-        } finally {
-          clearSelection()
-        }
+    openConfirm({
+      title: action === 'start' ? 'Start Gateways' : 'Stop Gateways',
+      content: `Do you really want to ${action} ${registeringCount === 1 ? 'this gateway' : 'these gateways'}?`,
+      confirmText: action === 'start' ? 'Start' : 'Stop',
+      errorMessage: `Failed to ${action} selected gateways.`,
+      bulk: true,
+      run: async () => {
+        await startStopSelected(registeringIds, action)
+        message.success(`${registeringCount} gateway${registeringPlural} ${action === 'start' ? 'started' : 'stopped'}.`)
+        clearSelection()
       },
-      onCancel: clearSelection,
     })
+  }
+
+  const handleConfirmAction = async () => {
+    if (!pendingConfirm) return
+    await pendingConfirm.run()
+    setConfirmOpen(false)
+  }
+
+  // Cancelling a bulk action clears the selection (as before); cancelling a row action leaves it alone.
+  const handleCancelConfirm = () => {
+    if (pendingConfirm?.bulk) clearSelection()
+    setConfirmOpen(false)
   }
 
   const selectionToolbar = (
@@ -305,6 +332,19 @@ const GatewaysPage = () => {
           onSelectionChange={setSelectedGatewayIds}
         />
       )}
+
+      <ConfirmActionModal
+        open={confirmOpen}
+        title={pendingConfirm?.title}
+        confirmText={pendingConfirm?.confirmText ?? ''}
+        danger={pendingConfirm?.danger}
+        errorMessage={pendingConfirm?.errorMessage ?? ''}
+        onConfirm={handleConfirmAction}
+        onCancel={handleCancelConfirm}
+        afterClose={() => setPendingConfirm(null)}
+      >
+        {pendingConfirm?.content}
+      </ConfirmActionModal>
     </Space>
   )
 }

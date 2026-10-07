@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
-import { App, Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from 'antd'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { App, Card, Col, Form, Input, Row, Select, theme } from 'antd'
+import FormSwitchField from '../../../components/common/FormSwitchField'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import { extensionReuseNote } from '../../../components/common/extensionReuseNote'
 import {
   descriptionRules,
@@ -14,7 +15,6 @@ import {
 } from '../conference.validation'
 import { orderOptions } from '../conference.constants'
 import type { ConferenceFormValues, ConferenceHiveDetails, ConferenceProfileOption } from '../conference.types'
-import { QuestionCircleOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -95,7 +95,7 @@ const ConferenceForm = ({
     }
 
     modal.confirm({
-      title: 'Domain changed',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',
@@ -131,7 +131,7 @@ const ConferenceForm = ({
     >
       <Card>
         <Row gutter={[16, 16]}>
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="conference_name"
               label="Conference Name"
@@ -143,7 +143,7 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="conference_extension"
               label="Extension"
@@ -156,7 +156,7 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="conference_pin_number"
               label="PIN Number"
@@ -167,7 +167,7 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="conference_profile" label="Profile" tooltip="Conference profile is a collection of settings for the conference.">
               <Select
                 allowClear
@@ -181,7 +181,7 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="conference_flags"
               label="Flags"
@@ -192,19 +192,19 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="conference_email_address" label="Email Address" tooltip='Optional conference email address.' rules={[emailRule]}>
               <Input placeholder="Enter email address" aria-label="Email address" />
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="conference_account_code" label="Account Code" tooltip="Enter the account code here.">
               <Input disabled placeholder="Account code" aria-label="Account code" />
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="domain_name"
               label="Domain"
@@ -226,13 +226,13 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="conference_order" label="Order" tooltip="Enter the order number.">
               <Select showSearch options={orderOptions} placeholder="Select order" aria-label="Order" />
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={16}>
+          <Col xs={24} lg={16}>
             <Form.Item
               name="conference_description"
               label="Description"
@@ -243,19 +243,8 @@ const ConferenceForm = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} sm={12} md={8}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 32 }}>
-              <Form.Item name="conference_enabled" valuePropName="checked" noStyle>
-                <Switch aria-label="Enabled" />
-              </Form.Item>
-              <span>Enabled</span>
-              <Tooltip title="Select enabled">
-              <QuestionCircleOutlined
-                aria-label="Enabled information"
-                style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help", flexShrink: 0 }}
-              />
-            </Tooltip>
-            </div>
+          <Col xs={24} sm={12} lg={8}>
+            <FormSwitchField name="conference_enabled" label="Enabled" tooltip="Select enabled" style={{ minHeight: 32 }} />
           </Col>
         </Row>
       </Card>

@@ -80,7 +80,7 @@ const AddRingGroupPage = () => {
     setSubmitting(true)
     try {
       const uuid = await createRingGroup(values)
-      message.success('Ring group created successfully.')
+      message.success(`Ring group "${values.ring_group_name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new record's Edit page
       // (§3/§26). Unreachable until RBAC is populated.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView

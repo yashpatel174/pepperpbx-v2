@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { App, Form } from 'antd'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import type { GatewayFormValues, HiveGatewayDetails, SbcDomainOption, SipProfileOption } from '../gateway.types'
 import GatewayFormBasicSection from './GatewayFormBasicSection'
 import GatewayFormAdvancedSection from './GatewayFormAdvancedSection'
@@ -57,7 +57,7 @@ const GatewayForm = ({
       return
     }
     modal.confirm({
-      title: 'Change domain?',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',

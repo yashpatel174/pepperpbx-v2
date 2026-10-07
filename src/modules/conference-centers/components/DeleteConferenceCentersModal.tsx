@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Alert, App, Button, Modal, Typography } from 'antd'
+import { Alert, Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 
 const { Paragraph, Text } = Typography
 
@@ -21,37 +21,18 @@ interface DeleteConferenceCentersModalProps {
  * (conference-centers.md §28).
  */
 const DeleteConferenceCentersModal = ({ open, targets, onConfirm, onCancel }: DeleteConferenceCentersModalProps) => {
-  const { message } = App.useApp()
-  const [deleting, setDeleting] = useState(false)
   const single = targets.length === 1
 
-  const handleConfirm = async () => {
-    setDeleting(true)
-    try {
-      await onConfirm()
-    } catch {
-      message.error('Delete failed.')
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Delete Conference Center"
-      onCancel={deleting ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={deleting} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button danger loading={deleting} onClick={handleConfirm}>
-            Delete
-          </Button>
-        </div>
-      }
+      confirmText="Delete"
+      danger
       width={480}
+      errorMessage="Delete failed."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>
         Are you sure you want to delete {single ? 'this conference center' : `these ${targets.length} conference centers`}?
@@ -69,9 +50,9 @@ const DeleteConferenceCentersModal = ({ open, targets, onConfirm, onCancel }: De
         type="warning"
         showIcon
         style={{ marginTop: 16 }}
-        message="Note: Please ensure this conference center is not linked to any other records (such as conference rooms) before proceeding, as deleting it may affect related data."
+        title="Note: Please ensure this conference center is not linked to any other records (such as conference rooms) before proceeding, as deleting it may affect related data."
       />
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

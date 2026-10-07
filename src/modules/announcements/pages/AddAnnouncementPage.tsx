@@ -10,6 +10,7 @@ import { createAnnouncement, getExecuteActionOptions, getHiveAnnouncementDetails
 import { getDefaultAnnouncementFormValues } from '../announcement.constants'
 import useAnnouncementPermissions from '../useAnnouncementPermissions'
 import type { ActionOptionGroup, AnnouncementFormValues, HiveAnnouncementDetails } from '../announcement.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_ANNOUNCEMENT_FORM_ID = 'add-announcement-form'
 
@@ -25,6 +26,8 @@ const AddAnnouncementPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   const canAccessForm = canManageAll || canAdd
 
@@ -59,12 +62,13 @@ const AddAnnouncementPage = () => {
   // lists (play/execute actions) for the newly selected domain — announcements.md §9.
   const handleDomainConfirmed = async (domainName: string) => {
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const [play, execute] = await Promise.all([getPlayActionOptions(domainName), getExecuteActionOptions(domainName)])
       setPlayOptions(play)
       setExecuteOptions(execute)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+    } catch (err) {
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       setOptionsLoading(false)
     }
@@ -74,7 +78,7 @@ const AddAnnouncementPage = () => {
     setSubmitting(true)
     try {
       const created = await createAnnouncement(values)
-      message.success(`Announcement ${created.phrase_name} created successfully.`)
+      message.success(`Announcement "${created.phrase_name}" created successfully.`)
       // Matches the audit: Create success navigates to Edit for the new record — UNLESS the user
       // has only the Add permission (no view/edit/all), in which case it navigates to the List
       // instead, since they wouldn't be able to open the Edit page anyway (announcements.md
@@ -84,7 +88,7 @@ const AddAnnouncementPage = () => {
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
       navigate(onlyHasAdd ? '/announcements' : `/announcements/${created.phrase_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create announcement.')
+      message.error(getApiErrorMessage(err, 'Failed to create announcement.'))
     } finally {
       setSubmitting(false)
     }
@@ -115,6 +119,14 @@ const AddAnnouncementPage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       <AnnouncementForm
         formId={ADD_ANNOUNCEMENT_FORM_ID}
         mode="create"

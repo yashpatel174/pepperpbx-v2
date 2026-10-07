@@ -116,7 +116,7 @@ const EditRingGroupPage = () => {
       setSubmitting(false)
       return
     }
-    message.success('Ring group updated successfully.')
+    message.success(`Ring group "${values.ring_group_name}" updated successfully.`)
     // Stay here and reload the saved record (§3/§19). The save already succeeded, so a failed
     // reload only warns and the form keeps the submitted values.
     try {

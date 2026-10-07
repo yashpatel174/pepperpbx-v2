@@ -108,7 +108,7 @@ const TimeGroupPresetsPage = () => {
     setTogglePending(uuid, true)
     try {
       await togglePresets([uuid])
-      message.success(`Preset ${item.name} ${item.enable ? 'disabled' : 'enabled'}.`)
+      message.success(`Preset "${item.name}" ${item.enable ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
       message.error(getApiErrorMessage(err, `Failed to update preset ${item.name}.`))
     } finally {
@@ -127,7 +127,7 @@ const TimeGroupPresetsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removePresets(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Preset "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
     const remaining = selectedIds.filter((id) => !ids.includes(id))
     setSelectedIds(remaining)
@@ -150,7 +150,7 @@ const TimeGroupPresetsPage = () => {
     setCopySubmitting(true)
     try {
       await duplicatePreset(copyTarget.preset_uuid, name)
-      message.success(`Preset ${copyTarget.name} copied.`)
+      message.success(`Preset "${copyTarget.name}" copied successfully.`)
       setCopyTarget(null)
       clearSelection()
     } catch (err) {
@@ -208,30 +208,33 @@ const TimeGroupPresetsPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <Input.Search
-              allowClear
-              placeholder="Search presets"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onSearch={commitSearch}
-              style={{ width: '100%', maxWidth: 240 }}
-              aria-label="Search presets"
-            />
-            {canShowAll && (
-              // TODO: gate with <PermissionGuard permission="timegroup.manage"> (pbx_timeconditions_all) once RBAC is populated.
-              <Tooltip title="Show presets across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all presets" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <Input.Search
+                allowClear
+                placeholder="Search presets"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onSearch={commitSearch}
+                style={{ width: '100%', maxWidth: 200 }}
+                aria-label="Search presets"
+              />
+              {canShowAll && (
+                // TODO: gate with <PermissionGuard permission="timegroup.manage"> (pbx_timeconditions_all) once RBAC is populated.
+                <Tooltip title="Show presets across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all presets" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

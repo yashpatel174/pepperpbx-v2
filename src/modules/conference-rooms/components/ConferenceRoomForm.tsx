@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { App, Card, Col, DatePicker, Form, Input, Row, Select, Switch } from "antd";
 import dayjs from "dayjs";
 import type { Dayjs } from "dayjs";
-import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
+import { domainChangeMessage, domainChangeTitle } from "../../../components/common/domainChangeMessage";
 import { maxMemberOptions, scheduleDateFormat, trueFalseOptions } from "../conference-room.constants";
 import {
   nameRules,
@@ -101,7 +101,7 @@ const ConferenceRoomForm = ({
     if (value === previousDomain) return;
 
     modal.confirm({
-      title: "Domain changed",
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",

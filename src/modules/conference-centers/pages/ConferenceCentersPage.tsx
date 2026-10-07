@@ -15,17 +15,13 @@ import ToggleConferenceCentersModal from '../components/ToggleConferenceCentersM
 import { useConferenceCenters } from '../useConferenceCenters'
 import useConferenceCenterPermissions from '../useConferenceCenterPermissions'
 import type { ConferenceCenter } from '../conference-center.types'
+import { conferenceCenterPaths } from '../conference-center.constants'
+// Toolbar links to the sibling Conference Rooms and Active Conferences modules use their own route constants.
+import { conferenceRoomPaths } from '../../conference-rooms/conference-room.constants'
+import { ACTIVE_CONFERENCES_PATH } from '../../active-conferences/active-conferences.constants'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 type BulkAction = 'delete' | 'toggle'
-
-const LIST_PATH = '/conference-centers'
-/**
- * Neither module exists in PepperPBX yet, so both links resolve to the NotFound catch-all until
- * they're built. Active Conferences uses the same path the Conferences list already links to;
- * Conference Rooms uses the kebab-case route the future module is expected to register.
- */
-const CONFERENCE_ROOMS_PATH = '/conferenceCenters/conferenceRooms/list'
-const ACTIVE_CONFERENCES_PATH = '/activeConferences/list'
 
 const pluralize = (count: number) => `${count} conference center${count === 1 ? '' : 's'}`
 
@@ -58,6 +54,8 @@ const ConferenceCentersPage = () => {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null)
 
   const hasSelection = selectedIds.length > 0
@@ -86,9 +84,13 @@ const ConferenceCentersPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeConferenceCenters(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Conference center "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    const remaining = selectedIds.filter((id) => !ids.includes(id))
+    setSelectedIds(remaining)
+    if (remaining.length === 0) setBulkAction(undefined)
+    setDeleteIsBulk(false)
   }
 
   const handleToggleConfirm = async () => {
@@ -103,15 +105,16 @@ const ConferenceCentersPage = () => {
   const handleToggleStatus = async (center: ConferenceCenter) => {
     try {
       await toggleConferenceCentersStatus([center.id])
-      message.success(`Conference center ${center.name} ${center.enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Conference center "${center.name}" ${center.enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update conference center ${center.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update conference center ${center.name}.`))
     }
   }
 
   const handleApplyBulkAction = () => {
     if (!bulkAction || !hasSelection) return
     if (bulkAction === 'delete') {
+      setDeleteIsBulk(true)
       setDeleteTargets(selectedIds.map((id) => ({ id, name: nameByIdRef.current.get(id) ?? id })))
     } else {
       setToggleTargetIds([...selectedIds])
@@ -159,33 +162,36 @@ const ConferenceCentersPage = () => {
                 key: 'add',
                 label: 'Add Conference Center',
                 icon: <PlusOutlined />,
-                onClick: () => navigate(`${LIST_PATH}/add`),
+                onClick: () => navigate(conferenceCenterPaths.add),
               }
             : undefined
         }
         actions={[
            { key: 'active-conferences', label: 'Active Conferences', icon: <AudioOutlined />, onClick: () => navigate(ACTIVE_CONFERENCES_PATH) },
           ...(canAddRecord
-            ? [{ key: 'rooms', label: 'Conference Rooms', icon: <ApartmentOutlined />, onClick: () => navigate(CONFERENCE_ROOMS_PATH) }]
+            ? [{ key: 'rooms', label: 'Conference Rooms', icon: <ApartmentOutlined />, onClick: () => navigate(conferenceRoomPaths.list) }]
             : []),
          
         ]}
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <ConferenceCenterFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {/* TODO: Axion shows this for `pbx_axiontech` or >1 wildcard domain; the admin tier stands in for now. */}
-            {canManageAll && (
-              <Tooltip title="Show conference centers across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all conference centers" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <ConferenceCenterFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {/* TODO: Axion shows this for `pbx_axiontech` or >1 wildcard domain; the admin tier stands in for now. */}
+              {canManageAll && (
+                <Tooltip title="Show conference centers across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all conference centers" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />
@@ -207,8 +213,11 @@ const ConferenceCentersPage = () => {
           canDeleteRow={canDeleteRow}
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
-          onEdit={(center) => navigate(`${LIST_PATH}/${center.id}/edit`)}
-          onDelete={(center) => setDeleteTargets([{ id: center.id, name: center.name }])}
+          onEdit={(center) => navigate(conferenceCenterPaths.edit(center.id))}
+          onDelete={(center) => {
+            setDeleteIsBulk(false)
+            setDeleteTargets([{ id: center.id, name: center.name }])
+          }}
           onToggleStatus={handleToggleStatus}
           selectedRowKeys={selectedIds}
           onSelectionChange={handleSelectionChange}
@@ -221,7 +230,9 @@ const ConferenceCentersPage = () => {
         onConfirm={handleDeleteConfirm}
         onCancel={() => {
           setDeleteTargets(null)
-          clearSelection()
+          // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+          if (deleteIsBulk) clearSelection()
+          setDeleteIsBulk(false)
         }}
       />
 

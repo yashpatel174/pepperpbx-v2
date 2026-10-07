@@ -99,7 +99,7 @@ const EditCallFlowPage = () => {
       setSubmitting(false)
       return
     }
-    message.success('Call flow updated successfully.')
+    message.success(`Call flow "${values.call_flow_name}" updated successfully.`)
     // Stay here and reload the saved record (§3/§19). The save already succeeded, so a failed
     // reload only warns and the form keeps the submitted values.
     try {

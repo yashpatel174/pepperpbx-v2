@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Alert, App, Button, Modal, Typography } from 'antd'
+import { Alert, Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 
 const { Paragraph, Text } = Typography
 
@@ -23,38 +23,19 @@ interface DeleteConferenceRoomModalProps {
  * `console.warn`s a failed delete (§11).
  */
 const DeleteConferenceRoomModal = ({ open, targets, onConfirm, onCancel, afterClose }: DeleteConferenceRoomModalProps) => {
-  const { message } = App.useApp()
-  const [deleting, setDeleting] = useState(false)
   const single = targets.length === 1
 
-  const handleConfirm = async () => {
-    setDeleting(true)
-    try {
-      await onConfirm()
-    } catch {
-      message.error('Delete failed.')
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Delete Conference Room"
-      onCancel={deleting ? undefined : onCancel}
-      afterClose={afterClose}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={deleting} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button danger loading={deleting} onClick={handleConfirm}>
-            Delete
-          </Button>
-        </div>
-      }
+      confirmText="Delete"
+      danger
       width={480}
+      errorMessage="Delete failed."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+      afterClose={afterClose}
     >
       <Paragraph>
         Are you sure you want to delete {single ? 'this conference room' : `these ${targets.length} conference rooms`}?
@@ -74,7 +55,7 @@ const DeleteConferenceRoomModal = ({ open, targets, onConfirm, onCancel, afterCl
         style={{ marginTop: 16 }}
         title="Note: Please ensure this conference room is not linked to any other records before proceeding, as deleting it may affect related data."
       />
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Alert, App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../../services/api/apiError'
+import { Alert, Typography } from 'antd'
+import ConfirmActionModal from '../../../../components/common/ConfirmActionModal'
 import { presetDeleteWarning } from '../time-group-preset.constants'
 
 const { Paragraph, Text } = Typography
@@ -22,37 +21,18 @@ interface DeleteTimeGroupPresetModalProps {
  * with a loading Delete button until the request settles — Axion's spinner never rendered.
  */
 const DeleteTimeGroupPresetModal = ({ open, targets, onConfirm, onCancel }: DeleteTimeGroupPresetModalProps) => {
-  const { message } = App.useApp()
-  const [deleting, setDeleting] = useState(false)
   const single = targets.length === 1
 
-  const handleConfirm = async () => {
-    setDeleting(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to delete preset.'))
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Delete Preset"
-      onCancel={deleting ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={deleting} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button danger type="primary" loading={deleting} onClick={handleConfirm}>
-            Delete
-          </Button>
-        </div>
-      }
+      confirmText="Delete"
+      danger
       width={480}
+      errorMessage="Failed to delete preset."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>
         Are you sure you want to delete {single ? <Text strong>{targets[0]?.name}</Text> : `these ${targets.length} presets`}?
@@ -66,8 +46,8 @@ const DeleteTimeGroupPresetModal = ({ open, targets, onConfirm, onCancel }: Dele
           ))}
         </ul>
       )}
-      <Alert type="warning" showIcon message={presetDeleteWarning} />
-    </Modal>
+      <Alert type="warning" showIcon title={presetDeleteWarning} />
+    </ConfirmActionModal>
   )
 }
 

@@ -77,6 +77,18 @@ const CallBlockTable = ({
   }
 
   const columns: TableColumnsType<CallBlock> = [
+    ...(showAll
+      ? [
+          {
+            title: 'Domain',
+            dataIndex: 'domain_name',
+            key: 'domain_name',
+            render: renderOptionalText,
+            sorter: (a: CallBlock, b: CallBlock) => compareOptional(a.domain_name, b.domain_name),
+          },
+        ]
+      : []),
+
     {
       title: 'Direction',
       dataIndex: 'call_block_direction',
@@ -92,18 +104,6 @@ const CallBlockTable = ({
       },
       sorter: (a, b) => compareOptional(a.call_block_direction, b.call_block_direction),
     },
-
-    ...(showAll
-      ? [
-          {
-            title: 'Domain',
-            dataIndex: 'domain_name',
-            key: 'domain_name',
-            render: renderOptionalText,
-            sorter: (a: CallBlock, b: CallBlock) => compareOptional(a.domain_name, b.domain_name),
-          },
-        ]
-      : []),
 
     {
       title: 'Extension',

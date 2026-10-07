@@ -6,6 +6,7 @@ import EmptyState from "../../../components/feedback/EmptyState";
 import { callBlockDirectionIconSrc, callBlockDirectionOptions, recentCallsPageSize } from "../call-block.constants";
 import { blockRecentCalls, fetchRecentCalls } from "../call-block.service";
 import type { CallBlockDirection, RecentCall, SelectOption } from "../call-block.types";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 
 const { Text } = Typography;
 
@@ -102,7 +103,7 @@ const RecentCallsSection = ({
       resetBlockSelections();
       await load();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to block selected calls.");
+      message.error(getApiErrorMessage(err, "Failed to block selected calls."));
     } finally {
       setBlocking(false);
     }

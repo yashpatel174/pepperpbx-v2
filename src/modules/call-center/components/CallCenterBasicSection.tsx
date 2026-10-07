@@ -60,7 +60,7 @@ const CallCenterBasicSection = ({
   return (
     <Card title="Queue Details">
       <Row gutter={16}>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_name"
             label="Queue Name"
@@ -72,7 +72,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_extension"
             label="Extension"
@@ -84,7 +84,7 @@ const CallCenterBasicSection = ({
             <Input type="number" min={2000 } max={2999} placeholder="Enter extension" disabled={mode === "edit" && disabled} aria-label="Extension" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_greeting"
             label="Greeting"
@@ -103,7 +103,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_strategy"
             label="Strategy"
@@ -114,7 +114,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_moh_sound"
             label="Music On Hold"
@@ -131,7 +131,7 @@ const CallCenterBasicSection = ({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_distinctive_ring"
             label="Distinctive Ring"
@@ -142,7 +142,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_time_base_score"
             label="Time Base Score"
@@ -152,7 +152,7 @@ const CallCenterBasicSection = ({
             <Select placeholder="Select time base score" options={timeBaseScoreOptions} aria-label="Time base score" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_max_wait_time"
             label="Max Wait Time"
@@ -162,7 +162,7 @@ const CallCenterBasicSection = ({
             <Input type="number" min={0} placeholder="Enter max wait time (seconds)" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_tier_rule_wait_second"
             label="Tier Rule Wait Second"
@@ -172,7 +172,7 @@ const CallCenterBasicSection = ({
             <Input type="number" min={0} placeholder="Enter tier rule wait (seconds)" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_cid_prefix"
             label="Caller ID Name Prefix"
@@ -182,7 +182,7 @@ const CallCenterBasicSection = ({
             <Input placeholder="Enter caller ID name prefix" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_discard_abandoned_after"
             label="Discard Abandoned After"
@@ -192,7 +192,7 @@ const CallCenterBasicSection = ({
             <Input type="number" min={0} placeholder="Enter discard-abandoned-after (seconds)" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_time_base_score_sec"
             label="Time Base Score Seconds"
@@ -202,7 +202,7 @@ const CallCenterBasicSection = ({
             <Input type="number" min={0} placeholder="Enter time base score seconds" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_max_wait_time_with_no_agent"
             label="Max Wait Time With No Agent"
@@ -213,7 +213,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_max_wait_time_with_no_agent_time_reached"
             label="Max Wait Time With No Agent Time Reached"
@@ -223,7 +223,7 @@ const CallCenterBasicSection = ({
             <Input type="number" min={0} placeholder="Enter time-reached wait (seconds)" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_announce_frequency"
             label="Announce Frequency"
@@ -234,7 +234,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_cc_exit_keys"
             label="Exit Key"
@@ -245,7 +245,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_outbound_caller_id_name"
             label="Outbound Caller ID Name"
@@ -256,7 +256,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_outbound_caller_id_number"
             label="Outbound Caller ID Number"
@@ -266,7 +266,7 @@ const CallCenterBasicSection = ({
             <Input type={"number"} min={0} placeholder="Enter outbound caller ID number" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="domain_name"
             label="Domain"
@@ -292,7 +292,7 @@ const CallCenterBasicSection = ({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_timeout_action"
             label="Timeout Destination"
@@ -310,7 +310,7 @@ const CallCenterBasicSection = ({
             />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="queue_announce_sound"
             label="Announce Sound"
@@ -329,7 +329,7 @@ const CallCenterBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} md={16}>
+        <Col xs={24} lg={16}>
           <Form.Item
             name="queue_description"
             label="Description"

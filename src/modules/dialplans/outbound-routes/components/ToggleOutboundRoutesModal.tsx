@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../../components/common/ConfirmActionModal'
 
 const { Paragraph } = Typography
 
@@ -17,41 +17,20 @@ interface ToggleOutboundRoutesModalProps {
  * (outbound-routes.md §3/§20/§21/§26's "Do you really want to toggle this?").
  */
 const ToggleOutboundRoutesModal = ({ open, count, onConfirm, onCancel }: ToggleOutboundRoutesModalProps) => {
-  const { message } = App.useApp()
-  const [toggling, setToggling] = useState(false)
-
-  const handleConfirm = async () => {
-    setToggling(true)
-    try {
-      await onConfirm()
-    } catch {
-      message.error('Toggle failed.')
-    } finally {
-      setToggling(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle Outbound Routes"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={toggling} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
       width={440}
+      errorMessage="Toggle failed."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>
         Do you really want to toggle the status of {count === 1 ? 'this outbound route' : `these ${count} outbound routes`}?
       </Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

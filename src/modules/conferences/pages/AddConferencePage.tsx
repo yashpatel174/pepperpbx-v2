@@ -12,6 +12,7 @@ import { createConference, getHiveConferenceDetails, getProfileOptions } from '.
 import { getDefaultConferenceFormValues } from '../conference.constants'
 import useConferencePermissions from '../useConferencePermissions'
 import type { ConferenceFormValues, ConferenceHiveDetails, ConferenceProfileOption } from '../conference.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_CONFERENCE_FORM_ID = 'add-conference-form'
 
@@ -26,6 +27,8 @@ const AddConferencePage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   const canAccessForm = canManageAll || canAdd
 
@@ -64,13 +67,14 @@ const AddConferencePage = () => {
   const handleDomainConfirmed = async (domainName: string) => {
     const requestId = ++domainRequestIdRef.current
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const hiveDetails = await getHiveConferenceDetails(domainName)
       if (requestId !== domainRequestIdRef.current) return
       setHive(hiveDetails)
-    } catch {
+    } catch (err) {
       if (requestId !== domainRequestIdRef.current) return
-      message.error('Failed to refresh domain-dependent options.')
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       if (requestId === domainRequestIdRef.current) setOptionsLoading(false)
     }
@@ -80,7 +84,7 @@ const AddConferencePage = () => {
     setSubmitting(true)
     try {
       const created = await createConference(values)
-      message.success('Conference created successfully.')
+      message.success(`Conference "${values.conference_name}" created successfully.`)
       // Matches the audit exactly (conferences.md §3/§14/§19/§33): Create success navigates to
       // Edit — UNLESS the user has only the Add permission (no view/edit/all), in which case it
       // navigates to the List instead, so an add-only user is never sent to an Edit page they
@@ -90,7 +94,7 @@ const AddConferencePage = () => {
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
       navigate(onlyHasAdd ? '/conferences' : `/conferences/${created.conference_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create conference.')
+      message.error(getApiErrorMessage(err, 'Failed to create conference.'))
     } finally {
       setSubmitting(false)
     }
@@ -121,6 +125,14 @@ const AddConferencePage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       {canAccessForm ? (
         <ConferenceForm
           formId={ADD_CONFERENCE_FORM_ID}

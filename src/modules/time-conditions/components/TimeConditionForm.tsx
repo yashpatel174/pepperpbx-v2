@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
-import { Alert, App, Button, Card, Col, Form, Input, Row, Select, Space, Switch, theme, Tooltip } from "antd";
+import { App, Card, Col, Form, Input, Row, Select, Space, theme } from "antd";
+import ErrorState from "../../../components/feedback/ErrorState";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
-import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
+import { domainChangeMessage, domainChangeTitle } from "../../../components/common/domainChangeMessage";
 import { extensionReuseNote } from "../time-condition.constants";
 import {
   domainRules,
@@ -17,7 +19,6 @@ import type {
   TimeConditionHiveDetails,
   TimeGroupOption,
 } from "../time-condition.types";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 
 export interface TimeConditionFormProps {
   mode: "create" | "edit";
@@ -93,7 +94,7 @@ const TimeConditionForm = ({
     if (value === previousDomain) return;
 
     modal.confirm({
-      title: "Domain changed",
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",
@@ -126,16 +127,11 @@ const TimeConditionForm = ({
     >
       <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
         {optionsError && (
-          <Alert
+          <ErrorState
             type="warning"
-            showIcon
             message="Some data couldn't be loaded"
             description="The time group and destination options for this domain failed to load."
-            action={
-              <Button size="small" onClick={onRetryOptions} disabled={false}>
-                Retry
-              </Button>
-            }
+            onRetry={onRetryOptions}
           />
         )}
 
@@ -235,18 +231,7 @@ const TimeConditionForm = ({
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} lg={8}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 32 }}>
-                <Form.Item name="enabled" valuePropName="checked" noStyle>
-                  <Switch aria-label="Enabled" />
-                </Form.Item>
-                <span>Enabled</span>
-                <Tooltip title="Set the status">
-                  <QuestionCircleOutlined
-                    aria-label="Enabled information"
-                    style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help", flexShrink: 0 }}
-                  />
-                </Tooltip>
-              </div>
+              <FormSwitchField name="enabled" label="Enabled" tooltip="Set the status" style={{ minHeight: 32 }} />
             </Col>
           </Row>
         </Card>

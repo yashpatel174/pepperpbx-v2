@@ -17,6 +17,7 @@ import { copyOutboundRoute } from '../outbound-route.service'
 import { useOutboundRoutes } from '../useOutboundRoutes'
 import useOutboundRoutePermissions from '../useOutboundRoutePermissions'
 import type { OutboundRoute } from '../outbound-route.types'
+import { getApiErrorMessage } from '../../../../services/api/apiError'
 
 /**
  * Bulk actions are limited to Toggle + Delete — the audit's `tableActionOptions` list only wires
@@ -53,6 +54,8 @@ const OutboundRoutesPage = () => {
   const [selectedRouteIds, setSelectedRouteIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null)
   const [copyTarget, setCopyTarget] = useState<OutboundRoute | null>(null)
 
@@ -87,16 +90,17 @@ const OutboundRoutesPage = () => {
     if (!copyTarget) return
     try {
       await copyOutboundRoute(copyTarget.id)
-      message.success(`Outbound route ${copyTarget.name} copied.`)
+      message.success(`Outbound route "${copyTarget.name}" copied successfully.`)
       setCopyTarget(null)
       await refresh()
       clearSelection()
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to copy outbound route ${copyTarget.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to copy outbound route ${copyTarget.name}.`))
     }
   }
 
   const handleDeleteRequest = (route: OutboundRoute) => {
+    setDeleteIsBulk(false)
     setDeleteTargets([{ id: route.id, name: route.name }])
   }
 
@@ -104,14 +108,18 @@ const OutboundRoutesPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeOutboundRoutes(ids)
-    message.success(`${ids.length} outbound route${ids.length === 1 ? '' : 's'} deleted.`)
+    message.success(ids.length === 1 ? `Outbound route "${deleteTargets[0].name}" deleted successfully.` : `${ids.length} outbound routes deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedRouteIds((selected) => selected.filter((id) => !ids.includes(id)))
+    setDeleteIsBulk(false)
   }
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null)
-    clearSelection()
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection()
+    setDeleteIsBulk(false)
   }
 
   const handleToggleConfirm = async () => {
@@ -133,9 +141,9 @@ const OutboundRoutesPage = () => {
   const handleToggleStatus = async (route: OutboundRoute) => {
     try {
       await toggleOutboundRoutesStatus([route.id])
-      message.success(`Outbound route ${route.name} ${route.enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Outbound route "${route.name}" ${route.enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update outbound route ${route.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update outbound route ${route.name}.`))
     }
   }
 
@@ -148,6 +156,7 @@ const OutboundRoutesPage = () => {
     // (accumulated across every page fetched this session, see above), falling back to the raw id
     // only if a selected route was somehow never fetched.
     if (bulkAction === 'delete') {
+      setDeleteIsBulk(true)
       setDeleteTargets(selectedRouteIds.map((id) => ({ id, name: routeLabelByIdRef.current.get(id) ?? id })))
       return
     }
@@ -188,29 +197,36 @@ const OutboundRoutesPage = () => {
       <ModuleHeader
         title="Outbound Routes"
         count={totalRecords}
-        primaryAction={{
-          key: 'add',
-          // TODO: wrap with <PermissionGuard permission="outboundRoute.create"> once RBAC
-          // permissions are populated from the backend.
-          label: 'Add Outbound Route',
-          icon: <PlusOutlined />,
-          onClick: handleAdd,
-        }}
+        primaryAction={
+          canManage
+            ? {
+                key: 'add',
+                // TODO: wrap with <PermissionGuard permission="outboundRoute.create"> once RBAC
+                // permissions are populated from the backend.
+                label: 'Add Outbound Route',
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
+          canManage ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
 
-            <OutboundRouteFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              <OutboundRouteFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
 
-            <Tooltip title="Show outbound routes across all accessible domains">
-              <Space size="small">
-                <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all outbound routes" />
-                <span>Show All</span>
-              </Space>
-            </Tooltip>
-          </>
+              <Tooltip title="Show outbound routes across all accessible domains">
+                <Space size="small">
+                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all outbound routes" />
+                  <span>Show All</span>
+                </Space>
+              </Tooltip>
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

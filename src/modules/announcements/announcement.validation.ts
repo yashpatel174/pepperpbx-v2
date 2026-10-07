@@ -1,3 +1,7 @@
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
+
 /**
  * Shared Ant Design validation rules for the Add/Edit Announcement form. Kept here (not inline in
  * the form sections) so both modes use the exact same validators. Announcements-owned —
@@ -5,14 +9,8 @@
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** phrase_name: required, alphanumeric + space — matches the audit's rule exactly (announcements.md §10). */
 export const nameRules = [
   { required: true, message: 'Name is required' },

@@ -1,3 +1,7 @@
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
+
 /**
  * Shared Ant Design validation rules for the Add/Edit Call Center Agent form. Kept here (not
  * inline in the form) so every field sharing a rule uses the exact same validator —
@@ -6,7 +10,6 @@
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 const NO_WHITESPACE_PATTERN = /^\S*$/
 const DIGITS_PATTERN = (max: number) => new RegExp(`^\\d{0,${max}}$`)
 
@@ -18,11 +21,6 @@ export const nameFormatRule = {
 }
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only (call-center.md §12). */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** `agent_call_timeout`: optional, numeric, ≤3 digits (call-center.md §12). */
 export const numericUpTo3DigitsRule = {
   pattern: DIGITS_PATTERN(3),

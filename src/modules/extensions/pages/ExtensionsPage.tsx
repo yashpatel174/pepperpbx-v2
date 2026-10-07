@@ -4,13 +4,14 @@ import { App, Button, Select, Space, Switch, Tooltip, Typography } from "antd";
 import {
   DownloadOutlined,
   PlusOutlined,
-  ReloadOutlined,
+  UndoOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
 import ErrorState from "../../../components/feedback/ErrorState";
 import LoadingState from "../../../components/feedback/LoadingState";
 import EmptyState from "../../../components/feedback/EmptyState";
 import ModuleHeader from "../../../components/common/ModuleHeader";
+import ConfirmActionModal from "../../../components/common/ConfirmActionModal";
 import ExtensionFilters from "../components/ExtensionFilters";
 import ExtensionTable from "../components/ExtensionTable";
 import DeleteExtensionsModal from "../components/DeleteExtensionsModal";
@@ -20,6 +21,7 @@ import { extensionStatusLabels } from "../extension.constants";
 import { useExtensions } from "../useExtensions";
 import useExtensionPermissions from "../useExtensionPermissions";
 import type { Extension } from "../extension.types";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 
 type BulkAction = "toggle" | "delete";
 
@@ -83,9 +85,11 @@ const ExtensionsPage = () => {
     showAll,
     searchTerm,
     setSearchTerm,
+    commitSearch,
     setPage,
     setPageSize,
     setShowAll,
+    resetFilters,
     refresh,
     deleteExtensions,
     bulkToggle,
@@ -93,16 +97,18 @@ const ExtensionsPage = () => {
     copyExtension,
     getExportData,
   } = useExtensions();
-  const { canCopy } = useExtensionPermissions();
+  const { canCopy, canAdd, canManageAll } = useExtensionPermissions();
 
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const navigate = useNavigate();
-  const [refreshing, setRefreshing] = useState(false);
 
   // Selected extension rows (uuids — see Extension.id)
   const [selectedExtensionIds, setSelectedExtensionIds] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined);
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null);
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false);
+  const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null);
   const [copyTarget, setCopyTarget] = useState<Extension | null>(null);
 
   const hasSelection = selectedExtensionIds.length > 0;
@@ -131,16 +137,6 @@ const ExtensionsPage = () => {
     setBulkAction(undefined);
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-
-    try {
-      await refresh();
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   const handleAdd = () => navigate("/account/extensions/add");
 
   const handleImport = () =>
@@ -155,7 +151,7 @@ const ExtensionsPage = () => {
   const handleCopyConfirm = async (newExtension: string) => {
     if (!copyTarget) return;
     await copyExtension(copyTarget.id, newExtension);
-    message.success(`Extension ${copyTarget.extension} copied to ${newExtension}.`);
+    message.success(`Extension "${copyTarget.extension}" copied to "${newExtension}" successfully.`);
     setCopyTarget(null);
     clearSelection();
   };
@@ -163,6 +159,7 @@ const ExtensionsPage = () => {
   // Single-row delete now goes through the same DeleteExtensionsModal (and the same delete
   // service) as bulk delete — see extension.service.ts's deleteExtensions.
   const handleDeleteRequest = (extension: Extension) => {
+    setDeleteIsBulk(false);
     setDeleteTargets([{ id: extension.id, extension: extension.extension }]);
   };
 
@@ -173,15 +170,13 @@ const ExtensionsPage = () => {
       await toggleExtensionStatus(extension.id, target);
 
       message.success(
-        `Extension ${extension.extension} ${
+        `Extension "${extension.extension}" ${
           target ? "enabled" : "disabled"
-        }.`
+        } successfully.`
       );
     } catch (err) {
       message.error(
-        err instanceof Error
-          ? err.message
-          : `Failed to update extension ${extension.extension}.`
+        getApiErrorMessage(err, `Failed to update extension ${extension.extension}.`)
       );
     }
   };
@@ -215,30 +210,12 @@ const ExtensionsPage = () => {
     }
 
     if (bulkAction === "toggle") {
-      const count = eligibleIds.length;
-      modal.confirm({
-        title: "Toggle selected extensions?",
-        content: `Do you really want to toggle the status of ${count === 1 ? "this extension" : `these ${count} extensions`}?`,
-        okText: "Toggle",
-        cancelText: "Cancel",
-        onOk: async () => {
-          try {
-            await bulkToggle(eligibleIds);
-            message.success(
-              `${eligibleIds.length} extension${eligibleIds.length === 1 ? "" : "s"} toggled.`
-            );
-          } catch (err) {
-            message.error(err instanceof Error ? err.message : "Failed to toggle selected extensions.");
-          } finally {
-            clearSelection();
-          }
-        },
-        onCancel: () => clearSelection(),
-      });
+      setToggleTargetIds(eligibleIds);
       return;
     }
 
     if (bulkAction === "delete") {
+      setDeleteIsBulk(true);
       // Row selection is preserved across pages, so eligibleIds can include ids from a page that
       // isn't currently loaded in `data`. The delete targets must come from eligibleIds itself,
       // not from filtering `data` — otherwise ids selected on another page would be silently
@@ -253,13 +230,32 @@ const ExtensionsPage = () => {
     if (!deleteTargets) return;
     const ids = deleteTargets.map((target) => target.id);
     await deleteExtensions(ids, deleteVoicemail);
-    message.success(`${ids.length} extension${ids.length === 1 ? "" : "s"} deleted.`);
+    message.success(ids.length === 1 ? `Extension "${deleteTargets[0].extension}" deleted successfully.` : `${ids.length} extensions deleted.`);
     setDeleteTargets(null);
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedExtensionIds((selected) => selected.filter((id) => !ids.includes(id)));
+    setDeleteIsBulk(false);
+  };
+
+  // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+  const handleDeleteCancel = () => {
+    setDeleteTargets(null);
+    if (deleteIsBulk) clearSelection();
+    setDeleteIsBulk(false);
+  };
+
+  const handleToggleConfirm = async () => {
+    if (!toggleTargetIds) return;
+    await bulkToggle(toggleTargetIds);
+    message.success(
+      `${toggleTargetIds.length} extension${toggleTargetIds.length === 1 ? "" : "s"} toggled.`
+    );
+    setToggleTargetIds(null);
     clearSelection();
   };
 
-  const handleDeleteCancel = () => {
-    setDeleteTargets(null);
+  const handleToggleCancel = () => {
+    setToggleTargetIds(null);
     clearSelection();
   };
 
@@ -304,55 +300,63 @@ const ExtensionsPage = () => {
       <ModuleHeader
         title="Extensions"
         count={totalRecords}
-        primaryAction={{
-          key: "add",
-          // TODO: wrap with <PermissionGuard permission="extension.create"> once RBAC
-          // permissions are populated from the backend (see CLAUDE.md section 11).
-          label: "Add Extension",
-          icon: <PlusOutlined />,
-          onClick: handleAdd,
-        }}
-        actions={[
-          {
-            key: "import",
-            label: "Import",
-            icon: <DownloadOutlined />,
-            onClick: handleImport,
-          },
-          {
-            key: "export",
-            label: "Export",
-            icon: <UploadOutlined />,
-            onClick: handleExport,
-          },
-        ]}
+        // Add/Import/Export need the module-admin or add permission; Show All needs module-admin
+        // (extension.md §14). All allowed while the permission store is unpopulated.
+        primaryAction={
+          canAdd
+            ? {
+                key: "add",
+                // TODO: wrap with <PermissionGuard permission="extension.create"> once RBAC
+                // permissions are populated from the backend (see CLAUDE.md section 11).
+                label: "Add Extension",
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        actions={
+          canAdd
+            ? [
+                {
+                  key: "import",
+                  label: "Import",
+                  icon: <UploadOutlined />,
+                  onClick: handleImport,
+                },
+                {
+                  key: "export",
+                  label: "Export",
+                  icon: <DownloadOutlined />,
+                  onClick: handleExport,
+                },
+              ]
+            : undefined
+        }
         filters={
           <>
-            <Tooltip title="Refresh">
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={handleRefresh}
-                loading={refreshing}
-                aria-label="Refresh extensions"
-              />
+            <Tooltip title="Reset filters">
+              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
             </Tooltip>
 
             <ExtensionFilters
               value={searchTerm}
               onChange={setSearchTerm}
+              onSearch={commitSearch}
             />
 
-            <Tooltip title="Show extensions across all accessible domains">
-              <Space size="small">
-                <Switch
-                  checked={showAll}
-                  onChange={setShowAll}
-                  size="small"
-                  aria-label="Show all extensions"
-                />
-                <span>Show All</span>
-              </Space>
-            </Tooltip>
+            {canManageAll && (
+              <Tooltip title="Show extensions across all accessible domains">
+                <Space size="small">
+                  <Switch
+                    checked={showAll}
+                    onChange={setShowAll}
+                    size="small"
+                    aria-label="Show all extensions"
+                  />
+                  <span>Show All</span>
+                </Space>
+              </Tooltip>
+            )}
           </>
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
@@ -392,6 +396,20 @@ const ExtensionsPage = () => {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       />
+
+      <ConfirmActionModal
+        open={!!toggleTargetIds}
+        title="Toggle selected extensions?"
+        confirmText="Toggle"
+        errorMessage="Failed to toggle selected extensions."
+        onConfirm={handleToggleConfirm}
+        onCancel={handleToggleCancel}
+      >
+        <Typography.Paragraph>
+          Do you really want to toggle the status of{" "}
+          {toggleTargetIds?.length === 1 ? "this extension" : `these ${toggleTargetIds?.length ?? 0} extensions`}?
+        </Typography.Paragraph>
+      </ConfirmActionModal>
 
       <CopyExtensionModal
         open={!!copyTarget}

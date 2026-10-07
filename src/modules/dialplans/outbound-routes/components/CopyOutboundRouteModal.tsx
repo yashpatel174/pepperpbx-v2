@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../../components/common/ConfirmActionModal'
 import type { OutboundRoute } from '../outbound-route.types'
 
 const { Paragraph } = Typography
@@ -17,39 +17,18 @@ interface CopyOutboundRouteModalProps {
  * destination number via an inline form). No fields to fill in here on purpose.
  */
 const CopyOutboundRouteModal = ({ open, target, onConfirm, onCancel }: CopyOutboundRouteModalProps) => {
-  const { message } = App.useApp()
-  const [copying, setCopying] = useState(false)
-
-  const handleConfirm = async () => {
-    setCopying(true)
-    try {
-      await onConfirm()
-    } catch {
-      message.error('Copy failed.')
-    } finally {
-      setCopying(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Copy Outbound Route"
-      onCancel={copying ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={copying} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={copying} onClick={handleConfirm}>
-            Copy
-          </Button>
-        </div>
-      }
+      confirmText="Copy"
       width={440}
+      errorMessage="Copy failed."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>Do you really want to copy {target ? `outbound route "${target.name}"` : 'this outbound route'}?</Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

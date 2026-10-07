@@ -75,6 +75,18 @@ const TimeGroupTable = ({
   }
 
   const columns: TableColumnsType<TimeGroup> = [
+    ...(showAll
+      ? [
+          {
+            title: 'Domain',
+            dataIndex: 'domain_name',
+            key: 'domain_name',
+            width: 220,
+            render: renderTruncated,
+            sorter: (a: TimeGroup, b: TimeGroup) => a.domain_name.localeCompare(b.domain_name),
+          },
+        ]
+      : []),
     {
       title: 'Name',
       dataIndex: 'dialplan_name',
@@ -107,18 +119,6 @@ const TimeGroupTable = ({
       render: renderTruncated,
       sorter: (a, b) => compareOptional(a.dialplan_description, b.dialplan_description),
     },
-    ...(showAll
-      ? [
-          {
-            title: 'Domain',
-            dataIndex: 'domain_name',
-            key: 'domain_name',
-            width: 220,
-            render: renderTruncated,
-            sorter: (a: TimeGroup, b: TimeGroup) => a.domain_name.localeCompare(b.domain_name),
-          },
-        ]
-      : []),
     {
       title: 'Actions',
       key: 'actions',
@@ -142,7 +142,7 @@ const TimeGroupTable = ({
             <Button
               type="text"
               size="small"
-              icon={<CopyOutlined style={{ color: canCopyRow ? token.colorPrimary : undefined }} />}
+              icon={<CopyOutlined style={{ color: canCopyRow ? token.colorSuccess : undefined }} />}
               disabled={!canCopyRow}
               onClick={() => onCopy(record)}
               aria-label={`Copy time group ${record.dialplan_name}`}

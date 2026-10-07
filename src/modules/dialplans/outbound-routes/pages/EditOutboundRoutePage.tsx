@@ -4,7 +4,7 @@ import { App, Button, Space } from "antd";
 import { CodeOutlined } from "@ant-design/icons";
 import ModuleHeader from "../../../../components/common/ModuleHeader";
 import FormPageToolbar from "../../../../components/common/FormPageToolbar";
-import { isNotFoundError } from "../../../../services/api/apiError";
+import { getApiErrorMessage, isNotFoundError } from "../../../../services/api/apiError";
 import LoadingState from "../../../../components/feedback/LoadingState";
 import EmptyState from "../../../../components/feedback/EmptyState";
 import ErrorState from "../../../../components/feedback/ErrorState";
@@ -99,11 +99,11 @@ const EditOutboundRoutePage = () => {
     setSubmitting(true);
     try {
       const updated = await updateOutboundRoute(details.dialplan_uuid, values);
-      message.success(`Outbound route ${updated.outbound_route_name} updated successfully.`);
+      message.success(`Outbound route "${updated.outbound_route_name}" updated successfully.`);
       // Matches the audit: Update success navigates back to the List (outbound-routes.md §3/§19).
       navigate("/dialplans/outbound-routes");
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to update outbound route.");
+      message.error(getApiErrorMessage(err, "Failed to update outbound route."));
     } finally {
       setSubmitting(false);
     }

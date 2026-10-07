@@ -1,4 +1,7 @@
 import type { IVRMenuHiveDetails } from './ivr-menu.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Ant Design validation rules for the IVR Menu Add/Edit form and Copy modal — the audit's Yup
@@ -6,14 +9,8 @@ import type { IVRMenuHiveDetails } from './ivr-menu.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** Digits, optionally prefixed with `**` (Axion's `CommonExtInput`, §26). */
 const EXTENSION_PATTERN = /^(?:\*\*)?\d+$/
-
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 /**
  * Non-negative whole number of 1..`maxDigits` digits — no sign, decimal or whitespace can get in

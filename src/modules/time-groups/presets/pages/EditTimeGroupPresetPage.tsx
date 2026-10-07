@@ -87,7 +87,7 @@ const EditTimeGroupPresetPage = () => {
       setSubmitting(false)
       return
     }
-    message.success('Preset updated successfully.')
+    message.success(`Preset "${values.name}" updated successfully.`)
     // Stay here and reload the saved record, as Axion's EditPreset re-fetches details after update.
     try {
       const record = await getTimeGroupPresetById(details.preset_uuid)

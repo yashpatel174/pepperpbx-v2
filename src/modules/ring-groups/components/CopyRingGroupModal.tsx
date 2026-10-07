@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { Alert, Button, Form, Input, Modal } from 'antd'
+import { Form, Input, Modal } from 'antd'
+import ErrorState from '../../../components/feedback/ErrorState'
 import { extensionReuseNote } from '../ring-group.constants'
 import { describeExtensionRange, extensionRules, nameRules } from '../ring-group.validation'
 import type { RingGroup, RingGroupHiveDetails } from '../ring-group.types'
@@ -66,17 +67,9 @@ const CopyRingGroupModal = ({ open, target, hive, hiveError, onRetryHive, submit
       destroyOnHidden
     >
       {hiveError && (
-        <Alert
-          type="error"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message="Couldn't load the extension settings for this domain."
-          action={
-            <Button size="small" onClick={onRetryHive}>
-              Retry
-            </Button>
-          }
-        />
+        <div style={{ marginBottom: 16 }}>
+          <ErrorState message="Couldn't load the extension settings for this domain." onRetry={onRetryHive} />
+        </div>
       )}
       <Form<CopyFormValues> form={form} layout="vertical" disabled={submitting}>
         <Form.Item name="new_ring_group_name" label="Name" validateFirst rules={nameRules}>

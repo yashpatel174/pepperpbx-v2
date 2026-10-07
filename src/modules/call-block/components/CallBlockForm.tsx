@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { App, Form, Space } from 'antd'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import type { CallBlockFormValues, HiveCallBlockDetails, SelectOption } from '../call-block.types'
 import CallBlockBasicSection from './CallBlockBasicSection'
 import RecentCallsSection from './RecentCallsSection'
@@ -77,7 +77,7 @@ const CallBlockForm = ({
     }
 
     modal.info({
-      title: 'Domain changed',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       onOk: () => {

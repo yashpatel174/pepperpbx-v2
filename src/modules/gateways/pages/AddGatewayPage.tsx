@@ -10,6 +10,7 @@ import { createGateway, getHiveGatewayDetails, getSbcDomains, getSipProfiles } f
 import { getDefaultGatewayFormValues } from '../gateway.constants'
 import useGatewayPermissions from '../useGatewayPermissions'
 import type { GatewayFormValues, HiveGatewayDetails, SbcDomainOption, SipProfileOption } from '../gateway.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_GATEWAY_FORM_ID = 'add-gateway-form'
 
@@ -25,6 +26,8 @@ const AddGatewayPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -53,6 +56,7 @@ const AddGatewayPage = () => {
   // the exact same service calls the initial mount uses — no new service/API logic.
   const handleDomainConfirmed = async (domainName: string) => {
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const [hiveDetails, sbc, profiles] = await Promise.all([
         getHiveGatewayDetails(domainName),
@@ -62,8 +66,8 @@ const AddGatewayPage = () => {
       setHive(hiveDetails)
       setSbcDomains(sbc)
       setSipProfiles(profiles)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+    } catch (err) {
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       setOptionsLoading(false)
     }
@@ -73,11 +77,11 @@ const AddGatewayPage = () => {
     setSubmitting(true)
     try {
       const created = await createGateway(values)
-      message.success(`Gateway ${created.gateway} created successfully.`)
+      message.success(`Gateway "${created.gateway}" created successfully.`)
       // Follow the Axion reference: land on the new record's Edit page.
       navigate(`/account/gateways/${created.gateway_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create gateway.')
+      message.error(getApiErrorMessage(err, 'Failed to create gateway.'))
     } finally {
       setSubmitting(false)
     }
@@ -106,6 +110,14 @@ const AddGatewayPage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       <GatewayForm
         formId={ADD_GATEWAY_FORM_ID}
         mode="create"

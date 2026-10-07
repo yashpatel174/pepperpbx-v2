@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Alert, App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Alert, Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 import { ringGroupDeleteWarning } from '../ring-group.constants'
 
 const { Paragraph, Text } = Typography
@@ -23,37 +22,18 @@ interface DeleteRingGroupsModalProps {
  * Axion's does — and, unlike Axion (§28), actually shows the in-flight state on the button.
  */
 const DeleteRingGroupsModal = ({ open, targets, onConfirm, onCancel }: DeleteRingGroupsModalProps) => {
-  const { message } = App.useApp()
-  const [deleting, setDeleting] = useState(false)
   const single = targets.length === 1
 
-  const handleConfirm = async () => {
-    setDeleting(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to delete ring group.'))
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Delete Ring Group"
-      onCancel={deleting ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={deleting} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button danger type="primary" loading={deleting} onClick={handleConfirm}>
-            Delete
-          </Button>
-        </div>
-      }
+      confirmText="Delete"
+      danger
       width={480}
+      errorMessage="Failed to delete ring group."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>
         Are you sure you want to delete {single ? <Text strong>{targets[0]?.name}</Text> : `these ${targets.length} ring groups`}?
@@ -67,8 +47,8 @@ const DeleteRingGroupsModal = ({ open, targets, onConfirm, onCancel }: DeleteRin
           ))}
         </ul>
       )}
-      <Alert type="warning" showIcon message={ringGroupDeleteWarning} />
-    </Modal>
+      <Alert type="warning" showIcon title={ringGroupDeleteWarning} />
+    </ConfirmActionModal>
   )
 }
 

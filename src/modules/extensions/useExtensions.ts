@@ -10,7 +10,7 @@ import {
 import type { Extension } from './extension.types'
 
 /** Delay before a search input change is committed to a fetch, to avoid a request per keystroke. */
-const SEARCH_DEBOUNCE_MS = 300
+const SEARCH_DEBOUNCE_MS = 400
 
 /**
  * Owns the extensions dataset and its pagination/search state. The page, page size and
@@ -66,6 +66,21 @@ export const useExtensions = () => {
 
   const setSearchTerm = useCallback((value: string) => {
     setSearchInput(value)
+  }, [])
+
+  /** Enter/icon-click/clear in ExtensionFilters — commits immediately, bypassing the debounce wait. */
+  const commitSearch = useCallback((value: string) => {
+    setSearchInput(value)
+    setDebouncedSearchTerm(value)
+  }, [])
+
+  /** Reset icon: search, showAll, and page size all return to their defaults; page resets to 1. */
+  const resetFilters = useCallback(() => {
+    setSearchInput('')
+    setDebouncedSearchTerm('')
+    setShowAll(false)
+    setPageSize(defaultPageSize)
+    setPage(1)
   }, [])
 
   const setSize = useCallback((size: number) => {
@@ -147,9 +162,11 @@ export const useExtensions = () => {
     showAll,
     searchTerm: searchInput,
     setSearchTerm,
+    commitSearch,
     setPage,
     setPageSize: setSize,
     setShowAll: setShowAllMode,
+    resetFilters,
     refresh,
     deleteExtensions,
     bulkToggle,

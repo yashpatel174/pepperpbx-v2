@@ -1,3 +1,7 @@
+import { noEdgeWhitespaceRule } from '../../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
+
 /**
  * Shared Ant Design validation rules for the Add/Edit/Copy/Import Destination forms. Kept here
  * (not inline in the components) so every form using a given field shares the exact rule.
@@ -5,16 +9,10 @@
  * module-local convention.
  */
 
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 const DIGITS_PATTERN = (max: number) => new RegExp(`^\\d{0,${max}}$`)
 const REQUIRED_DIGITS_PATTERN = (max: number) => new RegExp(`^\\d{1,${max}}$`)
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** destination_prefix / destination_trunk_prefix: optional, digits only, max 5 digits. */
 export const countryOrTrunkPrefixRule = {
   pattern: DIGITS_PATTERN(5),

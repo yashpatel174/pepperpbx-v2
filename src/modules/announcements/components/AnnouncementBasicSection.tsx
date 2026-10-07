@@ -1,5 +1,5 @@
-import { Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from "antd";
-import { QuestionCircleOutlined } from "@ant-design/icons";
+import { Card, Col, Form, Input, Row, Select } from "antd";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import ISO6391 from "iso-639-1";
 import { domainRules, descriptionRules, nameRules, languageRules } from "../announcement.validation";
 import type { HiveAnnouncementDetails } from "../announcement.types";
@@ -26,18 +26,17 @@ interface AnnouncementBasicSectionProps {
  * announcements.md §15/§33 — an announcement can't move between domains after creation).
  */
 const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: AnnouncementBasicSectionProps) => {
-  const { token } = theme.useToken();
 
   return (
     <Card>
       <Row gutter={16} >
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item name="phrase_name" label="Name" tooltip="Enter a name for this announcement" rules={nameRules}>
             <Input placeholder="Enter announcement name" aria-label="Announcement name" />
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="phrase_language"
             label="Language"
@@ -54,7 +53,7 @@ const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: Anno
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item name="domain_name" label="Domain" tooltip="Select the domain" rules={domainRules}>
             <Select
               showSearch
@@ -68,7 +67,7 @@ const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: Anno
           </Form.Item>
         </Col>
 
-        <Col xs={24} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="phrase_description"
             label="Description"
@@ -78,19 +77,14 @@ const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: Anno
             <TextArea rows={4} placeholder="Enter description" />
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 32 }}>
-            <Form.Item name="phrase_enabled" valuePropName="checked" noStyle>
-              <Switch disabled={disabled} aria-label="Enabled" />
-            </Form.Item>
-            <span>Enabled</span>
-            <Tooltip title="Whether this announcement is active">
-              <QuestionCircleOutlined
-                aria-label="Enabled information"
-                style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help", flexShrink: 0 }}
-              />
-            </Tooltip>
-          </div>
+        <Col xs={24} sm={12} lg={8}>
+          <FormSwitchField
+            name="phrase_enabled"
+            label="Enabled"
+            tooltip="Whether this announcement is active"
+            disabled={disabled}
+            style={{ minHeight: 32 }}
+          />
         </Col>
       </Row>
     </Card>

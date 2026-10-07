@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
 import ModuleHeader from '../../../components/common/ModuleHeader'
 import FormPageToolbar from '../../../components/common/FormPageToolbar'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
@@ -26,7 +26,7 @@ const toFormValues = (details: CallBlockDetails): CallBlockFormValues => ({ ...d
 const EditCallBlockPage = () => {
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const { canManageAll, canEdit, canView } = useCallBlockPermissions()
+  const { canManageAll, canEdit } = useCallBlockPermissions()
   const { callBlockId } = useParams<{ callBlockId: string }>()
 
   const [hive, setHive] = useState<HiveCallBlockDetails | null>(null)
@@ -39,7 +39,6 @@ const EditCallBlockPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [formKey, setFormKey] = useState(0)
 
-  const canAccessForm = canManageAll || canEdit || canView
   // View-only users see the form but can't submit changes — matches the audit's
   // `disabledFieldsBasic` (call-block.md §14/§25/§33).
   const canEditFields = canManageAll || canEdit
@@ -96,14 +95,15 @@ const EditCallBlockPage = () => {
     setSubmitting(true)
     try {
       await updateCallBlock(details.call_block_uuid, values)
-      message.success('Call block updated successfully.')
+      const label = values.call_block_name || values.call_block_number
+      message.success(label ? `Call block "${label}" updated successfully.` : 'Call block updated successfully.')
       // Matches the audit exactly: Update success does NOT navigate away — it re-fetches details
       // and re-populates the same Edit page in place (call-block.md §3/§19), matching
       // Announcements' identical Edit-success behavior (unlike Outbound Routes'/Destinations'
       // "navigate back to List" convention).
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update call block.')
+      message.error(getApiErrorMessage(err, 'Failed to update call block.'))
     } finally {
       setSubmitting(false)
     }
@@ -130,8 +130,9 @@ const EditCallBlockPage = () => {
             <Button onClick={handleCancel} disabled={submitting}>
               Cancel
             </Button>
-            {canAccessForm && (
-              <Button type="primary" htmlType="submit" form={EDIT_CALL_BLOCK_FORM_ID} loading={submitting} disabled={!canEditFields}>
+            {/* View-only users get a read-only form with no Save at all. */}
+            {canEditFields && (
+              <Button type="primary" htmlType="submit" form={EDIT_CALL_BLOCK_FORM_ID} loading={submitting}>
                 Save
               </Button>
             )}

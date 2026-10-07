@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { App, Card, Col, Form, Input, Row, Select, Space } from 'antd'
-import { domainChangeMessage } from '../../../../components/common/domainChangeMessage'
+import { domainChangeMessage, domainChangeTitle } from '../../../../components/common/domainChangeMessage'
 import { getDefaultPresetFormValues } from '../time-group-preset.constants'
 import { descriptionRules, domainRules, nameRules } from '../time-group-preset.validation'
 import TimeGroupPresetFestivalsSection from './TimeGroupPresetFestivalsSection'
@@ -40,7 +40,7 @@ const TimeGroupPresetForm = ({ mode, formId, initialValues, hive, canManage, sub
     if (value === previousDomain) return
 
     modal.confirm({
-      title: 'Domain changed',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',

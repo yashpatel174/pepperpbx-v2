@@ -1,5 +1,8 @@
 import { callBlockNumberLabel } from './call-block.constants'
 import type { CallBlockDirection } from './call-block.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Shared Ant Design validation rules for the Add/Edit Call Block form. Kept here (not inline in
@@ -8,17 +11,11 @@ import type { CallBlockDirection } from './call-block.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** No leading zero, 1-20 digits total — matches the audit's `maxTwentyNumberWithoutZero` (call-block.md §8/§10). */
 const NUMBER_NO_LEADING_ZERO_PATTERN = /^[1-9]\d{0,19}$/
 const COUNTRY_CODE_PATTERN = /^\d{0,5}$/
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** call_block_name: alphanumeric + space (call-block.md §10). */
 export const nameFormatRule = {
   pattern: ALPHANUMERIC_WITH_SPACE_PATTERN,

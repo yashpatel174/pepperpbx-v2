@@ -8,6 +8,7 @@ import {
 import { tierLevelAndPositionOptions } from "../call-center.constants";
 import { removeCallCenterTier } from "../call-center.service";
 import type { CallCenterFormValues, SelectOption } from "../call-center.types";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 
 interface CallCenterTierSectionProps {
   agentOptions: SelectOption[];
@@ -74,7 +75,7 @@ const CallCenterTierSection = ({
             });
             remove(field.name);
           } catch (err) {
-            message.error(err instanceof Error ? err.message : "Failed to remove agent from queue.");
+            message.error(getApiErrorMessage(err, "Failed to remove agent from queue."));
           } finally {
             setRemovingKey(null);
           }

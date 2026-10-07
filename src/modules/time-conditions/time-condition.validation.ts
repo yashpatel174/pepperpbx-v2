@@ -1,4 +1,5 @@
 import type { TimeConditionHiveDetails } from './time-condition.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
 
 /**
  * Ant Design validation rules for the Time Condition Add/Edit form — the audit's Yup schema
@@ -6,17 +7,11 @@ import type { TimeConditionHiveDetails } from './time-condition.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** Axion's `validationRegex.extensionNum`: digits, optionally prefixed with `**` (§10). No sign or decimal. */
 const EXTENSION_PATTERN = /^(?:\*\*)?\d+$/
 
 /** Axion's lower-bound fallback when the bootstrap omits `additionalExtStart` (§10). */
 const DEFAULT_EXTENSION_RANGE_START = 100
-
-const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 export const nameRules = [
   { required: true, message: 'Name required' },

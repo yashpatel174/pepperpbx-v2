@@ -1,6 +1,7 @@
 import { defaultPageSize, searchableConferenceFields } from './conference.constants'
 import { mockConferenceProfileOptions, mockConferences as seedConferences, mockHiveConferenceDetails } from './conference.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   Conference,
   ConferenceDetails,
@@ -89,7 +90,8 @@ export const getConferenceById = (conferenceUuid: string): Promise<ConferenceDet
       const details = conferences.find((record) => record.conference_uuid === conferenceUuid)
 
       if (!details) {
-        reject(new Error(`Conference ${conferenceUuid} not found.`))
+        const notFound: ApiError = { status: 404, message: `Conference ${conferenceUuid} not found.` }
+        reject(notFound)
         return
       }
 

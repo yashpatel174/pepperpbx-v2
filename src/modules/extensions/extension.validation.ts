@@ -5,11 +5,13 @@
  */
 
 import type { Rule } from 'antd/es/form'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 const EMBEDDED_EXTENSION_NUMBER_PATTERN = /^(?:\*\*\d+|\d+)$/
 const NUMERIC_TWENTY_PATTERN = /^\+?[0-9]{0,20}$/
 const CALL_TIMEOUT_PATTERN = /^\+?[0-9]{0,3}$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 const IP_OR_CIDR_OR_PORT_PATTERN =
   /^(?:(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d{2}|2[0-4]\d|25[0-5])(\/([1-2][0-9]|3[0-2]|[1-9]))?(:\d{1,5})?$/
 const DOMAIN_OR_HTTP_PATTERN = /^(https?:\/\/)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/[a-zA-Z0-9-_]*)*$/
@@ -19,11 +21,6 @@ const VOICEMAIL_EMAILS_PATTERN =
 const VOICEMAIL_PASSWORD_PATTERN = /^\d{6,20}$/
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** Optional numeric string: no whitespace, optional leading `+`, at most 20 digits. */
 export const numericFieldRule = {
   pattern: NUMERIC_TWENTY_PATTERN,

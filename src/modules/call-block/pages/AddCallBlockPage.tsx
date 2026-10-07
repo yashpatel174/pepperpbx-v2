@@ -10,6 +10,7 @@ import { createCallBlock, getCallBlockActionOptions, getCallBlockExtensionOption
 import { getDefaultCallBlockFormValues } from '../call-block.constants'
 import useCallBlockPermissions from '../useCallBlockPermissions'
 import type { CallBlockFormValues, HiveCallBlockDetails, SelectOption } from '../call-block.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_CALL_BLOCK_FORM_ID = 'add-call-block-form'
 
@@ -25,6 +26,8 @@ const AddCallBlockPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   const canAccessForm = canManageAll || canAdd
 
@@ -59,12 +62,13 @@ const AddCallBlockPage = () => {
   // lists (extension/action) for the newly selected domain — call-block.md §9.
   const handleDomainConfirmed = async (domainName: string) => {
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const [extensions, actions] = await Promise.all([getCallBlockExtensionOptions(domainName), getCallBlockActionOptions(domainName)])
       setExtensionOptions(extensions)
       setActionOptions(actions)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+    } catch (err) {
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       setOptionsLoading(false)
     }
@@ -74,7 +78,8 @@ const AddCallBlockPage = () => {
     setSubmitting(true)
     try {
       const created = await createCallBlock(values)
-      message.success('Call block created successfully.')
+      const label = values.call_block_name || values.call_block_number
+      message.success(label ? `Call block "${label}" created successfully.` : 'Call block created successfully.')
       // Matches the audit: Create success navigates to Edit — UNLESS the user has only the Add
       // permission (no view/edit/all), in which case it navigates to the List instead, since
       // they wouldn't be able to open the Edit page anyway (call-block.md §3/§19/§33). With RBAC
@@ -84,7 +89,7 @@ const AddCallBlockPage = () => {
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
       navigate(onlyHasAdd ? '/call-block' : `/call-block/${created.call_block_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create call block.')
+      message.error(getApiErrorMessage(err, 'Failed to create call block.'))
     } finally {
       setSubmitting(false)
     }
@@ -115,6 +120,14 @@ const AddCallBlockPage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       <CallBlockForm
         formId={ADD_CALL_BLOCK_FORM_ID}
         mode="create"

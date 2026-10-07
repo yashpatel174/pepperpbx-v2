@@ -14,6 +14,7 @@ import { conferenceControlPaths } from '../conference-control.constants'
 import { useConferenceControls } from '../useConferenceControls'
 import useConferenceControlPermissions from '../useConferenceControlPermissions'
 import type { ConferenceControl } from '../conference-control.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 /** Toggle is the only bulk action — Axion has no bulk Delete or Copy for this module (§21). */
 type BulkAction = 'toggle'
@@ -89,9 +90,9 @@ const ConferenceControlsPage = () => {
     setTogglePending(uuid, true)
     try {
       await toggleConferenceControlsStatus([uuid])
-      message.success(`Conference control ${control.control_name} ${control.control_enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Conference control "${control.control_name}" ${control.control_enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update conference control ${control.control_name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update conference control ${control.control_name}.`))
     } finally {
       setTogglePending(uuid, false)
     }
@@ -147,13 +148,16 @@ const ConferenceControlsPage = () => {
               }
             : undefined
         }
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <ConferenceControlFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-          </>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <ConferenceControlFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />

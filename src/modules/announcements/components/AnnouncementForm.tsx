@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import { App, Form, Space } from 'antd'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import type { ActionOptionGroup, AnnouncementFormValues, HiveAnnouncementDetails } from '../announcement.types'
 import AnnouncementBasicSection from './AnnouncementBasicSection'
 import AnnouncementStructureSection from './AnnouncementStructureSection'
@@ -73,7 +73,7 @@ const AnnouncementForm = ({
     }
 
     modal.confirm({
-      title: 'Change domain?',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',

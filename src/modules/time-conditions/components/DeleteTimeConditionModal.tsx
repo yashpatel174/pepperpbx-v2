@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { Alert, App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Alert, Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 import { timeConditionDeleteWarning } from '../time-condition.constants'
 
 const { Paragraph, Text } = Typography
@@ -23,37 +22,18 @@ interface DeleteTimeConditionModalProps {
  * stays open with a loading Delete button until the request settles, and stays open on failure.
  */
 const DeleteTimeConditionModal = ({ open, targets, onConfirm, onCancel }: DeleteTimeConditionModalProps) => {
-  const { message } = App.useApp()
-  const [deleting, setDeleting] = useState(false)
   const single = targets.length === 1
 
-  const handleConfirm = async () => {
-    setDeleting(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to delete time condition.'))
-    } finally {
-      setDeleting(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Delete Time Condition"
-      onCancel={deleting ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={deleting} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button danger type="primary" loading={deleting} onClick={handleConfirm}>
-            Delete
-          </Button>
-        </div>
-      }
+      confirmText="Delete"
+      danger
       width={480}
+      errorMessage="Failed to delete time condition."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Paragraph>
         Are you sure you want to delete{' '}
@@ -68,8 +48,8 @@ const DeleteTimeConditionModal = ({ open, targets, onConfirm, onCancel }: Delete
           ))}
         </ul>
       )}
-      <Alert type="warning" showIcon message={timeConditionDeleteWarning} />
-    </Modal>
+      <Alert type="warning" showIcon title={timeConditionDeleteWarning} />
+    </ConfirmActionModal>
   )
 }
 

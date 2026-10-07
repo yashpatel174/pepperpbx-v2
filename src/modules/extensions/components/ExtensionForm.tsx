@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { App, Form, Row, Col } from "antd";
+import { domainChangeMessage, domainChangeTitle } from "../../../components/common/domainChangeMessage";
 import type { ExtensionFormValues, HiveUserDetails } from "../extension.types";
 import useExtensionPermissions from "../useExtensionPermissions";
 import ExtensionFormBasicSection from "./ExtensionFormBasicSection";
@@ -51,8 +52,8 @@ const ExtensionForm = ({
       return;
     }
     modal.confirm({
-      title: "Change user context",
-      content: "Once you update the context, any pre-selected values will be reset.",
+      title: domainChangeTitle,
+      content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",
       onOk: () => {

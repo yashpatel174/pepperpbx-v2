@@ -5,6 +5,7 @@ import {
   mockHiveConferenceCenterDetails,
 } from './conference-center.mock'
 import useDomainStore from '../../store/domain'
+import type { ApiError } from '../../services/api/apiError'
 import type {
   ConferenceCenter,
   ConferenceCenterActionPayload,
@@ -118,7 +119,10 @@ export const getConferenceCenters = async (params: ConferenceCenterListParams = 
 export const getConferenceCenterById = async (uuid: string): Promise<ConferenceCenterDetails> => {
   await delay(300)
   const record = conferenceCenters.find((item) => item.conference_center_uuid === uuid)
-  if (!record) throw new Error(`Conference center ${uuid} not found.`)
+  if (!record) {
+    const notFound: ApiError = { status: 404, message: `Conference center ${uuid} not found.` }
+    throw notFound
+  }
   // The documented `{ data: {...record} }` wrapper (conference-centers.md §13) — a real call
   // unwraps it here and nowhere else.
   const response: ConferenceCenterDetailsResponse = { data: { ...record } }

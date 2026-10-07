@@ -4,6 +4,13 @@ export const defaultPageSize = 10
 
 export const pageSizeOptions = [10, 25, 50, 100, 200]
 
+/** This module's own routes (see conference-centers.router.tsx). */
+export const conferenceCenterPaths = {
+  list: '/conference-centers',
+  add: '/conference-centers/add',
+  edit: (uuid: string) => `/conference-centers/${uuid}/edit`,
+}
+
 export const conferenceCenterStatusLabels: Record<'enabled' | 'disabled', string> = {
   enabled: 'Enabled',
   disabled: 'Disabled',

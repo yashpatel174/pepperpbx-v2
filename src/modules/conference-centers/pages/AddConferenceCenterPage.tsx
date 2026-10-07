@@ -9,12 +9,12 @@ import PermissionDenied from '../../../components/feedback/PermissionDenied'
 import useCurrentDomain from '../../../hooks/useCurrentDomain'
 import ConferenceCenterForm from '../components/ConferenceCenterForm'
 import { createConferenceCenter, getGreetingOptions, getHiveUserDetails } from '../conference-center.service'
-import { getDefaultConferenceCenterFormValues } from '../conference-center.constants'
+import { conferenceCenterPaths, getDefaultConferenceCenterFormValues } from '../conference-center.constants'
 import useConferenceCenterPermissions from '../useConferenceCenterPermissions'
 import type { ConferenceCenterFormValues, GreetingOption, HiveUserConferenceDetails } from '../conference-center.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_FORM_ID = 'add-conference-center-form'
-const LIST_PATH = '/conference-centers'
 
 const AddConferenceCenterPage = () => {
   const navigate = useNavigate()
@@ -30,6 +30,7 @@ const AddConferenceCenterPage = () => {
   // The confirmed domain whose hive/greetings failed to load. While set, `hive` still belongs to the
   // previous domain, so the form is locked (no editing, no submit) until Retry loads this domain.
   const [failedDomain, setFailedDomain] = useState<string | null>(null)
+  const [greetingsError, setGreetingsError] = useState<string | null>(null)
 
   const canAccessForm = canManageAll || canAdd
 
@@ -44,7 +45,11 @@ const AddConferenceCenterPage = () => {
     let active = true
     getHiveUserDetails(initialDomainRef.current)
       .then(async (hiveDetails) => {
-        const greetings = await getGreetingOptions(hiveDetails.defaultDomain).catch(() => [])
+        const greetings = await getGreetingOptions(hiveDetails.defaultDomain).catch((err: unknown) => {
+          // Greetings are optional — a failure shows an inline Retry but doesn't block the form.
+          if (active) setGreetingsError(getApiErrorMessage(err, 'The greeting options for this domain failed to load.'))
+          return []
+        })
         if (!active) return
         setHive(hiveDetails)
         setGreetingOptions(greetings)
@@ -60,13 +65,14 @@ const AddConferenceCenterPage = () => {
     }
   }, [])
 
-  const handleCancel = () => navigate(LIST_PATH)
+  const handleCancel = () => navigate(conferenceCenterPaths.list)
 
   /** Re-fetch the new domain's extension range / auto-extension / account code and its greetings (conference-centers.md §9). */
   const handleDomainConfirmed = async (domainName: string) => {
     const requestId = ++domainRequestRef.current
     setOptionsLoading(true)
     setFailedDomain(null)
+    setGreetingsError(null)
     try {
       const [hiveDetails, greetings] = await Promise.all([getHiveUserDetails(domainName), getGreetingOptions(domainName)])
       if (requestId !== domainRequestRef.current) return
@@ -86,13 +92,13 @@ const AddConferenceCenterPage = () => {
     setSubmitting(true)
     try {
       const created = await createConferenceCenter(values)
-      message.success('Conference center created successfully.')
+      message.success(`Conference center "${values.conference_center_name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new record's Edit page
       // (conference-centers.md §3/§14). Unreachable until RBAC is populated, but ready for it.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
-      navigate(onlyHasAdd ? LIST_PATH : `${LIST_PATH}/${created.conference_center_uuid}/edit`)
+      navigate(onlyHasAdd ? conferenceCenterPaths.list : conferenceCenterPaths.edit(created.conference_center_uuid))
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create conference center.')
+      message.error(getApiErrorMessage(err, 'Failed to create conference center.'))
     } finally {
       setSubmitting(false)
     }
@@ -131,8 +137,18 @@ const AddConferenceCenterPage = () => {
       />
       {failedDomain && (
         <ErrorState
-          message={`Failed to load details for ${failedDomain}. Retry to continue with this domain.`}
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={`Failed to load details for ${failedDomain}. Retry to continue with this domain.`}
           onRetry={() => handleDomainConfirmed(failedDomain)}
+        />
+      )}
+      {!failedDomain && greetingsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={greetingsError}
+          onRetry={() => handleDomainConfirmed(hive.defaultDomain)}
         />
       )}
       {canAccessForm ? (

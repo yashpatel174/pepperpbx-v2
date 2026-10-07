@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { App, Button, Flex, Select, Space, Switch, Tooltip, Typography } from 'antd'
+import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, TeamOutlined, UndoOutlined } from '@ant-design/icons'
 import ErrorState from '../../../components/feedback/ErrorState'
 import LoadingState from '../../../components/feedback/LoadingState'
@@ -16,6 +16,7 @@ import { copyCallCenter, getHiveCallCenterDetails } from '../call-center.service
 import { useCallCenters } from '../useCallCenters'
 import useCallCenterPermissions from '../useCallCenterPermissions'
 import type { CallCenter, HiveCallCenterDetails } from '../call-center.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 /**
  * Bulk actions: Delete only — matches the audit exactly (call-center.md §21: "row checkboxes +
@@ -52,6 +53,8 @@ const CallCentersPage = () => {
   const [selectedCallCenterIds, setSelectedCallCenterIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [copyTarget, setCopyTarget] = useState<CallCenter | null>(null)
   const [copyHive, setCopyHive] = useState<HiveCallCenterDetails | null>(null)
   const [copyHiveError, setCopyHiveError] = useState(false)
@@ -128,18 +131,19 @@ const CallCentersPage = () => {
     setCopySubmitting(true)
     try {
       await copyCallCenter(copyTarget.id, name, extension)
-      message.success(`Call center queue ${copyTarget.name} copied.`)
+      message.success(`Call center queue "${copyTarget.name}" copied successfully.`)
       closeCopy()
       await refresh()
       clearSelection()
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to copy call center queue ${copyTarget.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to copy call center queue ${copyTarget.name}.`))
     } finally {
       setCopySubmitting(false)
     }
   }
 
   const handleDeleteRequest = (callCenter: CallCenter) => {
+    setDeleteIsBulk(false)
     setDeleteTargets([{ id: callCenter.id, name: callCenter.name }])
   }
 
@@ -147,14 +151,18 @@ const CallCentersPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeCallCenters(ids)
-    message.success(`${ids.length} call center queue${ids.length === 1 ? '' : 's'} deleted.`)
+    message.success(ids.length === 1 ? `Call center queue "${deleteTargets[0].name}" deleted successfully.` : `${ids.length} call center queues deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedCallCenterIds((selected) => selected.filter((id) => !ids.includes(id)))
+    setDeleteIsBulk(false)
   }
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null)
-    clearSelection()
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection()
+    setDeleteIsBulk(false)
   }
 
   // Inline pill acts immediately, no confirmation — matches every sibling module's identical row
@@ -162,9 +170,9 @@ const CallCentersPage = () => {
   const handleToggleTierRulesApply = async (callCenter: CallCenter) => {
     try {
       await toggleTierRulesApply(callCenter.id)
-      message.success(`Call center queue ${callCenter.name} tier rules ${callCenter.tierRulesApply ? 'disabled' : 'enabled'}.`)
+      message.success(`Call center queue "${callCenter.name}" tier rules ${callCenter.tierRulesApply ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update call center queue ${callCenter.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update call center queue ${callCenter.name}.`))
     }
   }
 
@@ -176,6 +184,7 @@ const CallCentersPage = () => {
     // on another page would be silently dropped. The friendly label comes from
     // callCenterLabelByIdRef (accumulated across every page fetched this session, see above),
     // falling back to the raw id only if a selected queue was somehow never fetched.
+    setDeleteIsBulk(true)
     setDeleteTargets(selectedCallCenterIds.map((id) => ({ id, name: callCenterLabelByIdRef.current.get(id) ?? id })))
   }
 
@@ -196,43 +205,6 @@ const CallCentersPage = () => {
     </Space>
   )
 
-  const defaultToolbar = (
-    <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
-      <Flex wrap gap="middle" align="center" style={{ flex: '1 1 260px', minWidth: 0 }}>
-        <Tooltip title="Reset filters">
-          <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-        </Tooltip>
-
-        <CallCenterFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-
-        {/* Show All is visible only for the module-admin tier, matching the audit's
-            `isShowAll`-gate concept (call-center.md §7/§14/§25) — narrower than the list's own
-            overall view access. */}
-        {canManageAll && (
-          <Tooltip title="Show call center queues across all accessible domains">
-            <Space size="small">
-              <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call center queues" />
-              <span>Show All</span>
-            </Space>
-          </Tooltip>
-        )}
-      </Flex>
-
-      <Flex wrap gap="middle" align="center" style={{ flex: '0 0 auto' }}>
-        <Button icon={<TeamOutlined />} onClick={handleAgents}>
-          Agents
-        </Button>
-        {(canManageAll || canAdd) && (
-          // TODO: wrap with <PermissionGuard permission="callCenter.add"> once RBAC
-          // permissions are populated from the backend.
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Add Call Center Queue
-          </Button>
-        )}
-      </Flex>
-    </Flex>
-  )
-
   if (error) {
     return <ErrorState message={error} onRetry={refresh} />
   }
@@ -243,7 +215,48 @@ const CallCentersPage = () => {
 
   return (
     <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
-      <ModuleHeader title="Call Center Queue" count={totalRecords} toolbar={hasSelection ? selectionToolbar : defaultToolbar} />
+      <ModuleHeader
+        title="Call Center Queue"
+        count={totalRecords}
+        primaryAction={
+          canManageAll || canAdd
+            ? {
+                // TODO: wrap with <PermissionGuard permission="callCenter.add"> once RBAC
+                // permissions are populated from the backend.
+                key: 'add',
+                label: 'Add Call Center Queue',
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        // "Agents" opens the separate Agent module, which enforces its own permission (see
+        // handleAgents) — so it stays visible regardless of this module's access.
+        actions={[{ key: 'agents', label: 'Agents', icon: <TeamOutlined />, onClick: handleAgents }]}
+        // Without any access the page shows PermissionDenied, so the filters are hidden too.
+        filters={
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <CallCenterFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {/* Show All is visible only for the module-admin tier, matching the audit's
+                  `isShowAll`-gate concept (call-center.md §7/§14/§25) — narrower than the list's own
+                  overall view access. */}
+              {canManageAll && (
+                <Tooltip title="Show call center queues across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call center queues" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
+        }
+        toolbar={hasSelection ? selectionToolbar : undefined}
+      />
 
       {!hasAnyAccess ? (
         <PermissionDenied />

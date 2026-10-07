@@ -16,6 +16,7 @@ import { conferenceRoomPaths, conferenceRoomToggleFields } from '../conference-r
 import { useConferenceRooms } from '../useConferenceRooms'
 import useConferenceRoomPermissions from '../useConferenceRoomPermissions'
 import type { ConferenceRoom, ConferenceRoomToggleKey } from '../conference-room.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 type BulkAction = 'delete' | 'toggle'
 
@@ -53,6 +54,8 @@ const ConferenceRoomsPage = () => {
   // Targets outlive `open` until the modal's close animation ends, so a closing modal never shows "0".
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[]>([])
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [toggleOpen, setToggleOpen] = useState(false)
   const [toggleTargetIds, setToggleTargetIds] = useState<string[]>([])
   // Inline toggles in flight, keyed `${uuid}:${field}`. The ref blocks a same-cell re-click before
@@ -86,10 +89,13 @@ const ConferenceRoomsPage = () => {
     const ids = deleteTargets.map((target) => target.id)
     if (ids.length === 0) return
     await removeConferenceRooms(ids)
-    message.success(`${pluralize(ids.length)} deleted.`)
+    message.success(ids.length === 1 ? `Conference room "${deleteTargets[0].name}" deleted successfully.` : `${pluralize(ids.length)} deleted.`)
     setDeleteOpen(false)
-    // Deleted rows must not linger in a selection that survives paging.
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    const remaining = selectedIds.filter((id) => !ids.includes(id))
+    setSelectedIds(remaining)
+    if (remaining.length === 0) setBulkAction(undefined)
+    setDeleteIsBulk(false)
   }
 
   const handleBulkToggleConfirm = async (toggleKey: ConferenceRoomToggleKey) => {
@@ -114,11 +120,11 @@ const ConferenceRoomsPage = () => {
     setTogglePending(pendingKey, true)
     try {
       await toggleConferenceRoomsField([room.conference_room_uuid], field)
-      message.success(`${label} ${room[field] ? 'disabled' : 'enabled'} for ${room.conference_room_name}.`)
+      message.success(`${label} ${room[field] ? 'disabled' : 'enabled'} successfully for conference room "${room.conference_room_name}".`)
       // Toggle success clears the row selection, inline included (conference-rooms.md §11).
       clearSelection()
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update ${room.conference_room_name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update ${room.conference_room_name}.`))
     } finally {
       setTogglePending(pendingKey, false)
     }
@@ -127,6 +133,7 @@ const ConferenceRoomsPage = () => {
   const handleApplyBulkAction = () => {
     if (!bulkAction || !hasSelection) return
     if (bulkAction === 'delete') {
+      setDeleteIsBulk(true)
       setDeleteTargets(selectedIds.map((id) => ({ id, name: nameByIdRef.current.get(id) ?? id })))
       setDeleteOpen(true)
     } else {
@@ -193,22 +200,25 @@ const ConferenceRoomsPage = () => {
           },
           { key: 'back', label: 'Back', icon: <ArrowLeftOutlined />, onClick: () => navigate(conferenceRoomPaths.conferenceCenters) },
         ]}
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-            <ConferenceRoomFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-            {/* TODO: Axion shows this for `pbx_axiontech` or >1 wildcard domain; the admin tier stands in for now. */}
-            {canManageAll && (
-              <Tooltip title="Show conference rooms across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all conference rooms" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+              <ConferenceRoomFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {/* TODO: Axion shows this for `pbx_axiontech` or >1 wildcard domain; the admin tier stands in for now. */}
+              {canManageAll && (
+                <Tooltip title="Show conference rooms across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all conference rooms" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />
@@ -233,6 +243,7 @@ const ConferenceRoomsPage = () => {
           onPageSizeChange={setPageSize}
           onEdit={(room) => navigate(conferenceRoomPaths.edit(room.conference_room_uuid))}
           onDelete={(room) => {
+            setDeleteIsBulk(false)
             setDeleteTargets([{ id: room.conference_room_uuid, name: room.conference_room_name }])
             setDeleteOpen(true)
           }}
@@ -248,7 +259,9 @@ const ConferenceRoomsPage = () => {
         onConfirm={handleDeleteConfirm}
         onCancel={() => {
           setDeleteOpen(false)
-          clearSelection()
+          // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+          if (deleteIsBulk) clearSelection()
+          setDeleteIsBulk(false)
         }}
         afterClose={() => setDeleteTargets([])}
       />

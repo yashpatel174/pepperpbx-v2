@@ -10,6 +10,7 @@ import { createCallCenterAgent, getCallCenterAgentContactOptions, getHiveCallCen
 import { getDefaultCallCenterAgentFormValues } from '../call-center-agents.constants'
 import useCallCenterAgentPermissions from '../useCallCenterAgentPermissions'
 import type { CallCenterAgentFormValues, HiveCallCenterAgentDetails, SelectOption } from '../call-center-agents.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_AGENT_FORM_ID = 'add-call-center-agent-form'
 
@@ -24,6 +25,8 @@ const AddCallCenterAgentPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -52,11 +55,12 @@ const AddCallCenterAgentPage = () => {
   // selected domain (call-center.md §13/§15).
   const handleDomainConfirmed = async (domainName: string) => {
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const contacts = await getCallCenterAgentContactOptions(domainName)
       setContactOptions(contacts)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+    } catch (err) {
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       setOptionsLoading(false)
     }
@@ -66,12 +70,12 @@ const AddCallCenterAgentPage = () => {
     setSubmitting(true)
     try {
       const created = await createCallCenterAgent(values)
-      message.success('Call center agent created successfully.')
+      message.success(`Call center agent "${values.agent_name}" created successfully.`)
       // Matches the established cross-module convention (call-center.md §3/§19): Create success
       // navigates to Edit.
       navigate(`/call-center/agents/${created.call_center_agent_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create call center agent.')
+      message.error(getApiErrorMessage(err, 'Failed to create call center agent.'))
     } finally {
       setSubmitting(false)
     }
@@ -102,6 +106,14 @@ const AddCallCenterAgentPage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       <AgentForm
         formId={ADD_AGENT_FORM_ID}
         mode="create"

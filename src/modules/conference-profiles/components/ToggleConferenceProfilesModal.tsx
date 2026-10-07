@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 
 interface ToggleConferenceProfilesModalProps {
   open: boolean
@@ -15,39 +14,18 @@ interface ToggleConferenceProfilesModalProps {
  * failure so the user can retry or cancel.
  */
 const ToggleConferenceProfilesModal = ({ open, onConfirm, onCancel }: ToggleConferenceProfilesModalProps) => {
-  const { message } = App.useApp()
-  const [toggling, setToggling] = useState(false)
-
-  const handleConfirm = async () => {
-    setToggling(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Toggle failed.'))
-    } finally {
-      setToggling(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle Conference Profiles"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={toggling} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
       width={440}
+      errorMessage="Toggle failed."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Typography.Paragraph>Do you really want to toggle this?</Typography.Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

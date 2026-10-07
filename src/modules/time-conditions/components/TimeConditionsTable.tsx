@@ -113,6 +113,18 @@ const TimeConditionsTable = ({
   }
 
   const columns: TableColumnsType<TimeCondition> = [
+    ...(showAll
+      ? [
+          {
+            title: 'Domain',
+            dataIndex: 'domain_name',
+            key: 'domain_name',
+            width: 200,
+            render: renderScrollable,
+            sorter: (a: TimeCondition, b: TimeCondition) => a.domain_name.localeCompare(b.domain_name),
+          },
+        ]
+      : []),
     {
       title: 'Name',
       dataIndex: 'time_condition_name',
@@ -144,18 +156,6 @@ const TimeConditionsTable = ({
       render: renderScrollable,
       sorter: (a, b) => compareOptional(a.name, b.name),
     },
-    ...(showAll
-      ? [
-          {
-            title: 'Domain',
-            dataIndex: 'domain_name',
-            key: 'domain_name',
-            width: 200,
-            render: renderScrollable,
-            sorter: (a: TimeCondition, b: TimeCondition) => a.domain_name.localeCompare(b.domain_name),
-          },
-        ]
-      : []),
     {
       title: 'Status',
       key: 'time_condition_enabled',

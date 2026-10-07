@@ -10,6 +10,7 @@ import { createDestination, getActionOptions, getFaxOptions, getHiveDestinationD
 import { getDefaultDestinationFormValues } from '../destination.constants'
 import useDestinationPermissions from '../useDestinationPermissions'
 import type { ActionOptionGroup, DestinationFormValues, HiveDestinationDetails, HoldMusicGroup, SelectOption } from '../destination.types'
+import { getApiErrorMessage } from '../../../../services/api/apiError'
 
 const ADD_DESTINATION_FORM_ID = 'add-destination-form'
 
@@ -26,6 +27,8 @@ const AddDestinationPage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -61,6 +64,7 @@ const AddDestinationPage = () => {
   // domain — see destinations.md §9.
   const handleDomainConfirmed = async (domainName: string) => {
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const [actions, fax, holdMusic] = await Promise.all([
         getActionOptions(domainName),
@@ -70,8 +74,8 @@ const AddDestinationPage = () => {
       setActionOptions(actions)
       setFaxOptions(fax)
       setHoldMusicOptions(holdMusic)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+    } catch (err) {
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       setOptionsLoading(false)
     }
@@ -81,11 +85,11 @@ const AddDestinationPage = () => {
     setSubmitting(true)
     try {
       const created = await createDestination(values)
-      message.success(`Destination ${created.destination_number} created successfully.`)
+      message.success(`Destination "${created.destination_number}" created successfully.`)
       // Follow the Axion reference: land on the new record's Edit page (destinations.md §3).
       navigate(`/dialplans/destinations/${created.destination_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create destination.')
+      message.error(getApiErrorMessage(err, 'Failed to create destination.'))
     } finally {
       setSubmitting(false)
     }
@@ -116,6 +120,14 @@ const AddDestinationPage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       <DestinationForm
         formId={ADD_DESTINATION_FORM_ID}
         mode="create"

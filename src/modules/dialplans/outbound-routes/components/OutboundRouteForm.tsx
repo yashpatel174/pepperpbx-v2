@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { App, Col, Form, Row, Space } from "antd";
-import { domainChangeMessage } from "../../../../components/common/domainChangeMessage";
+import { domainChangeMessage, domainChangeTitle } from "../../../../components/common/domainChangeMessage";
 import type {
   HiveOutboundRouteDetails,
   OutboundRouteFormValues,
@@ -78,7 +78,7 @@ const OutboundRouteForm = ({
     }
 
     modal.confirm({
-      title: "Change domain?",
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",

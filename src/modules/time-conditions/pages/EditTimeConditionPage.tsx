@@ -94,7 +94,7 @@ const EditTimeConditionPage = () => {
       setSubmitting(false)
       return
     }
-    message.success('Time condition updated successfully.')
+    message.success(`Time condition "${values.time_condition_name}" updated successfully.`)
     // Stay here and reload the saved record (§3 Edit step 8). The save already succeeded, so a failed
     // reload only warns and the form keeps the submitted values.
     try {

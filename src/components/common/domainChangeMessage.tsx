@@ -11,6 +11,9 @@
  * framework here, see README's Dependency Policy), so it's intentionally omitted rather than
  * carried over as a dead/no-op class name.
  */
+/** Title of every module's domain-change confirm/info dialog — paired with `domainChangeMessage()`. */
+export const domainChangeTitle = 'Domain changed'
+
 export const domainChangeMessage = () => (
   <p>
     <strong>Please note:</strong> Once you update the context, any pre-selected values will be

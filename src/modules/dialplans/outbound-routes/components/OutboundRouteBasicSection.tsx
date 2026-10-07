@@ -1,5 +1,4 @@
-import { QuestionCircleOutlined } from "@ant-design/icons";
-import { Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from "antd";
+import { Card, Col, Form, Input, Row, Select } from "antd";
 import { orderOptions } from "../outbound-route.constants";
 import { isOutboundRouteNameTaken } from "../outbound-route.service";
 import {
@@ -10,6 +9,7 @@ import {
   routeNameRules,
 } from "../outbound-route.validation";
 import type { HiveOutboundRouteDetails, SbcDomainOption } from "../outbound-route.types";
+import FormSwitchField from "../../../../components/common/FormSwitchField";
 
 const { TextArea } = Input;
 
@@ -21,40 +21,6 @@ interface OutboundRouteBasicSectionProps {
   optionsLoading?: boolean;
   onDomainChange: (value: string) => void;
 }
-
-interface OptionSwitchProps {
-  name: string;
-  label: string;
-  tooltip: string;
-  disabled?: boolean;
-  ariaLabel: string;
-}
-
-const OptionSwitch = ({ name, label, tooltip, disabled = false, ariaLabel }: OptionSwitchProps) => {
-  const { token } = theme.useToken();
-
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, minHeight: 32 }}>
-      <Form.Item name={name} valuePropName="checked" noStyle>
-        <Switch disabled={disabled} aria-label={ariaLabel} />
-      </Form.Item>
-
-      <span>{label}</span>
-
-      <Tooltip title={tooltip}>
-        <QuestionCircleOutlined
-          aria-label={`${label} information`}
-          style={{
-            color: token.colorTextTertiary,
-            fontSize: 12,
-            cursor: "help",
-            flexShrink: 0,
-          }}
-        />
-      </Tooltip>
-    </div>
-  );
-};
 
 /**
  * Basic-information card, shared by both Add and Edit via OutboundRouteForm's `mode` prop.
@@ -70,7 +36,7 @@ const OutboundRouteBasicSection = ({
   return (
     <Card>
       <Row gutter={16} align="middle">
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="outbound_route_name"
             label="Outbound Route Name"
@@ -82,7 +48,7 @@ const OutboundRouteBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="outbound_caller_id_name"
             label="Outbound Caller ID Name"
@@ -93,7 +59,7 @@ const OutboundRouteBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="outbound_caller_id_number"
             label="Outbound Caller ID Number"
@@ -106,7 +72,7 @@ const OutboundRouteBasicSection = ({
         </Col>
 
         {mode === "create" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="prefix_number" label="Prefix" tooltip="Enter a dial prefix" rules={[noEdgeWhitespaceRule]}>
               <Input placeholder="Enter prefix" />
             </Form.Item>
@@ -114,7 +80,7 @@ const OutboundRouteBasicSection = ({
         )}
 
         {mode === "create" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="limit"
               label="Limit"
@@ -127,7 +93,7 @@ const OutboundRouteBasicSection = ({
         )}
 
         {mode === "edit" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="dialplan_number"
               label="Number"
@@ -140,7 +106,7 @@ const OutboundRouteBasicSection = ({
         )}
 
         {mode === "edit" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="hostname"
               label="Hostname"
@@ -153,7 +119,7 @@ const OutboundRouteBasicSection = ({
         )}
 
         {mode === "edit" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="dialplan_context" label="Context" tooltip="Server-derived from the domain; not editable">
               <Input disabled placeholder="Context" aria-label="Context" />
             </Form.Item>
@@ -161,14 +127,14 @@ const OutboundRouteBasicSection = ({
         )}
 
         {mode === "create" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="accountcode" label="Account Code" tooltip="Server-derived; not editable">
               <Input disabled placeholder="Account code" aria-label="Account code" />
             </Form.Item>
           </Col>
         )}
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="domain_name"
             label="Domain"
@@ -190,7 +156,7 @@ const OutboundRouteBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="sbcDomainIp"
             label="SBC Domain"
@@ -207,7 +173,7 @@ const OutboundRouteBasicSection = ({
         </Col>
 
         {mode === "create" && (
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="toll_allow"
               label="Toll Allow"
@@ -219,7 +185,7 @@ const OutboundRouteBasicSection = ({
           </Col>
         )}
 
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} lg={8}>
           <Form.Item
             name="dialplan_order"
             label="Order"
@@ -230,7 +196,7 @@ const OutboundRouteBasicSection = ({
           </Form.Item>
         </Col>
 
-        <Col xs={24} md={16}>
+        <Col xs={24} lg={16}>
           <Form.Item
             name="dialplan_description"
             label="Description"
@@ -241,8 +207,9 @@ const OutboundRouteBasicSection = ({
           </Form.Item>
         </Col>
         {mode === "create" && (
-          <Col xs={24} sm={12} md={8}>
-            <OptionSwitch
+          <Col xs={24} sm={12} lg={8}>
+            <FormSwitchField
+              style={{ minHeight: 32 }}
               name="pin_numbers_enabled"
               label="PIN Numbers"
               tooltip="Select the PIN number"
@@ -254,8 +221,9 @@ const OutboundRouteBasicSection = ({
           <>
             <Col xs={0} sm={0} md={0} lg={8} />
 
-            <Col xs={24} sm={12} md={8}>
-              <OptionSwitch
+            <Col xs={24} sm={12} lg={8}>
+              <FormSwitchField
+                style={{ minHeight: 32 }}
                 name="dialplan_continue"
                 label="Continue"
                 tooltip="Select the continue"
@@ -263,8 +231,9 @@ const OutboundRouteBasicSection = ({
               />
             </Col>
 
-            <Col xs={24} sm={12} md={8}>
-              <OptionSwitch
+            <Col xs={24} sm={12} lg={8}>
+              <FormSwitchField
+                style={{ minHeight: 32 }}
                 name="dialplan_destination"
                 label="Destination"
                 tooltip="Select the destination"
@@ -273,8 +242,8 @@ const OutboundRouteBasicSection = ({
             </Col>
           </>
         )}
-        <Col xs={24} sm={12} md={8}>
-          <OptionSwitch name="dialplan_enabled" label="Enabled" tooltip="Select the enabled" ariaLabel="Enabled" />
+        <Col xs={24} sm={12} lg={8}>
+          <FormSwitchField style={{ minHeight: 32 }} name="dialplan_enabled" label="Enabled" tooltip="Select the enabled" ariaLabel="Enabled" />
         </Col>
       </Row>
     </Card>

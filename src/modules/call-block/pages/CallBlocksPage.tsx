@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { App, Button, Flex, Select, Space, Switch, Tooltip, Typography } from 'antd'
+import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
 import ErrorState from '../../../components/feedback/ErrorState'
 import LoadingState from '../../../components/feedback/LoadingState'
@@ -17,6 +17,7 @@ import { copyCallBlock } from '../call-block.service'
 import { useCallBlocks } from '../useCallBlocks'
 import useCallBlockPermissions from '../useCallBlockPermissions'
 import type { CallBlock } from '../call-block.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 /**
  * Bulk actions are limited to Toggle + Delete — the audit's bulk-action select only wires those
@@ -55,6 +56,8 @@ const CallBlocksPage = () => {
   const [selectedCallBlockIds, setSelectedCallBlockIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null)
   const [copyTarget, setCopyTarget] = useState<CallBlock | null>(null)
 
@@ -98,16 +101,17 @@ const CallBlocksPage = () => {
     if (!copyTarget) return
     try {
       await copyCallBlock(copyTarget.call_block_uuid)
-      message.success(`Call block ${callBlockLabel(copyTarget)} copied.`)
+      message.success(`Call block "${callBlockLabel(copyTarget)}" copied successfully.`)
       setCopyTarget(null)
       await refresh()
       clearSelection()
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to copy call block ${callBlockLabel(copyTarget)}.`)
+      message.error(getApiErrorMessage(err, `Failed to copy call block ${callBlockLabel(copyTarget)}.`))
     }
   }
 
   const handleDeleteRequest = (callBlock: CallBlock) => {
+    setDeleteIsBulk(false)
     setDeleteTargets([{ id: callBlock.call_block_uuid, label: callBlockLabel(callBlock) }])
   }
 
@@ -115,14 +119,18 @@ const CallBlocksPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeCallBlocks(ids)
-    message.success(`${ids.length} call block${ids.length === 1 ? '' : 's'} deleted.`)
+    message.success(ids.length === 1 ? `Call block "${deleteTargets[0].label}" deleted successfully.` : `${ids.length} call blocks deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedCallBlockIds((selected) => selected.filter((id) => !ids.includes(id)))
+    setDeleteIsBulk(false)
   }
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null)
-    clearSelection()
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection()
+    setDeleteIsBulk(false)
   }
 
   const handleToggleConfirm = async () => {
@@ -144,9 +152,9 @@ const CallBlocksPage = () => {
   const handleToggleStatus = async (callBlock: CallBlock) => {
     try {
       await toggleCallBlocksStatus([callBlock.call_block_uuid])
-      message.success(`Call block ${callBlockLabel(callBlock)} ${callBlock.call_block_enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Call block "${callBlockLabel(callBlock)}" ${callBlock.call_block_enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update call block ${callBlockLabel(callBlock)}.`)
+      message.error(getApiErrorMessage(err, `Failed to update call block ${callBlockLabel(callBlock)}.`))
     }
   }
 
@@ -159,6 +167,7 @@ const CallBlocksPage = () => {
     // callBlockLabelByIdRef (accumulated across every page fetched this session, see above),
     // falling back to the raw id only if a selected call block was somehow never fetched.
     if (bulkAction === 'delete') {
+      setDeleteIsBulk(true)
       setDeleteTargets(selectedCallBlockIds.map((id) => ({ id, label: callBlockLabelByIdRef.current.get(id) ?? id })))
       return
     }
@@ -186,40 +195,6 @@ const CallBlocksPage = () => {
     </Space>
   )
 
-  const defaultToolbar = (
-    <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
-      <Flex wrap gap="middle" align="center" style={{ flex: '1 1 260px', minWidth: 0 }}>
-        <Tooltip title="Reset filters">
-          <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-        </Tooltip>
-
-        <CallBlockFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-
-        {/* Show All is visible only for the module-admin tier, matching the audit's
-            `isShowAll`-gate concept (call-block.md §7/§14/§25) — narrower than the list's own
-            overall view access. */}
-        {canManageAll && (
-          <Tooltip title="Show call blocks across all accessible domains">
-            <Space size="small">
-              <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call blocks" />
-              <span>Show All</span>
-            </Space>
-          </Tooltip>
-        )}
-      </Flex>
-
-      <Flex wrap gap="middle" align="center" style={{ flex: '0 0 auto' }}>
-        {(canManageAll || canAdd) && (
-          // TODO: wrap with <PermissionGuard permission="callBlock.add"> once RBAC
-          // permissions are populated from the backend.
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Add Call Block
-          </Button>
-        )}
-      </Flex>
-    </Flex>
-  )
-
   if (error) {
     return <ErrorState message={error} onRetry={refresh} />
   }
@@ -230,7 +205,45 @@ const CallBlocksPage = () => {
 
   return (
     <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
-      <ModuleHeader title="Call Block" count={totalRecords} toolbar={hasSelection ? selectionToolbar : defaultToolbar} />
+      <ModuleHeader
+        title="Call Block"
+        count={totalRecords}
+        primaryAction={
+          canManageAll || canAdd
+            ? {
+                // TODO: wrap with <PermissionGuard permission="callBlock.add"> once RBAC
+                // permissions are populated from the backend.
+                key: 'add',
+                label: 'Add Call Block',
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        // Without any access the page shows PermissionDenied, so the toolbar shows nothing either.
+        filters={
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <CallBlockFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {/* Show All is visible only for the module-admin tier, matching the audit's
+                  `isShowAll`-gate concept (call-block.md §7/§14/§25) — narrower than the list's own
+                  overall view access. */}
+              {canManageAll && (
+                <Tooltip title="Show call blocks across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all call blocks" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
+        }
+        toolbar={hasSelection ? selectionToolbar : undefined}
+      />
 
       {!hasAnyAccess ? (
         <PermissionDenied />

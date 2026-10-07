@@ -10,6 +10,7 @@ import { createOutboundRoute, getHiveOutboundRouteDetails, getOutboundRouteGatew
 import { getDefaultOutboundRouteFormValues } from '../outbound-route.constants'
 import useOutboundRoutePermissions from '../useOutboundRoutePermissions'
 import type { HiveOutboundRouteDetails, OutboundRouteFormValues, OutboundRouteGatewayOption, SbcDomainOption } from '../outbound-route.types'
+import { getApiErrorMessage } from '../../../../services/api/apiError'
 
 const ADD_OUTBOUND_ROUTE_FORM_ID = 'add-outbound-route-form'
 
@@ -25,6 +26,8 @@ const AddOutboundRoutePage = () => {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [optionsLoading, setOptionsLoading] = useState(false)
+  // A failed domain-change refetch shows an inline Retry above the form.
+  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
 
   useEffect(() => {
     let active = true
@@ -55,6 +58,7 @@ const AddOutboundRoutePage = () => {
   // outbound-routes.md §9.
   const handleDomainConfirmed = async (domainName: string) => {
     setOptionsLoading(true)
+    setOptionsError(null)
     try {
       const [hiveDetails, sbc, gateways] = await Promise.all([
         getHiveOutboundRouteDetails(domainName),
@@ -64,8 +68,8 @@ const AddOutboundRoutePage = () => {
       setHive(hiveDetails)
       setSbcDomains(sbc)
       setGatewayOptions(gateways)
-    } catch {
-      message.error('Failed to refresh domain-dependent options.')
+    } catch (err) {
+      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
     } finally {
       setOptionsLoading(false)
     }
@@ -75,12 +79,12 @@ const AddOutboundRoutePage = () => {
     setSubmitting(true)
     try {
       const created = await createOutboundRoute(values)
-      message.success(`Outbound route ${created.outbound_route_name} created successfully.`)
-      // Matches the audit: Create success navigates back to the List (outbound-routes.md §3/§19),
-      // unlike Destinations'/Gateways' "land on Edit" convention.
-      navigate('/dialplans/outbound-routes')
+      message.success(`Outbound route "${created.outbound_route_name}" created successfully.`)
+      // Shared post-create rule: `onlyHasAdd ? list : edit`. This module has a single manage
+      // permission covering both add and edit, so a creator can always edit — land on Edit.
+      navigate(`/dialplans/outbound-routes/${created.dialplan_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create outbound route.')
+      message.error(getApiErrorMessage(err, 'Failed to create outbound route.'))
     } finally {
       setSubmitting(false)
     }
@@ -111,6 +115,14 @@ const AddOutboundRoutePage = () => {
           </FormPageToolbar>
         }
       />
+      {optionsError && (
+        <ErrorState
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={optionsError.message}
+          onRetry={() => handleDomainConfirmed(optionsError.domain)}
+        />
+      )}
       <OutboundRouteForm
         formId={ADD_OUTBOUND_ROUTE_FORM_ID}
         mode="create"

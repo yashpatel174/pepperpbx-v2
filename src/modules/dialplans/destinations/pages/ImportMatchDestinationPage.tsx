@@ -7,6 +7,7 @@ import EmptyState from '../../../../components/feedback/EmptyState'
 import ImportMatchForm from '../components/ImportMatchForm'
 import { createImportMatch } from '../destination.service'
 import type { ImportDestinationResult } from '../destination.types'
+import { getApiErrorMessage } from '../../../../services/api/apiError'
 
 const IMPORT_MATCH_FORM_ID = 'import-match-destination-form'
 
@@ -34,7 +35,7 @@ const ImportMatchDestinationPage = () => {
       message.success(`Import complete: ${summary.imported} imported, ${summary.skipped} skipped.`)
       navigate('/dialplans/destinations', { state: { importSummary: summary } })
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to submit field mapping.')
+      message.error(getApiErrorMessage(err, 'Failed to submit field mapping.'))
     } finally {
       setSubmitting(false)
     }

@@ -116,7 +116,7 @@ const EditIVRMenuPage = () => {
       setSubmitting(false)
       return
     }
-    message.success('IVR menu updated successfully.')
+    message.success(`IVR menu "${values.ivr_menu_name}" updated successfully.`)
     // Stay here and reload the saved record (§3 Edit step 7). The save already succeeded, so a
     // failed reload only warns and the form keeps the submitted values.
     try {

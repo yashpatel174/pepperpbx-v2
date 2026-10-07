@@ -3,6 +3,7 @@ import { App, Button, Form, Input, Modal } from 'antd'
 import { getHiveUserDetails, isExtensionNumberTaken } from '../extension.service'
 import { extensionNumberRules } from '../extension.validation'
 import type { Extension, HiveUserDetails } from '../extension.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 interface CopyExtensionModalProps {
   open: boolean
@@ -64,7 +65,7 @@ const CopyExtensionModal = ({ open, target, onCopy, onCancel }: CopyExtensionMod
     try {
       await onCopy(values.new_extension)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to copy extension.')
+      message.error(getApiErrorMessage(err, 'Failed to copy extension.'))
     } finally {
       setCopying(false)
     }

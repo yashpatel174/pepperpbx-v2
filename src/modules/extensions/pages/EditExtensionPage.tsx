@@ -3,7 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
 import ModuleHeader from "../../../components/common/ModuleHeader";
 import FormPageToolbar from "../../../components/common/FormPageToolbar";
-import { isNotFoundError } from "../../../services/api/apiError";
+import { getApiErrorMessage, isNotFoundError } from "../../../services/api/apiError";
+import useExtensionPermissions from "../useExtensionPermissions";
 import LoadingState from "../../../components/feedback/LoadingState";
 import EmptyState from "../../../components/feedback/EmptyState";
 import ErrorState from "../../../components/feedback/ErrorState";
@@ -62,6 +63,7 @@ const toFormValues = (details: ExtensionDetails): ExtensionFormValues => ({
 
 const EditExtensionPage = () => {
   const navigate = useNavigate();
+  const { canEditBasic, canEditAdvanced } = useExtensionPermissions();
   const { message } = App.useApp();
   const { extensionId: extensionUuid } = useParams<{ extensionId: string }>();
 
@@ -118,12 +120,12 @@ const EditExtensionPage = () => {
     setSubmitting(true);
     try {
       const updated = await updateExtension(details.extension_uuid, values, oldExtNumber);
-      message.success(`Extension ${updated.extension} updated successfully.`);
+      message.success(`Extension "${updated.extension}" updated successfully.`);
       // Stay on the Edit page: re-fetch details and re-populate so the form reflects the
       // saved state (including a renumbered old_extension boundary for the next change).
       await load(false);
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to update extension.");
+      message.error(getApiErrorMessage(err, "Failed to update extension."));
     } finally {
       setSubmitting(false);
     }
@@ -156,9 +158,12 @@ const EditExtensionPage = () => {
               Cancel
             </Button>
 
-            <Button type="primary" htmlType="submit" form={EDIT_EXTENSION_FORM_ID} loading={submitting}>
-              Save
-            </Button>
+            {/* View-only users (no Basic or Advanced edit permission) get no Save at all. */}
+            {(canEditBasic || canEditAdvanced) && (
+              <Button type="primary" htmlType="submit" form={EDIT_EXTENSION_FORM_ID} loading={submitting}>
+                Save
+              </Button>
+            )}
           </FormPageToolbar>
         }
       />

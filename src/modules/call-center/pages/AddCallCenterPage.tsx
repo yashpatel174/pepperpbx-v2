@@ -18,6 +18,7 @@ import {
 import { getDefaultCallCenterFormValues } from '../call-center.constants'
 import useCallCenterPermissions from '../useCallCenterPermissions'
 import type { CallCenterFormValues, HiveCallCenterDetails, SelectOption } from '../call-center.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_CALL_CENTER_FORM_ID = 'add-call-center-form'
 
@@ -128,7 +129,7 @@ const AddCallCenterPage = () => {
     setSubmitting(true)
     try {
       const created = await createCallCenter(values)
-      message.success('Call center queue created successfully.')
+      message.success(`Call center queue "${values.queue_name}" created successfully.`)
       // Matches the audit: Create success navigates to Edit — UNLESS the user has only the Add
       // permission (no view/edit/all), in which case it navigates to the List instead
       // (call-center.md §3/§19/§33). With RBAC still foundation-only (empty store = everything
@@ -137,7 +138,7 @@ const AddCallCenterPage = () => {
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
       navigate(onlyHasAdd ? '/call-center' : `/call-center/${created.call_center_queue_uuid}/edit`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create call center queue.')
+      message.error(getApiErrorMessage(err, 'Failed to create call center queue.'))
     } finally {
       setSubmitting(false)
     }
@@ -170,7 +171,9 @@ const AddCallCenterPage = () => {
       />
       {hasOptionsError && (
         <ErrorState
-          message="Some data couldn't be loaded. Please refresh and try again."
+          type="warning"
+          message="Some data couldn't be loaded"
+          description="The options for the selected domain failed to load."
           onRetry={() => handleDomainConfirmed(selectedDomain ?? hive.defaultDomain)}
         />
       )}

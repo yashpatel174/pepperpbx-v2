@@ -89,7 +89,7 @@ const EditTimeGroupPage = () => {
       setSubmitting(false)
       return
     }
-    message.success('Time group updated successfully.')
+    message.success(`Time group "${values.name}" updated successfully.`)
     // Stay here and reload the saved record (§3 Edit step 4). The save already succeeded, so a failed
     // reload only warns and the form keeps the submitted values.
     try {

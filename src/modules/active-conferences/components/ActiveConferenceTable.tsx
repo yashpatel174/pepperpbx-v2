@@ -25,6 +25,17 @@ const ActiveConferenceTable = ({ data, loading, showAll, onView }: ActiveConfere
   const { token } = theme.useToken()
 
   const columns: TableColumnsType<ActiveConference> = [
+    // Hidden entirely (header and cells) unless Show All is on (§5/§15).
+    ...(showAll
+      ? [
+          {
+            title: 'Domain',
+            dataIndex: 'domain',
+            key: 'domain',
+            sorter: (a: ActiveConference, b: ActiveConference) => compareText(a.domain, b.domain),
+          },
+        ]
+      : []),
     {
       title: 'Name',
       dataIndex: 'conference_name',
@@ -44,17 +55,6 @@ const ActiveConferenceTable = ({ data, loading, showAll, onView }: ActiveConfere
       key: 'member_count',
       sorter: (a, b) => a.member_count - b.member_count,
     },
-    // Hidden entirely (header and cells) unless Show All is on (§5/§15).
-    ...(showAll
-      ? [
-          {
-            title: 'Domain Name',
-            dataIndex: 'domain',
-            key: 'domain',
-            sorter: (a: ActiveConference, b: ActiveConference) => compareText(a.domain, b.domain),
-          },
-        ]
-      : []),
     {
       title: 'Actions',
       key: 'actions',

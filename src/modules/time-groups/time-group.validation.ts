@@ -1,6 +1,7 @@
 import type { FormRule } from 'antd'
 import { timeToMinutes } from './time-group.constants'
 import type { TimeGroupRangeFormValues } from './time-group.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
 
 /**
  * Ant Design validation rules for the Time Group Add/Edit and Copy forms — the audit's Yup schemas
@@ -11,12 +12,6 @@ import type { TimeGroupRangeFormValues } from './time-group.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
-
-const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 /** Shared by the form's Name and the Copy popup's Name (§10). */
 export const nameRules: FormRule[] = [

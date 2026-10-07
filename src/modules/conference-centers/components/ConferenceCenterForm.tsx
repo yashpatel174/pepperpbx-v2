@@ -1,13 +1,13 @@
 import { useEffect, useRef } from 'react'
-import { App, Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from 'antd'
-import { domainChangeMessage } from '../../../components/common/domainChangeMessage'
+import { App, Card, Col, Form, Input, Row, Select, theme } from 'antd'
+import FormSwitchField from '../../../components/common/FormSwitchField'
+import { domainChangeMessage, domainChangeTitle } from '../../../components/common/domainChangeMessage'
 import { extensionReuseNote } from '../../../components/common/extensionReuseNote'
 import ToggleSelectInput from '../../../components/common/ToggleSelectInput'
 import { pinLengthOptions } from '../conference-center.constants'
 import { extensionRules, nameRules, noEdgeWhitespaceRule, pinLengthRules } from '../conference-center.validation'
 import useConferenceCenterPermissions from '../useConferenceCenterPermissions'
 import type { ConferenceCenterFormValues, GreetingOption, HiveUserConferenceDetails } from '../conference-center.types'
-import { QuestionCircleOutlined } from '@ant-design/icons'
 
 const { TextArea } = Input
 
@@ -77,7 +77,7 @@ const ConferenceCenterForm = ({
     if (value === previousDomain) return
 
     modal.confirm({
-      title: 'Domain changed',
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: 'Continue',
       cancelText: 'Cancel',
@@ -185,19 +185,8 @@ const ConferenceCenterForm = ({
             </Form.Item>
           </Col>
 
-           <Col xs={24} sm={12} md={8}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 32 }}>
-              <Form.Item name="conference_center_enabled" valuePropName="checked" noStyle>
-                <Switch aria-label="Enabled" />
-              </Form.Item>
-              <span>Enabled</span>
-              <Tooltip title="Select enabled">
-              <QuestionCircleOutlined
-                aria-label="Enabled"
-                style={{ color: token.colorTextTertiary, fontSize: 12, cursor: "help", flexShrink: 0 }}
-              />
-            </Tooltip>
-            </div>
+           <Col xs={24} sm={12} lg={8}>
+            <FormSwitchField name="conference_center_enabled" label="Enabled" tooltip="Select enabled" style={{ minHeight: 32 }} />
           </Col>
         </Row>
       </Card>

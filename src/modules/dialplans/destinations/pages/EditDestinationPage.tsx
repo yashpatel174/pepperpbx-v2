@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
 import ModuleHeader from "../../../../components/common/ModuleHeader";
 import FormPageToolbar from "../../../../components/common/FormPageToolbar";
-import { isNotFoundError } from "../../../../services/api/apiError";
+import { getApiErrorMessage, isNotFoundError } from "../../../../services/api/apiError";
 import LoadingState from "../../../../components/feedback/LoadingState";
 import EmptyState from "../../../../components/feedback/EmptyState";
 import ErrorState from "../../../../components/feedback/ErrorState";
@@ -98,12 +98,12 @@ const EditDestinationPage = () => {
     setSubmitting(true);
     try {
       const updated = await updateDestination(details.destination_uuid, values);
-      message.success(`Destination ${updated.destination_number} updated successfully.`);
+      message.success(`Destination "${updated.destination_number}" updated successfully.`);
       // Stay on the Edit page: re-fetch details and re-populate, matching the Axion reference
       // (destinations.md §3's Edit flow — no navigation on save).
       await load(false);
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to update destination.");
+      message.error(getApiErrorMessage(err, "Failed to update destination."));
     } finally {
       setSubmitting(false);
     }

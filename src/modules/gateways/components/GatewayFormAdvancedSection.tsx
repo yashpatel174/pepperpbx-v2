@@ -1,7 +1,7 @@
-import { Card, Col, Form, Input, Row, Select, Switch, theme, Tooltip } from "antd";
+import { Card, Col, Form, Input, Row, Select } from "antd";
+import FormSwitchField from "../../../components/common/FormSwitchField";
 import { registerTransportOptions } from "../gateway.constants";
 import { ipOrDomainRule, noEdgeWhitespaceRule, numericFieldRule } from "../gateway.validation";
-import { QuestionCircleOutlined } from "@ant-design/icons";
 
 /**
  * The Advanced Settings card — a separate section from Basic, matching the Axion reference's own
@@ -11,40 +11,39 @@ import { QuestionCircleOutlined } from "@ant-design/icons";
  * thread through here; the outer `<Form disabled={submitting}>` still applies while saving.
  */
 const GatewayFormAdvancedSection = () => {
-  const { token } = theme.useToken();
 
   return (
   <Card title="Advanced Settings" style={{ marginTop: 24 }}>
     <Row gutter={16} style={{ marginTop: 8 }}>
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="auth_username"
           label="Auth Username"
           tooltip="Enter the auth username here"
           rules={[noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input placeholder="Enter auth username" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="extension"
           label="Extension"
           tooltip="Select the extension to be affected"
           rules={[noEdgeWhitespaceRule]}
         >
-          <Input type={'number'} />
+          <Input type={'number'} placeholder="Enter extension" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item name="register_transport" label="Register Transport" tooltip="Choose whether to register transport">
           <Select allowClear placeholder="Select transport" options={registerTransportOptions} />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="register_proxy"
           label="Register Proxy"
@@ -52,11 +51,11 @@ const GatewayFormAdvancedSection = () => {
           validateFirst
           rules={[ipOrDomainRule, noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input placeholder="Enter register proxy" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="outbound_proxy"
           label="Outbound Proxy"
@@ -64,67 +63,67 @@ const GatewayFormAdvancedSection = () => {
           validateFirst
           rules={[ipOrDomainRule, noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input placeholder="Enter outbound proxy" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="sip_cid_type"
           label="SIP CID Type"
           tooltip="Enter the SIP CID type: none, PID, and RPID"
           rules={[noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input placeholder="Enter SIP CID type" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="codec_prefs"
           label="Codec Preferences"
           tooltip="Enter the codec preferences as a list. Ex: PCMA,PCMU,G722."
           rules={[noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input placeholder="Enter codec preferences" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="ping"
           label="Ping"
           tooltip="Enter the ping interval here in seconds"
           rules={[numericFieldRule]}
         >
-          <Input type="number" min={0} />
+          <Input type="number" min={0} placeholder="Enter ping" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item name="ping_min" label="Ping Min" tooltip="Enter the ping min" rules={[numericFieldRule]}>
-          <Input type="number" min={0} />
+          <Input type="number" min={0} placeholder="Enter ping min" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item name="ping_max" label="Ping Max" tooltip="Enter the ping max" rules={[numericFieldRule]}>
-          <Input type="number" min={0} />
+          <Input type="number" min={0} placeholder="Enter ping max" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="channels"
           label="Channels"
           tooltip="Maximum number of simultaneous channels available in the gateway"
           rules={[numericFieldRule]}
         >
-          <Input type="number" min={0} />
+          <Input type="number" min={0} placeholder="Enter channels" />
         </Form.Item>
       </Col>
 
-      <Col xs={24} sm={12} md={8}>
+      <Col xs={24} sm={12} lg={8}>
         <Form.Item
           name="hostname"
           label="Hostname"
@@ -132,93 +131,25 @@ const GatewayFormAdvancedSection = () => {
           validateFirst
           rules={[ipOrDomainRule, noEdgeWhitespaceRule]}
         >
-          <Input />
+          <Input placeholder="Enter hostname" />
         </Form.Item>
       </Col>
     </Row>
     <Row gutter={[16, 8]} style={{ marginTop: 8 }}>
   <Col xs={24}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <Form.Item name="distinct_to" valuePropName="checked" noStyle>
-        <Switch aria-label="Distinct To" />
-      </Form.Item>
-
-      <span>Distinct To</span>
-
-      <Tooltip title="Enter the distinct to here">
-        <QuestionCircleOutlined
-          aria-label="Distinct To information"
-          style={{
-            color: token.colorTextTertiary,
-            fontSize: 12,
-            cursor: "help",
-          }}
-        />
-      </Tooltip>
-    </div>
+    <FormSwitchField name="distinct_to" label="Distinct To" tooltip="Enter the distinct to here" />
   </Col>
 
   <Col xs={24}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <Form.Item name="caller_id_in_from" valuePropName="checked" noStyle>
-        <Switch aria-label="Caller ID In From" />
-      </Form.Item>
-
-      <span>Caller ID In From</span>
-
-      <Tooltip title="Enter the caller ID in from">
-        <QuestionCircleOutlined
-          aria-label="Caller ID In From information"
-          style={{
-            color: token.colorTextTertiary,
-            fontSize: 12,
-            cursor: "help",
-          }}
-        />
-      </Tooltip>
-    </div>
+    <FormSwitchField name="caller_id_in_from" label="Caller ID In From" tooltip="Enter the caller ID in from" />
   </Col>
 
   <Col xs={24}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <Form.Item name="supress_cng" valuePropName="checked" noStyle>
-        <Switch aria-label="Supress CNG" />
-      </Form.Item>
-
-      <span>Supress CNG</span>
-
-      <Tooltip title="Enter the suppress CNG">
-        <QuestionCircleOutlined
-          aria-label="Supress CNG information"
-          style={{
-            color: token.colorTextTertiary,
-            fontSize: 12,
-            cursor: "help",
-          }}
-        />
-      </Tooltip>
-    </div>
+    <FormSwitchField name="supress_cng" label="Supress CNG" tooltip="Enter the suppress CNG" />
   </Col>
 
   <Col xs={24}>
-    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <Form.Item name="extension_in_contact" valuePropName="checked" noStyle>
-        <Switch aria-label="Extension In Contact" />
-      </Form.Item>
-
-      <span>Extension In Contact</span>
-
-      <Tooltip title="Enter the extension in contact">
-        <QuestionCircleOutlined
-          aria-label="Extension In Contact information"
-          style={{
-            color: token.colorTextTertiary,
-            fontSize: 12,
-            cursor: "help",
-          }}
-        />
-      </Tooltip>
-    </div>
+    <FormSwitchField name="extension_in_contact" label="Extension In Contact" tooltip="Enter the extension in contact" />
   </Col>
 </Row> 
   </Card>

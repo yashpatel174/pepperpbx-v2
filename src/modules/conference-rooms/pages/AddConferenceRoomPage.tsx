@@ -12,6 +12,7 @@ import { createConferenceRoom, getConferenceCenterOptions, getHiveUserDetails, g
 import { conferenceRoomPaths, getDefaultConferenceRoomFormValues } from '../conference-room.constants'
 import useConferenceRoomPermissions from '../useConferenceRoomPermissions'
 import type { ConferenceCenterOption, ConferenceProfileOption, ConferenceRoomFormValues, HiveUserDetails } from '../conference-room.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_FORM_ID = 'add-conference-room-form'
 
@@ -92,13 +93,13 @@ const AddConferenceRoomPage = () => {
     setSubmitting(true)
     try {
       const uuid = await createConferenceRoom(values)
-      message.success('Conference room created successfully.')
+      message.success(`Conference room "${values.conference_room_name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new room's Edit page
       // (conference-rooms.md §3/§14). Unreachable until RBAC is populated, but ready for it.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
       navigate(onlyHasAdd ? conferenceRoomPaths.list : conferenceRoomPaths.edit(uuid))
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create conference room.')
+      message.error(getApiErrorMessage(err, 'Failed to create conference room.'))
     } finally {
       setSubmitting(false)
     }
@@ -137,7 +138,9 @@ const AddConferenceRoomPage = () => {
       />
       {failedDomain && (
         <ErrorState
-          message={`Failed to load details for ${failedDomain}. Retry to continue with this domain.`}
+          type="warning"
+          message="Some data couldn't be loaded"
+          description={`Failed to load details for ${failedDomain}. Retry to continue with this domain.`}
           onRetry={() => handleDomainConfirmed(failedDomain)}
         />
       )}

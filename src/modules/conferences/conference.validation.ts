@@ -1,4 +1,7 @@
 import type { ConferenceHiveDetails } from './conference.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Shared Ant Design validation rules for the Add/Edit/Copy Conference forms. Kept here (not
@@ -7,7 +10,6 @@ import type { ConferenceHiveDetails } from './conference.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** Optional embedded `**` prefix + digits — matches Extensions' own extension pattern and the
  * audit's documented `**?digits` rule (conferences.md §8/§10). */
 const EMBEDDED_EXTENSION_NUMBER_PATTERN = /^(?:\*\*\d+|\d+)$/
@@ -23,11 +25,6 @@ export const nameFormatRule = {
 }
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only. */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /**
  * conference_extension (and Copy's new_conference_extension, which the audit documents as sharing
  * "the same extension-range rule as the main form" — conferences.md §8/§9): required, matches the

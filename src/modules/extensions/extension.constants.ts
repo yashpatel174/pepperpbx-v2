@@ -87,6 +87,8 @@ export const extensionPermissionStrings = {
   advancedEdit: "pbx_extensionadvanced_edit",
   advancedView: "pbx_extensionadvanced_view",
   add: "pbx_extension_add",
+  /** Module-admin wildcard — gates Show All, and Add/Import/Export with `add` (extension.md §14). */
+  all: "pbx_extension_all",
   /** Global wildcards — Copy is allowed for these or `add` (extension.md §14). */
   admin: "pbx_admin",
   axionTech: "pbx_axiontech",

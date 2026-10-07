@@ -9,6 +9,7 @@ import ErrorState from '../../../../components/feedback/ErrorState'
 import OutboundRouteXmlEditor from '../components/OutboundRouteXmlEditor'
 import type { OutboundRouteXmlEditorHandle } from '../components/OutboundRouteXmlEditor'
 import { getOutboundRouteXml, updateOutboundRouteXml } from '../outbound-route.service'
+import { getApiErrorMessage } from '../../../../services/api/apiError'
 
 const fontSizeOptions = [12, 14, 16, 18, 20, 22, 24, 26].map((size) => ({ label: `${size}px`, value: size }))
 
@@ -82,7 +83,7 @@ const DialplanXmlPage = () => {
     } catch (err) {
       // Stay on the page and keep the current editor content — never lose an in-progress edit
       // on a failed save.
-      message.error(err instanceof Error ? err.message : 'Failed to save the dialplan XML.')
+      message.error(getApiErrorMessage(err, 'Failed to save the dialplan XML.'))
     } finally {
       setSaving(false)
     }

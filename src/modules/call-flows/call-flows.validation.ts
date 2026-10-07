@@ -1,4 +1,7 @@
 import type { CallFlowHiveDetails } from './call-flows.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Ant Design validation rules for the Call Flow Add/Edit form and Copy modal — the audit's Yup
@@ -6,7 +9,6 @@ import type { CallFlowHiveDetails } from './call-flows.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** Digits, optionally prefixed with `**` (§10). */
 const EXTENSION_PATTERN = /^(?:\*\*)?\d+$/
 /** Optional PIN: 1–20 digits, so no sign, decimal or whitespace can get in (§10). */
@@ -14,11 +16,6 @@ const PIN_PATTERN = /^\d{1,20}$/
 
 /** Axion's lower-bound fallback when the bootstrap omits `additionalExtStart` (§10). */
 const DEFAULT_EXTENSION_RANGE_START = 100
-
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 export const nameRules = [
   { required: true, message: 'Name required' },

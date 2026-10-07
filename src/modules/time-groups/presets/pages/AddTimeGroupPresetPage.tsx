@@ -61,7 +61,7 @@ const AddTimeGroupPresetPage = () => {
     setSubmitting(true)
     try {
       const uuid = await createTimeGroupPreset(values)
-      message.success('Preset created successfully.')
+      message.success(`Preset "${values.name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new preset's Edit page
       // (Axion's AddPreset). Unreachable until RBAC is populated.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView

@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { Alert, Button, Form, Input, Modal } from 'antd'
+import { Form, Input, Modal } from 'antd'
+import ErrorState from '../../../components/feedback/ErrorState'
 import { extensionReuseNote } from '../ivr-menu.constants'
 import { describeExtensionRange, extensionRules, nameRules } from '../ivr-menu.validation'
 import type { IVRMenu, IVRMenuHiveDetails } from '../ivr-menu.types'
@@ -65,17 +66,9 @@ const CopyIVRMenuModal = ({ open, target, hive, hiveError, onRetryHive, submitti
       destroyOnHidden
     >
       {hiveError && (
-        <Alert
-          type="error"
-          showIcon
-          style={{ marginBottom: 16 }}
-          message="Couldn't load the extension settings for this domain."
-          action={
-            <Button size="small" onClick={onRetryHive}>
-              Retry
-            </Button>
-          }
-        />
+        <div style={{ marginBottom: 16 }}>
+          <ErrorState message="Couldn't load the extension settings for this domain." onRetry={onRetryHive} />
+        </div>
       )}
       <Form<CopyFormValues> form={form} layout="vertical" disabled={submitting}>
         <Form.Item name="ivr_name" label="Name" validateFirst rules={nameRules}>

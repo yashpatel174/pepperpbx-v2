@@ -29,6 +29,7 @@ import type {
   ImportDestinationOptions,
   ImportDestinationResult,
 } from "../destination.types";
+import { getApiErrorMessage } from "../../../../services/api/apiError";
 
 type BulkAction = "delete";
 
@@ -123,6 +124,8 @@ const DestinationsPage = () => {
   const [selectedDestinationIds, setSelectedDestinationIds] = useState<string[]>([]);
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined);
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null);
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false);
 
   const [copyTarget, setCopyTarget] = useState<Destination | null>(null);
   const [copySuggestedNumber, setCopySuggestedNumber] = useState("");
@@ -186,18 +189,19 @@ const DestinationsPage = () => {
     setCopySubmitting(true);
     try {
       await copyDestination(copyTarget.id, newDestinationNumber);
-      message.success(`Destination ${copyTarget.destination} copied.`);
+      message.success(`Destination "${copyTarget.destination}" copied successfully.`);
       setCopyTarget(null);
       await refresh();
       clearSelection();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to copy destination ${copyTarget.destination}.`);
+      message.error(getApiErrorMessage(err, `Failed to copy destination ${copyTarget.destination}.`));
     } finally {
       setCopySubmitting(false);
     }
   };
 
   const handleDeleteRequest = (destination: Destination) => {
+    setDeleteIsBulk(false);
     setDeleteTargets([{ id: destination.id, destination: destination.destination }]);
   };
 
@@ -205,14 +209,18 @@ const DestinationsPage = () => {
     if (!deleteTargets) return;
     const ids = deleteTargets.map((target) => target.id);
     await removeDestinations(ids);
-    message.success(`${ids.length} destination${ids.length === 1 ? "" : "s"} deleted.`);
+    message.success(ids.length === 1 ? `Destination "${deleteTargets[0].destination}" deleted successfully.` : `${ids.length} destinations deleted.`);
     setDeleteTargets(null);
-    clearSelection();
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedDestinationIds((selected) => selected.filter((id) => !ids.includes(id)));
+    setDeleteIsBulk(false);
   };
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null);
-    clearSelection();
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection();
+    setDeleteIsBulk(false);
   };
 
   // Inline pill acts immediately, no confirmation — mirrors Extensions' handleToggleStatus
@@ -221,9 +229,9 @@ const DestinationsPage = () => {
     const target = !destination.enabled;
     try {
       await toggleDestinationStatus(destination.id, target);
-      message.success(`Destination ${destination.destination} ${target ? "enabled" : "disabled"}.`);
+      message.success(`Destination "${destination.destination}" ${target ? "enabled" : "disabled"} successfully.`);
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update destination ${destination.destination}.`);
+      message.error(getApiErrorMessage(err, `Failed to update destination ${destination.destination}.`));
     }
   };
 
@@ -235,6 +243,7 @@ const DestinationsPage = () => {
     // selected on another page would be silently dropped from the delete. The friendly label comes
     // from destinationLabelByIdRef (accumulated across every page fetched this session, see
     // above), falling back to the raw id only if a selected destination was somehow never fetched.
+    setDeleteIsBulk(true);
     setDeleteTargets(
       selectedDestinationIds.map((id) => ({ id, destination: destinationLabelByIdRef.current.get(id) ?? id })),
     );
@@ -247,7 +256,7 @@ const DestinationsPage = () => {
       setImportOpen(false);
       navigate("/dialplans/destinations/import-match", { state: { result } });
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to import CSV file.");
+      message.error(getApiErrorMessage(err, "Failed to import CSV file."));
     } finally {
       setImportSubmitting(false);
     }
@@ -333,10 +342,10 @@ const DestinationsPage = () => {
             ? [
                 // TODO: wrap with <PermissionGuard permission="destination.import"> once RBAC
                 // permissions are populated from the backend.
-                { key: "import", label: "Import", icon: <DownloadOutlined />, onClick: () => setImportOpen(true) },
+                { key: "import", label: "Import", icon: <UploadOutlined />, onClick: () => setImportOpen(true) },
                 // TODO: wrap with <PermissionGuard permission="destination.export"> once RBAC
                 // permissions are populated from the backend.
-                { key: "export", label: "Export", icon: <UploadOutlined />, onClick: () => setExportOpen(true) },
+                { key: "export", label: "Export", icon: <DownloadOutlined />, onClick: () => setExportOpen(true) },
               ]
             : undefined
         }

@@ -11,6 +11,7 @@ import ConferenceForm from '../components/ConferenceForm'
 import { getConferenceById, getHiveConferenceDetails, getProfileOptions, updateConference } from '../conference.service'
 import useConferencePermissions from '../useConferencePermissions'
 import type { ConferenceDetails, ConferenceFormValues, ConferenceHiveDetails, ConferenceProfileOption } from '../conference.types'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 
 const EDIT_CONFERENCE_FORM_ID = 'edit-conference-form'
 
@@ -58,10 +59,10 @@ const EditConferencePage = () => {
         setProfileOptions(options)
         setFormKey((key) => key + 1)
       } catch (err) {
-        // getConferenceById rejects with a "not found" message when the id doesn't match any
-        // record — distinguished from a genuine fetch failure so the page can show a record-scoped
-        // EmptyState instead of an ErrorState+retry (retrying a bad id can't help).
-        if (err instanceof Error && err.message.includes('not found')) {
+        // getConferenceById rejects with a 404 when the id doesn't match any record — distinguished
+        // from a genuine fetch failure so the page can show a record-scoped EmptyState instead of
+        // an ErrorState+retry (retrying a bad id can't help).
+        if (isNotFoundError(err)) {
           setNotFound(true)
         } else {
           setError('Failed to load this conference.')
@@ -92,12 +93,12 @@ const EditConferencePage = () => {
     setSubmitting(true)
     try {
       await updateConference(details.conference_uuid, values)
-      message.success('Conference updated successfully.')
+      message.success(`Conference "${values.conference_name}" updated successfully.`)
       // Matches the audit exactly: Update success does NOT navigate away — it re-fetches details
       // and re-populates the same Edit page in place (conferences.md §3/§19).
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update conference.')
+      message.error(getApiErrorMessage(err, 'Failed to update conference.'))
     } finally {
       setSubmitting(false)
     }

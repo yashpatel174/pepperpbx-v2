@@ -10,13 +10,14 @@ import { createExtension, getHiveUserDetails } from "../extension.service";
 import { getDefaultExtensionFormValues } from "../extension.constants";
 import useExtensionPermissions from "../useExtensionPermissions";
 import type { ExtensionFormValues, HiveUserDetails } from "../extension.types";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 
 const ADD_EXTENSION_FORM_ID = "add-extension-form";
 
 const AddExtensionPage = () => {
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const { canEditBasic } = useExtensionPermissions();
+  const { canEditBasic, canAdd } = useExtensionPermissions();
 
   const [hive, setHive] = useState<HiveUserDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +47,7 @@ const AddExtensionPage = () => {
     setSubmitting(true);
     try {
       const created = await createExtension(values);
-      message.success(`Extension ${created.extension} created successfully.`);
+      message.success(`Extension "${created.extension}" created successfully.`);
       // Follow the post-submit convention: users who can edit an extension continue on to
       // the newly created record's Edit page; otherwise they land back on the list.
       if (canEditBasic) {
@@ -55,7 +56,7 @@ const AddExtensionPage = () => {
         navigate("/account/extensions");
       }
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to create extension.");
+      message.error(getApiErrorMessage(err, "Failed to create extension."));
     } finally {
       setSubmitting(false);
     }
@@ -79,9 +80,11 @@ const AddExtensionPage = () => {
               Cancel
             </Button>
 
-            <Button type="primary" htmlType="submit" form={ADD_EXTENSION_FORM_ID} loading={submitting}>
-              Save
-            </Button>
+            {canAdd && (
+              <Button type="primary" htmlType="submit" form={ADD_EXTENSION_FORM_ID} loading={submitting}>
+                Save
+              </Button>
+            )}
           </FormPageToolbar>
         }
       />

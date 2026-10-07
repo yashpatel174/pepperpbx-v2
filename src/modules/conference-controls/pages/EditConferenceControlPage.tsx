@@ -7,7 +7,7 @@ import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
 import PermissionDenied from '../../../components/feedback/PermissionDenied'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import ConferenceControlForm from '../components/ConferenceControlForm'
 import { getConferenceControlById, updateConferenceControl } from '../conference-control.service'
 import { conferenceControlPaths } from '../conference-control.constants'
@@ -83,11 +83,11 @@ const EditConferenceControlPage = () => {
     setSubmitting(true)
     try {
       await updateConferenceControl(details.conference_control_uuid, values)
-      message.success('Conference control updated successfully.')
+      message.success(`Conference control "${values.control_name}" updated successfully.`)
       // Stay on this page and reload the server-confirmed record (conference-controls.md §3/§19).
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update conference control.')
+      message.error(getApiErrorMessage(err, 'Failed to update conference control.'))
     } finally {
       setSubmitting(false)
     }

@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 
 interface ToggleIVRMenuModalProps {
   open: boolean
@@ -15,41 +14,20 @@ interface ToggleIVRMenuModalProps {
  * Status pill toggles immediately. Stays open on failure.
  */
 const ToggleIVRMenuModal = ({ open, count, onConfirm, onCancel }: ToggleIVRMenuModalProps) => {
-  const { message } = App.useApp()
-  const [toggling, setToggling] = useState(false)
-
-  const handleConfirm = async () => {
-    setToggling(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to toggle IVR menus.'))
-    } finally {
-      setToggling(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle IVR Menu"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Close
-          </Button>
-          <Button type="primary" loading={toggling} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
       width={440}
+      errorMessage="Failed to toggle IVR menus."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Typography.Paragraph style={{ marginBottom: 0 }}>
         {count === 1 ? 'Do you really want to toggle this IVR Menu?' : `Do you really want to toggle these ${count} IVR Menus?`}
       </Typography.Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

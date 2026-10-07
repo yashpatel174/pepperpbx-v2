@@ -9,6 +9,7 @@ import { createConferenceControl } from '../conference-control.service'
 import { conferenceControlPaths, defaultConferenceControlFormValues } from '../conference-control.constants'
 import useConferenceControlPermissions from '../useConferenceControlPermissions'
 import type { ConferenceControlFormValues } from '../conference-control.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 const ADD_FORM_ID = 'add-conference-control-form'
 
@@ -27,13 +28,13 @@ const AddConferenceControlPage = () => {
     setSubmitting(true)
     try {
       const uuid = await createConferenceControl(values)
-      message.success('Conference control created successfully.')
+      message.success(`Conference control "${values.control_name}" created successfully.`)
       // Add-only users go back to the list; everyone else lands on the new record's Edit page, where
       // the DTMF rows can be added (conference-controls.md §3/§14). Unreachable until RBAC is populated.
       const onlyHasAdd = canAdd && !canManageAll && !canEdit && !canView
       navigate(onlyHasAdd ? conferenceControlPaths.list : conferenceControlPaths.edit(uuid))
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to create conference control.')
+      message.error(getApiErrorMessage(err, 'Failed to create conference control.'))
     } finally {
       setSubmitting(false)
     }

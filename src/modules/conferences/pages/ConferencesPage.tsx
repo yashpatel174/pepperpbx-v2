@@ -17,6 +17,7 @@ import { copyConference, getHiveConferenceDetails } from '../conference.service'
 import { useConferences } from '../useConferences'
 import useConferencePermissions from '../useConferencePermissions'
 import type { Conference, ConferenceHiveDetails } from '../conference.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 /**
  * Bulk actions: Toggle + Delete — matches the audit exactly (conferences.md §21: "Two actions are
@@ -53,10 +54,14 @@ const ConferencesPage = () => {
   const [selectedConferenceIds, setSelectedConferenceIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null)
   const [copyTarget, setCopyTarget] = useState<Conference | null>(null)
   const [copyHive, setCopyHive] = useState<ConferenceHiveDetails | null>(null)
+  const [copyHiveError, setCopyHiveError] = useState(false)
   const [copySubmitting, setCopySubmitting] = useState(false)
+  const copyRequestRef = useRef(0)
 
   const hasSelection = selectedConferenceIds.length > 0
   // Row Edit is reachable by view-only users too (read-only form); row Delete requires the
@@ -99,15 +104,29 @@ const ConferencesPage = () => {
   // route currently resolves to the app's NotFound catch-all until Active Conferences exists.
   const handleActiveConferences = () => navigate('/activeConferences/list')
 
-  const handleCopyClick = async (conference: Conference) => {
-    setCopyTarget(conference)
+  // Only the latest Copy bootstrap may apply — a slow response for a closed/replaced Copy target is ignored.
+  const loadCopyHive = async (conference: Conference) => {
+    const requestId = ++copyRequestRef.current
     setCopyHive(null)
+    setCopyHiveError(false)
     try {
       const hive = await getHiveConferenceDetails(conference.domain)
-      setCopyHive(hive)
+      if (requestId === copyRequestRef.current) setCopyHive(hive)
     } catch {
-      message.error('Failed to load domain details for copy.')
+      if (requestId === copyRequestRef.current) setCopyHiveError(true)
     }
+  }
+
+  const handleCopyClick = (conference: Conference) => {
+    setCopyTarget(conference)
+    void loadCopyHive(conference)
+  }
+
+  const closeCopy = () => {
+    copyRequestRef.current++
+    setCopyTarget(null)
+    setCopyHive(null)
+    setCopyHiveError(false)
   }
 
   const handleCopyConfirm = async ({ name, extension }: { name: string; extension: string }) => {
@@ -115,19 +134,19 @@ const ConferencesPage = () => {
     setCopySubmitting(true)
     try {
       await copyConference(copyTarget.id, name, extension)
-      message.success(`Conference ${copyTarget.name} copied.`)
-      setCopyTarget(null)
-      setCopyHive(null)
+      message.success(`Conference "${copyTarget.name}" copied successfully.`)
+      closeCopy()
       await refresh()
       clearSelection()
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to copy conference ${copyTarget.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to copy conference ${copyTarget.name}.`))
     } finally {
       setCopySubmitting(false)
     }
   }
 
   const handleDeleteRequest = (conference: Conference) => {
+    setDeleteIsBulk(false)
     setDeleteTargets([{ id: conference.id, name: conference.name }])
   }
 
@@ -135,14 +154,18 @@ const ConferencesPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeConferences(ids)
-    message.success(`${ids.length} conference${ids.length === 1 ? '' : 's'} deleted.`)
+    message.success(ids.length === 1 ? `Conference "${deleteTargets[0].name}" deleted successfully.` : `${ids.length} conferences deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedConferenceIds((selected) => selected.filter((id) => !ids.includes(id)))
+    setDeleteIsBulk(false)
   }
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null)
-    clearSelection()
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection()
+    setDeleteIsBulk(false)
   }
 
   const handleToggleConfirm = async () => {
@@ -164,9 +187,9 @@ const ConferencesPage = () => {
   const handleToggleStatus = async (conference: Conference) => {
     try {
       await toggleConferencesStatus([conference.id])
-      message.success(`Conference ${conference.name} ${conference.enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Conference "${conference.name}" ${conference.enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update conference ${conference.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update conference ${conference.name}.`))
     }
   }
 
@@ -179,6 +202,7 @@ const ConferencesPage = () => {
     // conferenceLabelByIdRef (accumulated across every page fetched this session, see above),
     // falling back to the raw id only if a selected conference was somehow never fetched.
     if (bulkAction === 'delete') {
+      setDeleteIsBulk(true)
       setDeleteTargets(selectedConferenceIds.map((id) => ({ id, name: conferenceLabelByIdRef.current.get(id) ?? id })))
       return
     }
@@ -239,25 +263,28 @@ const ConferencesPage = () => {
             onClick: handleActiveConferences,
           },
         ]}
+        // Without access the page shows PermissionDenied, so the filters are hidden too.
         filters={
-          <>
-            <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-            </Tooltip>
-
-            <ConferenceFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-
-            {/* Show All is visible only for the module-admin tier, matching the audit's
-                `isShowAll`-gate concept (conferences.md §7/§14/§25). */}
-            {canManageAll && (
-              <Tooltip title="Show conferences across all accessible domains">
-                <Space size="small">
-                  <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all conferences" />
-                  <span>Show All</span>
-                </Space>
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
               </Tooltip>
-            )}
-          </>
+
+              <ConferenceFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+
+              {/* Show All is visible only for the module-admin tier, matching the audit's
+                  `isShowAll`-gate concept (conferences.md §7/§14/§25). */}
+              {canManageAll && (
+                <Tooltip title="Show conferences across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all conferences" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
         }
         toolbar={hasSelection ? selectionToolbar : undefined}
       />
@@ -307,12 +334,11 @@ const ConferencesPage = () => {
         open={!!copyTarget}
         target={copyTarget}
         hive={copyHive}
+        hiveError={copyHiveError}
+        onRetryHive={() => copyTarget && loadCopyHive(copyTarget)}
         submitting={copySubmitting}
         onSubmit={handleCopyConfirm}
-        onCancel={() => {
-          setCopyTarget(null)
-          setCopyHive(null)
-        }}
+        onCancel={closeCopy}
       />
     </Space>
   )

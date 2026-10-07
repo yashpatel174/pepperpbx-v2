@@ -110,14 +110,6 @@ const TimeGroupPresetTable = ({
   }
 
   const columns: TableColumnsType<TimeGroupPreset> = [
-    {
-      title: 'Name',
-      dataIndex: 'name',
-      key: 'name',
-      width: 220,
-      render: renderTruncated,
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
     ...(showAll
       ? [
           {
@@ -130,6 +122,14 @@ const TimeGroupPresetTable = ({
           },
         ]
       : []),
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      width: 220,
+      render: renderTruncated,
+      sorter: (a, b) => a.name.localeCompare(b.name),
+    },
     {
       title: 'Status',
       key: 'enable',
@@ -168,7 +168,7 @@ const TimeGroupPresetTable = ({
             <Button
               type="text"
               size="small"
-              icon={<CopyOutlined style={{ color: canCopyRow ? token.colorPrimary : undefined }} />}
+              icon={<CopyOutlined style={{ color: canCopyRow ? token.colorSuccess : undefined }} />}
               disabled={!canCopyRow}
               onClick={() => onCopy(record)}
               aria-label={`Copy preset ${record.name}`}

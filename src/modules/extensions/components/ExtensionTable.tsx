@@ -66,13 +66,6 @@ const ExtensionTable = ({
   };
 
   const columns: TableColumnsType<Extension> = [
-    {
-      title: "Extension",
-      dataIndex: "extension",
-      key: "extension",
-      width: 120,
-    },
-
     ...(showAll
       ? [
           {
@@ -83,6 +76,13 @@ const ExtensionTable = ({
           },
         ]
       : []),
+
+    {
+      title: "Extension",
+      dataIndex: "extension",
+      key: "extension",
+      width: 120,
+    },
 
     {
       title: "Effective Caller ID Name",

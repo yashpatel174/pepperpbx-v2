@@ -1,4 +1,7 @@
 import type { HiveCallCenterDetails } from './call-center.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Shared Ant Design validation rules for the Add/Edit/Copy Call Center Queue forms. Kept here
@@ -7,7 +10,6 @@ import type { HiveCallCenterDetails } from './call-center.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 const DIGITS_PATTERN = (max: number) => new RegExp(`^\\d{0,${max}}$`)
 
 /** call-center.md §10: "Name required" / "Name should be only of alphabets and numbers". */
@@ -18,11 +20,6 @@ export const nameFormatRule = {
 }
 
 /** `!value || /^[^\s]+(\s+[^\s]+)*$/` — rejects leading/trailing whitespace only (call-center.md §10). */
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
-
 /** Optional numeric fields, ≤20 digits (call-center.md §10's shared numeric-field rule). */
 export const numericUpTo20DigitsRule = {
   pattern: DIGITS_PATTERN(20),

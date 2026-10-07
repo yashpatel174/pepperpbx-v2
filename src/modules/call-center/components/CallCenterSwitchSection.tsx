@@ -1,4 +1,5 @@
-import { Card, Col, Form, Row, Switch } from 'antd'
+import { Card, Col, Row } from 'antd'
+import FormSwitchField from '../../../components/common/FormSwitchField'
 
 interface SwitchFieldProps {
   name: string
@@ -8,13 +9,7 @@ interface SwitchFieldProps {
 
 const SwitchField = ({ name, label, disabled }: SwitchFieldProps) => (
   <Col xs={24}>
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minHeight: 32 }}>
-      <Form.Item name={name} valuePropName="checked" noStyle>
-        <Switch disabled={disabled} aria-label={label} />
-      </Form.Item>
-
-      <span>{label}</span>
-    </div>
+    <FormSwitchField name={name} label={label} disabled={disabled} style={{ minHeight: 32 }} />
   </Col>
 )
 

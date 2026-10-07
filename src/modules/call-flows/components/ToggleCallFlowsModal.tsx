@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { App, Button, Form, Modal, Radio, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { Form, Radio, Typography } from 'antd'
+import ConfirmActionModal from '../../../components/common/ConfirmActionModal'
 import { callFlowToggleKeyLabels } from '../call-flows.constants'
 import type { CallFlowToggleKey } from '../call-flows.types'
 
@@ -22,8 +22,8 @@ const toggleKeyOptions = (Object.keys(callFlowToggleKeyLabels) as CallFlowToggle
  * button stays disabled until one is made, as in Axion. Stays open on failure.
  */
 const ToggleCallFlowsModal = ({ open, count, onConfirm, onCancel }: ToggleCallFlowsModalProps) => {
-  const { message } = App.useApp()
   const [toggleKey, setToggleKey] = useState<CallFlowToggleKey | undefined>(undefined)
+  // Locks the choice while the request runs (the modal itself owns the button loading state).
   const [toggling, setToggling] = useState(false)
 
   useEffect(() => {
@@ -35,29 +35,21 @@ const ToggleCallFlowsModal = ({ open, count, onConfirm, onCancel }: ToggleCallFl
     setToggling(true)
     try {
       await onConfirm(toggleKey)
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to toggle call flows.'))
     } finally {
       setToggling(false)
     }
   }
 
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle Call Flows"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={toggling} disabled={!toggleKey} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
+      confirmDisabled={!toggleKey}
       width={440}
+      errorMessage="Failed to toggle call flows."
+      onConfirm={handleConfirm}
+      onCancel={onCancel}
     >
       <Typography.Paragraph>
         Toggle {count === 1 ? 'the selected call flow' : `the ${count} selected call flows`}. Each flow's chosen setting is switched to its opposite value.
@@ -72,7 +64,7 @@ const ToggleCallFlowsModal = ({ open, count, onConfirm, onCancel }: ToggleCallFl
           />
         </Form.Item>
       </Form>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

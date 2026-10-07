@@ -1,5 +1,7 @@
-import { useEffect, useState } from "react";
-import { Alert, Card, Col, Form, Input, Row, Select } from "antd";
+import { useCallback, useEffect, useState } from "react";
+import { Card, Col, Form, Input, Row, Select } from "antd";
+import ErrorState from "../../../components/feedback/ErrorState";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 import {
   callGroupOptions,
   missedCallAppOptions,
@@ -22,11 +24,13 @@ const { TextArea } = Input;
 const useHoldMusicOptions = (domain?: string) => {
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Bumped by retry() to re-run the load for the same domain.
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     setOptions([]);
-    setError(false);
+    setError(null);
 
     if (!domain) return;
 
@@ -37,8 +41,8 @@ const useHoldMusicOptions = (domain?: string) => {
       .then((values) => {
         if (active) setOptions(values);
       })
-      .catch(() => {
-        if (active) setError(true);
+      .catch((err: unknown) => {
+        if (active) setError(getApiErrorMessage(err, "The hold music options for this domain failed to load."));
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -47,9 +51,11 @@ const useHoldMusicOptions = (domain?: string) => {
     return () => {
       active = false;
     };
-  }, [domain]);
+  }, [domain, attempt]);
 
-  return { options, loading, error };
+  const retry = useCallback(() => setAttempt((value) => value + 1), []);
+
+  return { options, loading, error, retry };
 };
 
 interface ExtensionFormAdvancedSectionProps {
@@ -84,13 +90,24 @@ const ExtensionFormAdvancedSection = ({
     options: holdMusicOptions,
     loading: holdMusicLoading,
     error: holdMusicError,
+    retry: retryHoldMusic,
   } = useHoldMusicOptions(watchedContext ?? defaultUserContext);
 
   return (
     <>
       <Card title="Advanced Settings" style={{ marginTop: 24 }}>
+        {holdMusicError && (
+          <div style={{ marginBottom: 16 }}>
+            <ErrorState
+              type="warning"
+              message="Some data couldn't be loaded"
+              description={holdMusicError}
+              onRetry={retryHoldMusic}
+            />
+          </div>
+        )}
         <Row gutter={16}>
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="effective_caller_id_name"
               label="Effective Caller ID Name"
@@ -101,7 +118,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="effective_caller_id_number"
               label="Effective Caller ID Number"
@@ -112,7 +129,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="outbound_caller_id_name"
               label="Outbound Caller ID Name"
@@ -123,7 +140,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="outbound_caller_id_number"
               label="Outbound Caller ID Number"
@@ -134,7 +151,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="emergency_caller_id_name"
               label="Emergency Caller ID Name"
@@ -145,7 +162,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="emergency_caller_id_number"
               label="Emergency Caller ID Number"
@@ -156,7 +173,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="directory_first_name"
               label="Directory First Name"
@@ -167,7 +184,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="directory_last_name"
               label="Directory Last Name"
@@ -178,7 +195,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="max_registrations"
               label="Max Registrations"
@@ -189,7 +206,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="limit_max"
               label="Limit Max"
@@ -200,7 +217,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item  
               name="limit_destination"
               label="Limit Destination"
@@ -211,7 +228,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="missed_call_app"
               label="Missed Call"
@@ -227,7 +244,7 @@ const ExtensionFormAdvancedSection = ({
           </Col>
 
           {missedCallApp === "email" && (
-            <Col xs={24} md={8}>
+            <Col xs={24} sm={12} lg={8}>
               <Form.Item
                 name="missed_call_data"
                 label="Missed Call Email"
@@ -240,7 +257,7 @@ const ExtensionFormAdvancedSection = ({
             </Col>
           )}
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="toll_allow"
               label="Toll Allow"
@@ -251,7 +268,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="call_timeout"
               label="Call Timeout"
@@ -262,7 +279,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="call_group"
               label="Call Group"
@@ -281,7 +298,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="user_record"
               label="Record"
@@ -291,7 +308,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="hold_music" label="Hold Music" tooltip="Select the MOH category here">
               <Select
                 allowClear
@@ -301,21 +318,12 @@ const ExtensionFormAdvancedSection = ({
                   label: value,
                   value,
                 }))}
-                disabled={disabled || holdMusicError}
+                disabled={disabled || !!holdMusicError}
               />
             </Form.Item>
-
-            {holdMusicError && (
-              <Alert
-                type="warning"
-                showIcon
-                message="Failed to load hold music options."
-                style={{ marginBottom: 24 }}
-              />
-            )}
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="user_context"
               label="Context"
@@ -342,7 +350,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="auth_acl"
               label="Auth ACL"
@@ -353,7 +361,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="cidr"
               label="CIDR"
@@ -364,7 +372,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="sip_force_contact"
               label="SIP Force Contact"
@@ -379,7 +387,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="sip_force_expires"
               label="SIP Force Expires"
@@ -390,7 +398,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="mwi_account"
               label="MWI Account"
@@ -401,7 +409,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="sip_bypass_media"
               label="SIP Bypass Media"
@@ -416,7 +424,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="absolute_codec_string"
               label="Absolute Codec String"
@@ -427,7 +435,7 @@ const ExtensionFormAdvancedSection = ({
             </Form.Item>
           </Col>
 
-          <Col xs={24} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="dial_string"
               label="Dial String"

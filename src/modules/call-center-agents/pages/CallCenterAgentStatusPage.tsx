@@ -16,6 +16,7 @@ import { agentStatusOptions } from "../call-center-agents.constants";
 import useCallCenterAgentPermissions from "../useCallCenterAgentPermissions";
 
 import type { AgentStatus, AgentStatusEntry } from "../call-center-agents.types";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 
 const CallCenterAgentStatusPage = () => {
   const navigate = useNavigate();
@@ -106,7 +107,7 @@ const CallCenterAgentStatusPage = () => {
 
       await load();
     } catch (err) {
-      message.error(err instanceof Error ? err.message : "Failed to update agent statuses.");
+      message.error(getApiErrorMessage(err, "Failed to update agent statuses."));
     } finally {
       setSaving(false);
     }
@@ -156,7 +157,7 @@ const CallCenterAgentStatusPage = () => {
     ...(showAll
       ? [
           {
-            title: "Domain Name",
+            title: "Domain",
             dataIndex: "domain",
             key: "domain",
             width: "25%",

@@ -20,7 +20,7 @@ import {
   updateCallCenter,
 } from '../call-center.service'
 import useCallCenterPermissions from '../useCallCenterPermissions'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import type {
   CallCenterDetails,
   CallCenterFlagCommand,
@@ -84,7 +84,7 @@ const EditCallCenterPage = () => {
   const { token } = theme.useToken()
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const { canManageAll, canEdit, canView } = useCallCenterPermissions()
+  const { canManageAll, canEdit } = useCallCenterPermissions()
   const { callCenterId } = useParams<{ callCenterId: string }>()
 
   const [hive, setHive] = useState<HiveCallCenterDetails | null>(null)
@@ -101,7 +101,6 @@ const EditCallCenterPage = () => {
   const [lifecycleAction, setLifecycleAction] = useState<CallCenterFlagCommand | null>(null)
   const [formKey, setFormKey] = useState(0)
 
-  const canAccessForm = canManageAll || canEdit || canView
   // View-only users see the form but can't submit changes — matches the audit's
   // `disabledFieldsBasic` (call-center.md §14/§25/§33).
   const canEditFields = canManageAll || canEdit
@@ -164,12 +163,12 @@ const EditCallCenterPage = () => {
     setSubmitting(true)
     try {
       await updateCallCenter(details.call_center_queue_uuid, values)
-      message.success('Call center queue updated successfully.')
+      message.success(`Call center queue "${values.queue_name}" updated successfully.`)
       // Matches the audit exactly: Update success does NOT navigate away — it re-fetches details
       // and re-populates the same Edit page in place (call-center.md §3/§19).
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update call center queue.')
+      message.error(getApiErrorMessage(err, 'Failed to update call center queue.'))
     } finally {
       setSubmitting(false)
     }
@@ -183,10 +182,10 @@ const EditCallCenterPage = () => {
     setLifecycleAction(flagCommand)
     try {
       await startStopRestartCallCenter(details.call_center_queue_uuid, flagCommand)
-      message.success(`Call center queue ${lifecyclePastTense[flagCommand]}.`)
+      message.success(`Call center queue "${details.queue_name}" ${lifecyclePastTense[flagCommand]} successfully.`)
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to ${label.toLowerCase()} call center queue.`)
+      message.error(getApiErrorMessage(err, `Failed to ${label.toLowerCase()} call center queue.`))
     } finally {
       setLifecycleAction(null)
     }
@@ -263,8 +262,9 @@ const EditCallCenterPage = () => {
             <Button onClick={handleCancel} disabled={submitting}>
               Cancel
             </Button>
-            {canAccessForm && (
-              <Button type="primary" htmlType="submit" form={EDIT_CALL_CENTER_FORM_ID} loading={submitting} disabled={!canEditFields}>
+            {/* View-only users get a read-only form with no Save at all. */}
+            {canEditFields && (
+              <Button type="primary" htmlType="submit" form={EDIT_CALL_CENTER_FORM_ID} loading={submitting}>
                 Save
               </Button>
             )}

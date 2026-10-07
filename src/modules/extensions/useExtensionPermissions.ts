@@ -18,6 +18,10 @@ const useExtensionPermissions = () => {
   const canEditAdvanced = !permissionsActive || hasPermission(extensionPermissionStrings.advancedEdit)
   const canViewAdvanced = !permissionsActive || hasPermission(extensionPermissionStrings.advancedView)
   // Row-level Copy: pbx_admin OR pbx_axiontech OR pbx_extension_add (extension.md §14).
+  // Module-admin (`pbx_extension_all`) — gates the list's Show All control (extension.md §14).
+  const canManageAll = !permissionsActive || hasPermission(extensionPermissionStrings.all)
+  // Add/Import/Export are visible to module-admin or add holders (extension.md §14).
+  const canAdd = canManageAll || hasPermission(extensionPermissionStrings.add)
   const canCopy =
     !permissionsActive ||
     hasPermission(extensionPermissionStrings.admin) ||
@@ -30,6 +34,8 @@ const useExtensionPermissions = () => {
     canEditAdvanced,
     canViewAdvanced,
     canCopy,
+    canManageAll,
+    canAdd,
     showAdvancedSection: canViewAdvanced || canEditAdvanced,
   }
 }

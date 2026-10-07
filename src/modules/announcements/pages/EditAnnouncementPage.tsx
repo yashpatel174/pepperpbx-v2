@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
 import ModuleHeader from '../../../components/common/ModuleHeader'
 import FormPageToolbar from '../../../components/common/FormPageToolbar'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
@@ -26,7 +26,7 @@ const toFormValues = (details: AnnouncementDetails): AnnouncementFormValues => (
 const EditAnnouncementPage = () => {
   const navigate = useNavigate()
   const { message } = App.useApp()
-  const { canManageAll, canEdit, canView, canUseFreeText } = useAnnouncementPermissions()
+  const { canManageAll, canEdit, canUseFreeText } = useAnnouncementPermissions()
   const { announcementId } = useParams<{ announcementId: string }>()
 
   const [hive, setHive] = useState<HiveAnnouncementDetails | null>(null)
@@ -39,7 +39,6 @@ const EditAnnouncementPage = () => {
   const [submitting, setSubmitting] = useState(false)
   const [formKey, setFormKey] = useState(0)
 
-  const canAccessForm = canManageAll || canEdit || canView
   // View-only users see the form but can't submit changes — matches the audit's
   // `disabledFieldsBasic` (announcements.md §14/§25/§33).
   const canEditFields = canManageAll || canEdit
@@ -96,13 +95,13 @@ const EditAnnouncementPage = () => {
     setSubmitting(true)
     try {
       const updated = await updateAnnouncement(details.phrase_uuid, values)
-      message.success(`Announcement ${updated.phrase_name} updated successfully.`)
+      message.success(`Announcement "${updated.phrase_name}" updated successfully.`)
       // Matches the audit exactly: Update success does NOT navigate away — it re-fetches details
       // and re-populates the same Edit page in place (announcements.md §3/§19), unlike Outbound
       // Routes'/Destinations' "navigate back to List" convention.
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update announcement.')
+      message.error(getApiErrorMessage(err, 'Failed to update announcement.'))
     } finally {
       setSubmitting(false)
     }
@@ -131,8 +130,9 @@ const EditAnnouncementPage = () => {
             <Button onClick={handleCancel} disabled={submitting}>
               Cancel
             </Button>
-            {canAccessForm && (
-              <Button type="primary" htmlType="submit" form={EDIT_ANNOUNCEMENT_FORM_ID} loading={submitting} disabled={!canEditFields}>
+            {/* View-only users get a read-only form with no Save at all. */}
+            {canEditFields && (
+              <Button type="primary" htmlType="submit" form={EDIT_ANNOUNCEMENT_FORM_ID} loading={submitting}>
                 Save
               </Button>
             )}

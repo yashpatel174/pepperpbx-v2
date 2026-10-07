@@ -1,6 +1,5 @@
-import { useState } from 'react'
-import { App, Button, Modal, Typography } from 'antd'
-import { getApiErrorMessage } from '../../../../services/api/apiError'
+import { Typography } from 'antd'
+import ConfirmActionModal from '../../../../components/common/ConfirmActionModal'
 
 interface ToggleTimeGroupPresetsModalProps {
   open: boolean
@@ -14,41 +13,20 @@ interface ToggleTimeGroupPresetsModalProps {
  * selected preset's status flips. Stays open on failure and shows the in-flight state.
  */
 const ToggleTimeGroupPresetsModal = ({ open, count, onConfirm, onCancel }: ToggleTimeGroupPresetsModalProps) => {
-  const { message } = App.useApp()
-  const [toggling, setToggling] = useState(false)
-
-  const handleConfirm = async () => {
-    setToggling(true)
-    try {
-      await onConfirm()
-    } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to toggle presets.'))
-    } finally {
-      setToggling(false)
-    }
-  }
-
   return (
-    <Modal
+    <ConfirmActionModal
       open={open}
       title="Toggle Preset"
-      onCancel={toggling ? undefined : onCancel}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button disabled={toggling} onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="primary" loading={toggling} onClick={handleConfirm}>
-            Toggle
-          </Button>
-        </div>
-      }
+      confirmText="Toggle"
       width={440}
+      errorMessage="Failed to toggle presets."
+      onConfirm={onConfirm}
+      onCancel={onCancel}
     >
       <Typography.Paragraph>
         Do you really want to toggle {count === 1 ? 'this preset' : `these ${count} presets`}?
       </Typography.Paragraph>
-    </Modal>
+    </ConfirmActionModal>
   )
 }
 

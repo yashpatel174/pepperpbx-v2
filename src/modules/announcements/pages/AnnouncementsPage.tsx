@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { App, Button, Flex, Select, Space, Switch, Tooltip, Typography } from 'antd'
+import { App, Button, Select, Space, Switch, Tooltip, Typography } from 'antd'
 import { PlusOutlined, UndoOutlined } from '@ant-design/icons'
 import ErrorState from '../../../components/feedback/ErrorState'
 import LoadingState from '../../../components/feedback/LoadingState'
@@ -15,6 +15,7 @@ import ToggleAnnouncementsModal from '../components/ToggleAnnouncementsModal'
 import { useAnnouncements } from '../useAnnouncements'
 import useAnnouncementPermissions from '../useAnnouncementPermissions'
 import type { Announcement } from '../announcement.types'
+import { getApiErrorMessage } from '../../../services/api/apiError'
 
 /**
  * Bulk actions are limited to Toggle + Delete — no Copy action exists anywhere in this module per
@@ -51,6 +52,8 @@ const AnnouncementsPage = () => {
   const [selectedAnnouncementIds, setSelectedAnnouncementIds] = useState<string[]>([])
   const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined)
   const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null)
+  // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
+  const [deleteIsBulk, setDeleteIsBulk] = useState(false)
   const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null)
 
   const hasSelection = selectedAnnouncementIds.length > 0
@@ -86,6 +89,7 @@ const AnnouncementsPage = () => {
   const handleEdit = (announcement: Announcement) => navigate(`/announcements/${announcement.id}/edit`)
 
   const handleDeleteRequest = (announcement: Announcement) => {
+    setDeleteIsBulk(false)
     setDeleteTargets([{ id: announcement.id, name: announcement.name }])
   }
 
@@ -93,14 +97,18 @@ const AnnouncementsPage = () => {
     if (!deleteTargets) return
     const ids = deleteTargets.map((target) => target.id)
     await removeAnnouncements(ids)
-    message.success(`${ids.length} announcement${ids.length === 1 ? '' : 's'} deleted.`)
+    message.success(ids.length === 1 ? `Announcement "${deleteTargets[0].name}" deleted successfully.` : `${ids.length} announcements deleted.`)
     setDeleteTargets(null)
-    clearSelection()
+    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+    setSelectedAnnouncementIds((selected) => selected.filter((id) => !ids.includes(id)))
+    setDeleteIsBulk(false)
   }
 
   const handleDeleteCancel = () => {
     setDeleteTargets(null)
-    clearSelection()
+    // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
+    if (deleteIsBulk) clearSelection()
+    setDeleteIsBulk(false)
   }
 
   const handleToggleConfirm = async () => {
@@ -122,9 +130,9 @@ const AnnouncementsPage = () => {
   const handleToggleStatus = async (announcement: Announcement) => {
     try {
       await toggleAnnouncementsStatus([announcement.id])
-      message.success(`Announcement ${announcement.name} ${announcement.enabled ? 'disabled' : 'enabled'}.`)
+      message.success(`Announcement "${announcement.name}" ${announcement.enabled ? 'disabled' : 'enabled'} successfully.`)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : `Failed to update announcement ${announcement.name}.`)
+      message.error(getApiErrorMessage(err, `Failed to update announcement ${announcement.name}.`))
     }
   }
 
@@ -137,6 +145,7 @@ const AnnouncementsPage = () => {
     // announcementLabelByIdRef (accumulated across every page fetched this session, see above),
     // falling back to the raw id only if a selected announcement was somehow never fetched.
     if (bulkAction === 'delete') {
+      setDeleteIsBulk(true)
       setDeleteTargets(selectedAnnouncementIds.map((id) => ({ id, name: announcementLabelByIdRef.current.get(id) ?? id })))
       return
     }
@@ -164,50 +173,6 @@ const AnnouncementsPage = () => {
     </Space>
   )
 
-  /**
-   * Custom toolbar (replaces ModuleHeader's default `filters`+`primaryAction` composition) so the
-   * three logical groups — [Reset+Search], [Show All], [Add] — regroup responsively via plain
-   * flexbox wrapping rather than ModuleHeader's generic even-wrap, matching the desired shape:
-   * desktop/tablet one row (search cluster left, Show All + Add right); mobile Search takes its
-   * own full-width row, Show All and Add share the next row. No media queries or window.innerWidth
-   * — the two-line mobile grouping falls out naturally from flex-wrap once the search cluster's
-   * own min width no longer fits beside the right-hand cluster.
-   */
-  const defaultToolbar = (
-    <Flex wrap gap="middle" justify="space-between" align="center" style={{ width: '100%' }}>
-      <Flex wrap gap="middle" align="center" style={{ flex: '1 1 260px', minWidth: 0 }}>
-        <Tooltip title="Reset filters">
-          <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
-        </Tooltip>
-
-        <AnnouncementFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
-         {canManageAll && (
-          <Tooltip title="Show announcements across all accessible domains">
-            <Space size="small">
-              <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all announcements" />
-              <span>Show All</span>
-            </Space>
-          </Tooltip>
-        )}
-      </Flex>
-
-      <Flex wrap gap="middle" align="center" style={{ flex: '0 0 auto' }}>
-        {/* Show All is visible only for the module-admin tier, matching the audit's
-            `actionPermission`-only gate (announcements.md §7/§14/§25) — narrower than the list's
-            own overall view access. */}
-       
-
-        {(canManageAll || canAdd) && (
-          // TODO: wrap with <PermissionGuard permission="announcement.add"> once RBAC
-          // permissions are populated from the backend.
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Add Announcement
-          </Button>
-        )}
-      </Flex>
-    </Flex>
-  )
-
   if (error) {
     return <ErrorState message={error} onRetry={refresh} />
   }
@@ -221,7 +186,41 @@ const AnnouncementsPage = () => {
       <ModuleHeader
         title="Announcements"
         count={totalRecords}
-        toolbar={hasSelection ? selectionToolbar : defaultToolbar}
+        primaryAction={
+          canManageAll || canAdd
+            ? {
+                // TODO: wrap with <PermissionGuard permission="announcement.add"> once RBAC
+                // permissions are populated from the backend.
+                key: 'add',
+                label: 'Add Announcement',
+                icon: <PlusOutlined />,
+                onClick: handleAdd,
+              }
+            : undefined
+        }
+        // Without any access the page shows PermissionDenied, so the toolbar shows nothing either.
+        filters={
+          hasAnyAccess ? (
+            <>
+              <Tooltip title="Reset filters">
+                <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              </Tooltip>
+              <AnnouncementFilters value={searchTerm} onChange={setSearchTerm} onSearch={commitSearch} />
+              {/* Show All is visible only for the module-admin tier, matching the audit's
+                  `actionPermission`-only gate (announcements.md §7/§14/§25) — narrower than the
+                  list's own overall view access. */}
+              {canManageAll && (
+                <Tooltip title="Show announcements across all accessible domains">
+                  <Space size="small">
+                    <Switch checked={showAll} onChange={setShowAll} size="small" aria-label="Show all announcements" />
+                    <span>Show All</span>
+                  </Space>
+                </Tooltip>
+              )}
+            </>
+          ) : undefined
+        }
+        toolbar={hasSelection ? selectionToolbar : undefined}
       />
 
       {!hasAnyAccess ? (

@@ -1,4 +1,7 @@
 import type { RingGroupHiveDetails } from './ring-group.types'
+import { noEdgeWhitespaceRule } from '../../components/common/validationRules'
+
+export { noEdgeWhitespaceRule }
 
 /**
  * Ant Design validation rules for the Ring Group Add/Edit form and Copy modal — the audit's Yup
@@ -6,18 +9,12 @@ import type { RingGroupHiveDetails } from './ring-group.types'
  */
 
 const ALPHANUMERIC_WITH_SPACE_PATTERN = /^[a-zA-Z0-9 ]+$/
-const NO_EDGE_WHITESPACE_PATTERN = /^[^\s]+(\s+[^\s]+)*$/
 /** Digits, optionally prefixed with `**` (§10). */
 const EXTENSION_PATTERN = /^(?:\*\*)?\d+$/
 const CALL_TIMEOUT_PATTERN = /^\d{1,3}$/
 const NUMBER_20_PATTERN = /^\d{1,20}$/
 /** One or more comma-separated emails, spaces around commas allowed (§10). */
 const MULTI_EMAIL_PATTERN = /^\s*[^\s@,]+@[^\s@,]+\.[^\s@,]+\s*(,\s*[^\s@,]+@[^\s@,]+\.[^\s@,]+\s*)*$/
-
-export const noEdgeWhitespaceRule = {
-  pattern: NO_EDGE_WHITESPACE_PATTERN,
-  message: 'Leading and trailing whitespaces are not allowed',
-}
 
 /** Alphanumeric + space. Copy's name additionally rejects edge whitespace (§8); applied to both. */
 export const nameRules = [

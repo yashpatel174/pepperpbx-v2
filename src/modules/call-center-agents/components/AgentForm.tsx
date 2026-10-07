@@ -10,7 +10,7 @@ import {
   numericUpTo3DigitsRule,
 } from "../call-center-agents.validation";
 import { agentStatusOptions } from "../call-center-agents.constants";
-import { domainChangeMessage } from "../../../components/common/domainChangeMessage";
+import { domainChangeMessage, domainChangeTitle } from "../../../components/common/domainChangeMessage";
 import ToggleSelectInput from "../../../components/common/ToggleSelectInput";
 import type { CallCenterAgentFormValues, HiveCallCenterAgentDetails, SelectOption } from "../call-center-agents.types";
 
@@ -83,7 +83,7 @@ const AgentForm = ({
     // options/currentDomainRef stay scoped to the old one. modal.confirm (not modal.info) is used
     // specifically so a Cancel path exists to do that restoration.
     modal.confirm({
-      title: "Domain changed",
+      title: domainChangeTitle,
       content: domainChangeMessage(),
       okText: "Continue",
       cancelText: "Cancel",
@@ -119,7 +119,7 @@ const AgentForm = ({
       <Card>
         <Row gutter={[16, 16]}>
           {/* Agent Name */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_name"
               label="Agent Name"
@@ -132,14 +132,14 @@ const AgentForm = ({
           </Col>
 
           {/* Agent Type */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="agent_type" label="Type" tooltip="Enter the agent type" rules={[noEdgeWhitespaceRule]}>
               <Input placeholder="Enter type" aria-label="Agent type" />
             </Form.Item>
           </Col>
 
           {/* Call Timeout */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_call_timeout"
               label="Call Timeout"
@@ -151,14 +151,14 @@ const AgentForm = ({
           </Col>
 
           {/* Agent ID */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="agent_id" label="Agent ID" tooltip="Enter the agent ID" rules={[numericUpTo20DigitsRule]}>
               <Input placeholder="Enter agent id" aria-label="Agent ID" />
             </Form.Item>
           </Col>
 
           {/* Agent Password */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_password"
               label="Agent Password"
@@ -170,14 +170,14 @@ const AgentForm = ({
           </Col>
 
           {/* Status */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="agent_status" label="Status" tooltip="Select the default agent status">
               <Select allowClear placeholder="Select status" options={agentStatusOptions} aria-label="Status" />
             </Form.Item>
           </Col>
 
           {/* No Answer Delay Time */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_no_answer_delay_time"
               label="No Answer Delay Time"
@@ -189,7 +189,7 @@ const AgentForm = ({
           </Col>
 
           {/* Max No Answer */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_max_no_answer"
               label="Max No Answer"
@@ -201,7 +201,7 @@ const AgentForm = ({
           </Col>
 
           {/* Wrap Up Time */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_wrap_up_time"
               label="Wrap Up Time"
@@ -213,7 +213,7 @@ const AgentForm = ({
           </Col>
 
           {/* Reject Delay Time */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_reject_delay_time"
               label="Reject Delay Time"
@@ -225,7 +225,7 @@ const AgentForm = ({
           </Col>
 
           {/* Busy Delay Time */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_busy_delay_time"
               label="Busy Delay Time"
@@ -237,7 +237,7 @@ const AgentForm = ({
           </Col>
 
           {/* Domain */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="domain_name"
               label="Domain"
@@ -265,7 +265,7 @@ const AgentForm = ({
           </Col>
 
           {/* Contact */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item
               name="agent_contact"
               label="Contact"
@@ -285,7 +285,7 @@ const AgentForm = ({
           </Col>
 
           {/* Record */}
-          <Col xs={24} sm={12} md={8}>
+          <Col xs={24} sm={12} lg={8}>
             <Form.Item name="agent_record" label="Record" tooltip="Save the recording" valuePropName="checked">
               <Switch disabled={disabled} aria-label="Record" />
             </Form.Item>

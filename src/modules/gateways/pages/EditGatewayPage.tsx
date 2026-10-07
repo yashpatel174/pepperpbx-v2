@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { App, Button, Space } from 'antd'
 import ModuleHeader from '../../../components/common/ModuleHeader'
 import FormPageToolbar from '../../../components/common/FormPageToolbar'
-import { isNotFoundError } from '../../../services/api/apiError'
+import { getApiErrorMessage, isNotFoundError } from '../../../services/api/apiError'
 import LoadingState from '../../../components/feedback/LoadingState'
 import EmptyState from '../../../components/feedback/EmptyState'
 import ErrorState from '../../../components/feedback/ErrorState'
@@ -114,11 +114,11 @@ const EditGatewayPage = () => {
     setSubmitting(true)
     try {
       const updated = await updateGateway(details.gateway_uuid, values)
-      message.success(`Gateway ${updated.gateway} updated successfully.`)
+      message.success(`Gateway "${updated.gateway}" updated successfully.`)
       // Stay on the Edit page: re-fetch details and re-populate, matching the Axion reference.
       await load(false)
     } catch (err) {
-      message.error(err instanceof Error ? err.message : 'Failed to update gateway.')
+      message.error(getApiErrorMessage(err, 'Failed to update gateway.'))
     } finally {
       setSubmitting(false)
     }
