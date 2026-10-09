@@ -114,13 +114,13 @@ const ConferenceRoomsPage = () => {
   }
 
   // Inline column click: flips that one flag immediately, no confirmation (conference-rooms.md §3/§5).
-  const handleToggleField = async (room: ConferenceRoom, field: ConferenceRoomToggleKey, label: string) => {
+  const handleToggleField = async (room: ConferenceRoom, field: ConferenceRoomToggleKey) => {
     const pendingKey = `${room.conference_room_uuid}:${field}`
     if (pendingTogglesRef.current.has(pendingKey)) return
     setTogglePending(pendingKey, true)
     try {
       await toggleConferenceRoomsField([room.conference_room_uuid], field)
-      message.success(`${label} ${room[field] ? 'disabled' : 'enabled'} successfully for conference room "${room.conference_room_name}".`)
+      message.success(` ${room[field] ? 'disabled' : 'enabled'} successfully for conference room "${room.conference_room_name}".`)
       // Toggle success clears the row selection, inline included (conference-rooms.md §11).
       clearSelection()
     } catch (err) {
