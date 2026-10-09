@@ -40,26 +40,35 @@ const PlayerBody = ({ recording, canDownload }: PlayerBodyProps) => {
     }
   }, [recording.recording_uuid])
 
+  const saveAs = (href: string, fileName: string) => {
+    const anchor = document.createElement('a')
+    anchor.href = href
+    anchor.download = fileName
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+  }
+
   /**
-   * Fetch → blob → temporary anchor, as Axion does (recordings.md §3), so the download works for
-   * cross-origin URLs where a bare `<a download>` is ignored. Unlike Axion, the file is named after
-   * the recording's own file name instead of a hardcoded `recordingFile.wav` (§26/§33).
+   * Remote URLs: fetch → blob → temporary anchor, as Axion does (recordings.md §3), so the download
+   * works cross-origin where a bare `<a download>` is ignored. `blob:` / `data:` URLs are already
+   * local, so they are saved directly — no fetch and no state change, hence no re-render of the
+   * player row. Unlike Axion, the file is named after the recording's own file name instead of a
+   * hardcoded `recordingFile.wav` (§26/§33).
    */
   const handleDownload = async () => {
     if (!audio || downloadingRef.current) return
+    if (/^(blob|data):/.test(audio.url)) {
+      saveAs(audio.url, audio.fileName)
+      return
+    }
     downloadingRef.current = true
     setDownloading(true)
     try {
       const response = await fetch(audio.url, { mode: 'cors' })
       if (!response.ok) throw new Error(`Download failed (${response.status}).`)
-      const blob = await response.blob()
-      const objectUrl = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = objectUrl
-      anchor.download = audio.fileName
-      document.body.appendChild(anchor)
-      anchor.click()
-      anchor.remove()
+      const objectUrl = URL.createObjectURL(await response.blob())
+      saveAs(objectUrl, audio.fileName)
       setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
     } catch (err) {
       message.error(getApiErrorMessage(err, 'Failed to download the recording.'))
@@ -78,7 +87,8 @@ const PlayerBody = ({ recording, canDownload }: PlayerBodyProps) => {
       {/* `nodownload` hides the native player's Download menu item (Chromium); the Download button below is the only download path. Playback speed is unaffected. */}
       <audio controls controlsList="nodownload" src={audio.url} style={{ flex: 1, minWidth: 200, colorScheme: 'light' }} aria-label="Audio player" />
       <Button type="primary" icon={<DownloadOutlined />} loading={downloading} disabled={!canDownload} onClick={handleDownload}>
-        {downloading ? 'Downloading...' : 'Download file'}
+        {/* Constant label: swapping to a longer "Downloading..." resized the button and re-wrapped the flex row. */}
+        Download file
       </Button>
     </div>
   )
