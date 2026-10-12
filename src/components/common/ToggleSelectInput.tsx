@@ -46,9 +46,16 @@ export interface ToggleSelectInputProps {
   'aria-label'?: string
 }
 
-const isOptionGroup = (option: ToggleSelectOption | ToggleSelectOptionGroup): option is ToggleSelectOptionGroup => 'options' in option
+const isOptionGroup = (
+  option: ToggleSelectOption | ToggleSelectOptionGroup,
+): option is ToggleSelectOptionGroup => 'options' in option
 
-const flattenOptions = (options: ToggleSelectOptions): ToggleSelectOption[] => options.flatMap((option) => (isOptionGroup(option) ? option.options : [option]))
+const flattenOptions = (
+  options: ToggleSelectOptions,
+): ToggleSelectOption[] =>
+  options.flatMap((option) =>
+    isOptionGroup(option) ? option.options : [option],
+  )
 
 /**
  * PepperPBX's Ant Design equivalent of Axion's `ToggleSelectInputCallCenter` — lets a privileged
@@ -76,13 +83,32 @@ const ToggleSelectInput = ({
   // Axion's documented behavior exactly). Recomputes whenever the live value or options change.
   const displayOptions = useMemo<ToggleSelectOptions>(() => {
     if (!value) return options
-    const alreadyPresent = flattenOptions(options).some((option) => option.value === value)
+
+    const alreadyPresent = flattenOptions(options).some(
+      (option) => option.value === value,
+    )
+
     if (alreadyPresent) return options
-    return [...options, { label: 'Other', options: [{ label: value, value }] }]
+
+    return [
+      ...options,
+      {
+        label: 'Other',
+        options: [{ label: value, value }],
+      },
+    ]
   }, [options, value])
 
   return (
-    <Space.Compact style={{ width: '100%' }}>
+    <Space.Compact
+      block
+      style={{
+        width: '100%',
+        minWidth: 0,
+        maxWidth: '100%',
+        overflow: 'hidden',
+      }}
+    >
       {isSelect ? (
         <Select
           showSearch
@@ -94,8 +120,13 @@ const ToggleSelectInput = ({
           placeholder={placeholder}
           loading={loading}
           disabled={disabled}
-          style={{ flex: 1 }}
           aria-label={ariaLabel}
+          style={{
+            flex: '1 1 0',
+            width: 0,
+            minWidth: 0,
+            overflow: 'hidden',
+          }}
         />
       ) : (
         <Input
@@ -103,19 +134,39 @@ const ToggleSelectInput = ({
           onChange={(e) => onChange?.(e.target.value)}
           placeholder={placeholder}
           disabled={disabled}
-          style={{ flex: 1 }}
           aria-label={ariaLabel}
+          style={{
+            flex: '1 1 0',
+            width: 0,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
         />
       )}
 
       {canToggle && (
-        <Tooltip title={isSelect ? 'Switch to a custom text value' : 'Switch back to select from list'}>
+        <Tooltip
+          title={
+            isSelect
+              ? 'Switch to a custom text value'
+              : 'Switch back to select from list'
+          }
+        >
           <Button
             htmlType="button"
             icon={<LeftOutlined />}
             disabled={disabled}
             onClick={() => setIsSelect((previous) => !previous)}
-            aria-label={isSelect ? 'Switch to text input' : 'Switch to select input'}
+            aria-label={
+              isSelect
+                ? 'Switch to text input'
+                : 'Switch to select input'
+            }
+            style={{
+              flex: '0 0 auto',
+            }}
           />
         </Tooltip>
       )}
