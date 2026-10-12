@@ -1,4 +1,5 @@
 import { lazy } from 'react'
+import { DashboardOutlined, UserOutlined } from '@ant-design/icons'
 import type { AdminRouterItem } from '../../router'
 import LazyRoute from '../../components/common/LazyRoute'
 
@@ -9,9 +10,9 @@ import LazyRoute from '../../components/common/LazyRoute'
  * project's existing precedent of related-but-separate feature modules living as siblings rather
  * than nested directories (e.g. Destinations/Outbound Routes under dialplans/).
  *
- * No sidebar entry for any route here (call-center.md §1: "The Agent sub-screens have no separate
- * nav entry — reached via an Agents button on the Call Center list toolbar") — every route is
- * `hideInMenu`. See src/modules/call-center/pages/CallCentersPage.tsx for that entry point.
+ * The Agents list is listed in the sidebar under "Status"; add/edit/status routes are `hideInMenu`
+ * and are still reached via the Agents button on the Call Center list toolbar
+ * (src/modules/call-center/pages/CallCentersPage.tsx).
  */
 const CallCenterAgentsPage = lazy(() => import('./pages/CallCenterAgentsPage'))
 const AddCallCenterAgentPage = lazy(() => import('./pages/AddCallCenterAgentPage'))
@@ -27,10 +28,19 @@ const callCenterAgentsRoutes: AdminRouterItem[] = [
       </LazyRoute>
     ),
     meta: {
+      label: 'Call Center Agents',
       title: 'Call Center Agents',
       key: '/call-center/agents',
-      hideInMenu: true,
+      icon: <UserOutlined />,
+      // Follows Active Call Center (order 0) and Active Conferences (order 1) in the Status group.
+      order: 2,
       hideBreadcrumb: true,
+      group: {
+        key: 'status',
+        label: 'Status',
+        icon: <DashboardOutlined />,
+        order: 5,
+      },
     },
   },
   {
