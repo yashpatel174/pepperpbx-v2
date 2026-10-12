@@ -141,30 +141,26 @@ const TimeGroupRangeFields = ({ index, name, disabled, onRemove, timeZoneOptions
 
   const handleWeekdaysChange = (checked: boolean) => setRangeField("weekdays", checked ? [...workWeekdays] : []);
 
-  /**
-   * Year selection must always contain at least the current year.
-   *
-   * Examples:
-   * [2026] -> remove 2026 -> [2026]
-   * [2026, 2027] -> remove 2027 -> [2026]
-   * [2026, 2027] -> remove 2026 -> [2027, 2026]
-   *
-   * This prevents the Year field from ever becoming empty.
-   */
-  const handleYearChange = (years: number[]) => {
-    setRangeField("year", years.length === 0 ? [currentYear] : years);
-  };
+/**
+ * Year selection:
+ * - Keep the current year selected if the user clears the selection.
+ * - Preserve the other selected years.
+ */
+const handleYearChange = (years: number[]) => {
+  setRangeField("year", years.length === 0 ? [currentYear] : years);
+};
 
-  /**
-   * Apply on All Years:
-   * ON  -> [currentYear, 2099]
-   * OFF -> [currentYear]
-   *
-   * Turning the switch off must NOT clear the Year field.
-   */
-  const handleApplyOnAllYearsChange = (checked: boolean) => {
-    setRangeField("year", checked ? [currentYear, allYearsSentinel] : [currentYear]);
-  };
+/**
+ * Apply on All Years:
+ * ON  -> [2099] (only All Years is selected)
+ * OFF -> [currentYear] (current year is selected)
+ */
+const handleApplyOnAllYearsChange = (checked: boolean) => {
+  setRangeField(
+    "year",
+    checked ? [allYearsSentinel] : [currentYear],
+  );
+};
 
   return (
     <Card

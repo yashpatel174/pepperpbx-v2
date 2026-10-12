@@ -87,7 +87,7 @@ const OutboundRouteBasicSection = ({
               tooltip="Enter the maximum concurrent calls"
               rules={[maxTwentyDigitsRule]}
             >
-              <Input type="number" min={0} placeholder="Enter limit" />
+              <Input type={'number'} min={0} placeholder="Enter limit" />
             </Form.Item>
           </Col>
         )}
