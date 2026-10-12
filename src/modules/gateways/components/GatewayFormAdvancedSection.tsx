@@ -96,19 +96,19 @@ const GatewayFormAdvancedSection = () => {
           tooltip="Enter the ping interval here in seconds"
           rules={[numericFieldRule]}
         >
-          <Input type="number" min={0} placeholder="Enter ping" />
+          <Input type={'number'} min={0} placeholder="Enter ping" />
         </Form.Item>
       </Col>
 
       <Col xs={24} sm={12} lg={8}>
         <Form.Item name="ping_min" label="Ping Min" tooltip="Enter the ping min" rules={[numericFieldRule]}>
-          <Input type="number" min={0} placeholder="Enter ping min" />
+          <Input type={'number'} min={0} placeholder="Enter ping min" />
         </Form.Item>
       </Col>
 
       <Col xs={24} sm={12} lg={8}>
         <Form.Item name="ping_max" label="Ping Max" tooltip="Enter the ping max" rules={[numericFieldRule]}>
-          <Input type="number" min={0} placeholder="Enter ping max" />
+          <Input type={'number'} min={0} placeholder="Enter ping max" />
         </Form.Item>
       </Col>
 
@@ -119,7 +119,7 @@ const GatewayFormAdvancedSection = () => {
           tooltip="Maximum number of simultaneous channels available in the gateway"
           rules={[numericFieldRule]}
         >
-          <Input type="number" min={0} placeholder="Enter channels" />
+          <Input type={'number'} min={0} placeholder="Enter channels" />
         </Form.Item>
       </Col>
 

@@ -235,7 +235,7 @@ const RingGroupForm = ({
                 validateFirst
                 rules={callTimeoutRules}
               >
-                <Input type="number" min={0} placeholder="Enter call timeout" aria-label="Call timeout" />
+                <Input type={'number'} min={0} placeholder="Enter call timeout" aria-label="Call timeout" />
               </Form.Item>
             </Col>
 
@@ -257,7 +257,7 @@ const RingGroupForm = ({
                 tooltip="Enter the caller ID number"
                 rules={number20Rules}
               >
-                <Input type="number" min={0} placeholder="Enter caller ID number" aria-label="Caller ID number" />
+                <Input type={'number'} min={0} placeholder="Enter caller ID number" aria-label="Caller ID number" />
               </Form.Item>
             </Col>
 
@@ -307,7 +307,7 @@ const RingGroupForm = ({
                   validateFirst
                   rules={fixedCidValueRules}
                 >
-                  {/* Text, not type="number": the value may start with `+`. */}
+                  {/* Text, not type={'number'}: the value may start with `+`. */}
                   <Input placeholder="Enter fixed cid value" aria-label="Fixed CID value" />
                 </Form.Item>
               </Col>
@@ -389,7 +389,7 @@ const RingGroupForm = ({
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <Form.Item name="ring_group_forward_destination" noStyle rules={number20Rules}>
                     <Input
-                      type="number"
+                      type={'number'}
                       min={0}
                       placeholder="Enter forward number"
                       aria-label="Ring group forward number"
