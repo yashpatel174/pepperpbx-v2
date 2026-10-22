@@ -10,19 +10,19 @@ This is the application itself, not a starter kit or demo — new PBX modules ar
 
 Exact versions as pinned in `package.json`:
 
-| Technology | Version | Purpose |
-|---|---|---|
-| React | ^19.2.7 | UI framework |
-| React DOM | ^19.2.7 | DOM renderer |
-| TypeScript | ^6.0.3 | Type safety (strict mode, no `any`) |
-| Vite | ^8.1.0 | Build tool / dev server (`@vitejs/plugin-react-swc` ^4.3.1) |
-| Ant Design | ^6.5.0 | UI component library |
-| @ant-design/icons | ^6.3.2 | Icon set |
-| React Router | ^7.18.0 | Routing (`react-router-dom`) |
-| Zustand | ^5.0.14 | Client/application state management |
-| Axios | ^1.18.1 | HTTP client |
-| Socket.IO Client | ^4.8.3 | Real-time (WebSocket) connectivity |
-| lodash-es | ^4.18.1 | Utility helpers |
+| Technology        | Version | Purpose                                                     |
+| ----------------- | ------- | ----------------------------------------------------------- |
+| React             | ^19.2.7 | UI framework                                                |
+| React DOM         | ^19.2.7 | DOM renderer                                                |
+| TypeScript        | ^6.0.3  | Type safety (strict mode, no `any`)                         |
+| Vite              | ^8.1.0  | Build tool / dev server (`@vitejs/plugin-react-swc` ^4.3.1) |
+| Ant Design        | ^6.5.0  | UI component library                                        |
+| @ant-design/icons | ^6.3.2  | Icon set                                                    |
+| React Router      | ^7.18.0 | Routing (`react-router-dom`)                                |
+| Zustand           | ^5.0.14 | Client/application state management                         |
+| Axios             | ^1.18.1 | HTTP client                                                 |
+| Socket.IO Client  | ^4.8.3  | Real-time (WebSocket) connectivity                          |
+| lodash-es         | ^4.18.1 | Utility helpers                                             |
 
 Dev tooling: ESLint ^10.6.0 with `@typescript-eslint` ^8.62.0, `eslint-plugin-react-hooks` ^7.1.1, `eslint-plugin-react-refresh` ^0.5.3.
 
@@ -242,6 +242,7 @@ Application/client state (auth, theme, current domain, permissions) is managed w
 `src/modules/extensions/` is the first real PBX module and the reference implementation for both the list/table pattern and the Add/Edit pattern — every future module (Gateways, IVR, Ring Groups, Conferences, Call Centers, Dialplans, Outbound Routes, Time Conditions, Music On Hold, …) should start by cloning its shape, not inventing a new one.
 
 **Copy this:**
+
 - The file layout and naming (see [Module Architecture](#module-architecture)).
 - The service boundary — mock data behind `<feature>.service.ts` functions with real-looking async signatures (`Promise<T>`), so swapping mock internals for `apiClient` calls later touches one file and changes zero call sites.
 - The shared `<Feature>Form` component with a `mode` prop, used by both Add and Edit, owning fields/layout/validation; pages own only routing, data loading, and the submit call.
@@ -251,6 +252,7 @@ Application/client state (auth, theme, current domain, permissions) is managed w
 - TODO-only permission markers on the actions that will eventually need `PermissionGuard`, left unguarded until the backend contract is real.
 
 **Do NOT copy blindly:**
+
 - **Field set.** Extensions' specific fields (SIP secret, voicemail, directory listing, call group, context, …) are Extensions' domain model, not a generic template — a Gateway or IVR module has its own real fields; don't cargo-cult Extensions' fields into an unrelated module.
 - **Mock data shape.** Each module's mock/seed data should reflect its own entity, not Extensions'.
 - **Validation specifics.** Extensions' rules (digits-only extension numbers, 8-char SIP secret minimum, etc.) are Extensions-specific; derive each module's validation from its own known constraints, and leave a clear placeholder rather than inventing a backend rule that isn't confirmed.
@@ -291,14 +293,14 @@ Application/client state (auth, theme, current domain, permissions) is managed w
 
 Use `components/feedback/`, don't reimplement ad hoc:
 
-| Component | Use for |
-|---|---|
-| `LoadingState` | A page/section still fetching its data |
-| `EmptyState` | A genuinely empty result (no records, no search matches, a record-scoped "not found") |
-| `ErrorState` | A failed fetch, with an optional retry action |
-| `NotFound` | The router's catch-all for an unmatched URL |
-| `PermissionDenied` | Reserved for a real 403 once RBAC is live — not wired to any route yet |
-| `SessionExpired` | Shown on the login page after a forced logout |
+| Component          | Use for                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------- |
+| `LoadingState`     | A page/section still fetching its data                                                |
+| `EmptyState`       | A genuinely empty result (no records, no search matches, a record-scoped "not found") |
+| `ErrorState`       | A failed fetch, with an optional retry action                                         |
+| `NotFound`         | The router's catch-all for an unmatched URL                                           |
+| `PermissionDenied` | Reserved for a real 403 once RBAC is live — not wired to any route yet                |
+| `SessionExpired`   | Shown on the login page after a forced logout                                         |
 
 ---
 
@@ -366,17 +368,17 @@ There is no separate `typecheck` script — `npm run build` performs the full Ty
 
 **Naming**
 
-| Kind | Convention | Example |
-|---|---|---|
-| Component | PascalCase | `ExtensionForm.tsx` |
-| Variable / function | camelCase | `loadExtensions()` |
-| Types / interfaces | PascalCase | `Extension`, `ExtensionFormValues` |
-| Hook | `useSomething.ts` | `useExtensions.ts` |
-| Service | `something.service.ts` | `extension.service.ts` |
-| Types file | `something.types.ts` | `extension.types.ts` |
-| Constants file | `something.constants.ts` | `extension.constants.ts` |
-| Route module | `something.router.tsx` | `extensions.router.tsx` |
-| Constants | camelCase for ordinary values (`defaultPageSize`); `ALL_CAPS` reserved for genuine global constants | |
+| Kind                | Convention                                                                                          | Example                            |
+| ------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------------- |
+| Component           | PascalCase                                                                                          | `ExtensionForm.tsx`                |
+| Variable / function | camelCase                                                                                           | `loadExtensions()`                 |
+| Types / interfaces  | PascalCase                                                                                          | `Extension`, `ExtensionFormValues` |
+| Hook                | `useSomething.ts`                                                                                   | `useExtensions.ts`                 |
+| Service             | `something.service.ts`                                                                              | `extension.service.ts`             |
+| Types file          | `something.types.ts`                                                                                | `extension.types.ts`               |
+| Constants file      | `something.constants.ts`                                                                            | `extension.constants.ts`           |
+| Route module        | `something.router.tsx`                                                                              | `extensions.router.tsx`            |
+| Constants           | camelCase for ordinary values (`defaultPageSize`); `ALL_CAPS` reserved for genuine global constants |                                    |
 
 **General**
 
