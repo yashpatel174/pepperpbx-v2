@@ -9,7 +9,11 @@ import ExtensionForm from "../components/ExtensionForm";
 import { createExtension, getHiveUserDetails } from "../extension.service";
 import { getDefaultExtensionFormValues } from "../extension.constants";
 import useExtensionPermissions from "../useExtensionPermissions";
-import type { ExtensionFormValues, HiveUserDetails } from "../extension.types";
+import type {
+  ExtensionDetails,
+  ExtensionFormValues,
+  HiveUserDetails,
+} from "../extension.types";
 import { getApiErrorMessage } from "../../../services/api/apiError";
 
 const ADD_EXTENSION_FORM_ID = "add-extension-form";
@@ -46,10 +50,10 @@ const AddExtensionPage = () => {
   const handleSubmit = async (values: ExtensionFormValues) => {
     setSubmitting(true);
     try {
-      const created = await createExtension(values);
+      const response = await createExtension(values);
+      const created: ExtensionDetails = response.data;
       message.success(`Extension "${created.extension}" created successfully.`);
-      // Follow the post-submit convention: users who can edit an extension continue on to
-      // the newly created record's Edit page; otherwise they land back on the list.
+
       if (canEditBasic) {
         navigate(`/account/extensions/${created.extension_uuid}/edit`);
       } else {
@@ -63,7 +67,12 @@ const AddExtensionPage = () => {
   };
 
   if (error) {
-    return <ErrorState message={error} onRetry={() => navigate("/account/extensions")} />;
+    return (
+      <ErrorState
+        message={error}
+        onRetry={() => navigate("/account/extensions")}
+      />
+    );
   }
 
   if (loading || !hive) {
@@ -81,7 +90,12 @@ const AddExtensionPage = () => {
             </Button>
 
             {canAdd && (
-              <Button type="primary" htmlType="submit" form={ADD_EXTENSION_FORM_ID} loading={submitting}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                form={ADD_EXTENSION_FORM_ID}
+                loading={submitting}
+              >
                 Save
               </Button>
             )}
