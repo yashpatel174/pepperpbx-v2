@@ -61,7 +61,7 @@ const CopyExtensionModal = ({
     return () => {
       active = false;
     };
-  }, [open, targetDomain, form, message]);
+  }, [open, targetDomain, form, message, target?.extension]);
 
   const handleCopy = async () => {
     if (copying) return;
