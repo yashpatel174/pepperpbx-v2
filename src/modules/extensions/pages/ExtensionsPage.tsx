@@ -1,34 +1,33 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { App, Button, Select, Space, Switch, Tooltip, Typography } from "antd";
 import {
   DownloadOutlined,
   PlusOutlined,
   UndoOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
+import { App, Button, Select, Space, Switch, Tooltip, Typography } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import ConfirmActionModal from "../../../components/common/ConfirmActionModal";
+import ModuleHeader from "../../../components/common/ModuleHeader";
+import EmptyState from "../../../components/feedback/EmptyState";
 import ErrorState from "../../../components/feedback/ErrorState";
 import LoadingState from "../../../components/feedback/LoadingState";
-import EmptyState from "../../../components/feedback/EmptyState";
-import ModuleHeader from "../../../components/common/ModuleHeader";
-import ConfirmActionModal from "../../../components/common/ConfirmActionModal";
+import { getApiErrorMessage } from "../../../services/api/apiError";
+import CopyExtensionModal from "../components/CopyExtensionModal";
+import type { DeleteTarget } from "../components/DeleteExtensionsModal";
+import DeleteExtensionsModal from "../components/DeleteExtensionsModal";
 import ExtensionFilters from "../components/ExtensionFilters";
 import ExtensionTable from "../components/ExtensionTable";
-import DeleteExtensionsModal from "../components/DeleteExtensionsModal";
-import type { DeleteTarget } from "../components/DeleteExtensionsModal";
-import CopyExtensionModal from "../components/CopyExtensionModal";
 import { extensionStatusLabels } from "../extension.constants";
-import { useExtensions } from "../useExtensions";
+import type { Extension, ExtensionDetails } from "../extension.types";
 import useExtensionPermissions from "../useExtensionPermissions";
-import type { Extension } from "../extension.types";
-import { getApiErrorMessage } from "../../../services/api/apiError";
+import { useExtensions } from "../useExtensions";
+import { getExtensionDetails } from "../extension.service";
 
 type BulkAction = "toggle" | "delete";
 
 const escapeCsvValue = (value: string) =>
-  /[",\n]/.test(value)
-    ? `"${value.replace(/"/g, '""')}"`
-    : value;
+  /[",\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
 
 const exportExtensionsToCsv = (extensions: Extension[]) => {
   const headers = [
@@ -63,9 +62,7 @@ const exportExtensionsToCsv = (extensions: Extension[]) => {
   const link = document.createElement("a");
 
   link.href = url;
-  link.download = `extensions-${new Date()
-    .toISOString()
-    .slice(0, 10)}.csv`;
+  link.download = `extensions-${new Date().toISOString().slice(0, 10)}.csv`;
 
   document.body.appendChild(link);
   link.click();
@@ -103,13 +100,19 @@ const ExtensionsPage = () => {
   const navigate = useNavigate();
 
   // Selected extension rows (uuids — see Extension.id)
-  const [selectedExtensionIds, setSelectedExtensionIds] = useState<string[]>([]);
-  const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(undefined);
-  const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(null);
+  const [selectedExtensionIds, setSelectedExtensionIds] = useState<string[]>(
+    [],
+  );
+  const [bulkAction, setBulkAction] = useState<BulkAction | undefined>(
+    undefined,
+  );
+  const [deleteTargets, setDeleteTargets] = useState<DeleteTarget[] | null>(
+    null,
+  );
   // Whether the open delete modal came from the bulk toolbar (vs a row's Delete button).
   const [deleteIsBulk, setDeleteIsBulk] = useState(false);
   const [toggleTargetIds, setToggleTargetIds] = useState<string[] | null>(null);
-  const [copyTarget, setCopyTarget] = useState<Extension | null>(null);
+  const [copyTarget, setCopyTarget] = useState<ExtensionDetails | null>(null);
 
   const hasSelection = selectedExtensionIds.length > 0;
 
@@ -145,13 +148,20 @@ const ExtensionsPage = () => {
   const handleEdit = (extension: Extension) =>
     navigate(`/account/extensions/${extension.id}/edit`);
 
-  const handleCopyRequest = (extension: Extension) => setCopyTarget(extension);
+  const handleCopyRequest = (extension: Extension) => {
+    getExtensionDetails(extension.id).then((res) => {
+      Promise.resolve(res);
+      setCopyTarget(res.data);
+    });
+  };
 
   // Rejections propagate to CopyExtensionModal, which shows the error and stays open.
   const handleCopyConfirm = async (newExtension: string) => {
     if (!copyTarget) return;
-    await copyExtension(copyTarget.id, newExtension);
-    message.success(`Extension "${copyTarget.extension}" copied to "${newExtension}" successfully.`);
+    await copyExtension(copyTarget, newExtension);
+    message.success(
+      `Extension "${copyTarget.extension}" copied to "${newExtension}" successfully.`,
+    );
     setCopyTarget(null);
     clearSelection();
   };
@@ -172,11 +182,14 @@ const ExtensionsPage = () => {
       message.success(
         `Extension "${extension.extension}" ${
           target ? "enabled" : "disabled"
-        } successfully.`
+        } successfully.`,
       );
     } catch (err) {
       message.error(
-        getApiErrorMessage(err, `Failed to update extension ${extension.extension}.`)
+        getApiErrorMessage(
+          err,
+          `Failed to update extension ${extension.extension}.`,
+        ),
       );
     }
   };
@@ -198,7 +211,11 @@ const ExtensionsPage = () => {
   // cross-page selections can't be checked client-side without fetching them, so those ids
   // are passed through and rely on the service's own defensive skip (see extension.service.ts).
   const getEligibleSelectedIds = () => {
-    const protectedIds = new Set(data.filter((extension) => extension.default).map((extension) => extension.id));
+    const protectedIds = new Set(
+      data
+        .filter((extension) => extension.default)
+        .map((extension) => extension.id),
+    );
     return selectedExtensionIds.filter((id) => !protectedIds.has(id));
   };
 
@@ -222,7 +239,12 @@ const ExtensionsPage = () => {
       // dropped from the delete. The friendly label comes from extensionLabelByIdRef (accumulated
       // across every page fetched this session, see above), falling back to the raw id only if a
       // selected extension was somehow never fetched.
-      setDeleteTargets(eligibleIds.map((id) => ({ id, extension: extensionLabelByIdRef.current.get(id) ?? id })));
+      setDeleteTargets(
+        eligibleIds.map((id) => ({
+          id,
+          extension: extensionLabelByIdRef.current.get(id) ?? id,
+        })),
+      );
     }
   };
 
@@ -230,10 +252,16 @@ const ExtensionsPage = () => {
     if (!deleteTargets) return;
     const ids = deleteTargets.map((target) => target.id);
     await deleteExtensions(ids, deleteVoicemail);
-    message.success(ids.length === 1 ? `Extension "${deleteTargets[0].extension}" deleted successfully.` : `${ids.length} extensions deleted.`);
+    message.success(
+      ids.length === 1
+        ? `Extension "${deleteTargets[0].extension}" deleted successfully.`
+        : `${ids.length} extensions deleted.`,
+    );
     setDeleteTargets(null);
     // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
-    setSelectedExtensionIds((selected) => selected.filter((id) => !ids.includes(id)));
+    setSelectedExtensionIds((selected) =>
+      selected.filter((id) => !ids.includes(id)),
+    );
     setDeleteIsBulk(false);
   };
 
@@ -248,7 +276,7 @@ const ExtensionsPage = () => {
     if (!toggleTargetIds) return;
     await bulkToggle(toggleTargetIds);
     message.success(
-      `${toggleTargetIds.length} extension${toggleTargetIds.length === 1 ? "" : "s"} toggled.`
+      `${toggleTargetIds.length} extension${toggleTargetIds.length === 1 ? "" : "s"} toggled.`,
     );
     setToggleTargetIds(null);
     clearSelection();
@@ -277,7 +305,11 @@ const ExtensionsPage = () => {
         aria-label="Select action"
       />
 
-      <Button type="primary" disabled={!bulkAction} onClick={handleApplyBulkAction}>
+      <Button
+        type="primary"
+        disabled={!bulkAction}
+        onClick={handleApplyBulkAction}
+      >
         Apply
       </Button>
     </Space>
@@ -292,11 +324,7 @@ const ExtensionsPage = () => {
   }
 
   return (
-    <Space
-      orientation="vertical"
-      size="middle"
-      style={{ width: "100%" }}
-    >
+    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <ModuleHeader
         title="Extensions"
         count={totalRecords}
@@ -335,7 +363,11 @@ const ExtensionsPage = () => {
         filters={
           <>
             <Tooltip title="Reset filters">
-              <Button icon={<UndoOutlined />} onClick={resetFilters} aria-label="Reset filters" />
+              <Button
+                icon={<UndoOutlined />}
+                onClick={resetFilters}
+                aria-label="Reset filters"
+              />
             </Tooltip>
 
             <ExtensionFilters
@@ -407,7 +439,10 @@ const ExtensionsPage = () => {
       >
         <Typography.Paragraph>
           Do you really want to toggle the status of{" "}
-          {toggleTargetIds?.length === 1 ? "this extension" : `these ${toggleTargetIds?.length ?? 0} extensions`}?
+          {toggleTargetIds?.length === 1
+            ? "this extension"
+            : `these ${toggleTargetIds?.length ?? 0} extensions`}
+          ?
         </Typography.Paragraph>
       </ConfirmActionModal>
 

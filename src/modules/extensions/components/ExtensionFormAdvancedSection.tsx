@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
 import { Card, Col, Form, Input, Row, Select } from "antd";
+import { useCallback, useEffect, useState } from "react";
 import ErrorState from "../../../components/feedback/ErrorState";
 import { getApiErrorMessage } from "../../../services/api/apiError";
 import {
@@ -42,7 +42,13 @@ const useHoldMusicOptions = (domain?: string) => {
         if (active) setOptions(values);
       })
       .catch((err: unknown) => {
-        if (active) setError(getApiErrorMessage(err, "The hold music options for this domain failed to load."));
+        if (active)
+          setError(
+            getApiErrorMessage(
+              err,
+              "The hold music options for this domain failed to load.",
+            ),
+          );
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -112,9 +118,13 @@ const ExtensionFormAdvancedSection = ({
               name="effective_caller_id_name"
               label="Effective Caller ID Name"
               tooltip="Enter the internal caller ID name here"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter effective caller id name" disabled={disabled} />
+              <Input
+                placeholder="Enter effective caller id name"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -125,7 +135,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the internal caller ID number here"
               rules={[numericFieldRule]}
             >
-              <Input type={"number"} min={0} placeholder="Enter effective caller id number" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter effective caller id number"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -134,9 +149,13 @@ const ExtensionFormAdvancedSection = ({
               name="outbound_caller_id_name"
               label="Outbound Caller ID Name"
               tooltip="Enter the external (public) caller ID name here"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter outbound caller id name" disabled={disabled} />
+              <Input
+                placeholder="Enter outbound caller id name"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -147,7 +166,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the external (public) caller ID number here"
               rules={[numericFieldRule]}
             >
-              <Input type={"number"} min={0} placeholder="Enter outbound caller id number" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter outbound caller id number"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -156,9 +180,13 @@ const ExtensionFormAdvancedSection = ({
               name="emergency_caller_id_name"
               label="Emergency Caller ID Name"
               tooltip="Enter the emergency caller ID name here"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter emergency caller id name" disabled={disabled} />
+              <Input
+                placeholder="Enter emergency caller id name"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -169,7 +197,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the emergency caller ID number here"
               rules={[numericFieldRule]}
             >
-              <Input type={"number"} min={0} placeholder="Enter emergency caller id number" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter emergency caller id number"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -178,9 +211,14 @@ const ExtensionFormAdvancedSection = ({
               name="directory_first_name"
               label="Directory First Name"
               tooltip="Enter the first name"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter directory first name" disabled={disabled} aria-label="Directory first name" />
+              <Input
+                placeholder="Enter directory first name"
+                disabled={disabled}
+                aria-label="Directory first name"
+              />
             </Form.Item>
           </Col>
 
@@ -189,9 +227,14 @@ const ExtensionFormAdvancedSection = ({
               name="directory_last_name"
               label="Directory Last Name"
               tooltip="Enter the last name"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter directory last name" disabled={disabled} aria-label="Directory last name" />
+              <Input
+                placeholder="Enter directory last name"
+                disabled={disabled}
+                aria-label="Directory last name"
+              />
             </Form.Item>
           </Col>
 
@@ -202,7 +245,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the maximum registration allowed for this user"
               rules={[numericFieldRule]}
             >
-              <Input type={'number'} min={0} placeholder="Enter max registrations" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter max registrations"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -213,18 +261,27 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the max number of outgoing calls for this user"
               rules={[numericFieldRule]}
             >
-              <Input type={'number'} min={0} placeholder="Enter limit max" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter limit max"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
           <Col xs={24} sm={12} lg={8}>
-            <Form.Item  
+            <Form.Item
               name="limit_destination"
               label="Limit Destination"
               tooltip="Enter the destination to send the calls when the max number of outgoing calls has been reached"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter limit destination" disabled={disabled} />
+              <Input
+                placeholder="Enter limit destination"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -252,7 +309,10 @@ const ExtensionFormAdvancedSection = ({
                 validateFirst
                 rules={missedCallEmailRules}
               >
-                <Input placeholder="Enter missed call email" disabled={disabled} />
+                <Input
+                  placeholder="Enter missed call email"
+                  disabled={disabled}
+                />
               </Form.Item>
             </Col>
           )}
@@ -262,6 +322,7 @@ const ExtensionFormAdvancedSection = ({
               name="toll_allow"
               label="Toll Allow"
               tooltip="Enter the toll allow value here. (Examples: domestic,international,local)"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
               <Input placeholder="Enter toll allow" disabled={disabled} />
@@ -275,7 +336,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="Enter the call timeout"
               rules={[callTimeoutRule]}
             >
-              <Input type={'number'} min={0} placeholder="Enter call timeout" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter call timeout"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -284,6 +350,7 @@ const ExtensionFormAdvancedSection = ({
               name="call_group"
               label="Call Group"
               tooltip="Enter the user call group here. Groups available by default: sales, support, billing"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
               <Select
@@ -304,12 +371,21 @@ const ExtensionFormAdvancedSection = ({
               label="Record"
               tooltip="Choose whether to record local, inbound, outbound, or all"
             >
-              <Select allowClear placeholder="Select record option" options={userRecordOptions} disabled={disabled} />
+              <Select
+                allowClear
+                placeholder="Select record option"
+                options={userRecordOptions}
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
           <Col xs={24} sm={12} lg={8}>
-            <Form.Item name="hold_music" label="Hold Music" tooltip="Select the MOH category here">
+            <Form.Item
+              name="hold_music"
+              label="Hold Music"
+              tooltip="Select the MOH category here"
+            >
               <Select
                 allowClear
                 placeholder="Select hold music"
@@ -355,6 +431,7 @@ const ExtensionFormAdvancedSection = ({
               name="auth_acl"
               label="Auth ACL"
               tooltip="Enter the auth ACL here"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
               <Input placeholder="Enter auth acl" disabled={disabled} />
@@ -394,7 +471,12 @@ const ExtensionFormAdvancedSection = ({
               tooltip="To prevent stale registrations SIP force expires can override the client expire"
               rules={[numericFieldRule]}
             >
-              <Input type={'number'} min={0} placeholder="Enter sip force expires" disabled={disabled} />
+              <Input
+                type={"number"}
+                min={0}
+                placeholder="Enter sip force expires"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -403,6 +485,7 @@ const ExtensionFormAdvancedSection = ({
               name="mwi_account"
               label="MWI Account"
               tooltip="MWI account with user@domain of the voicemail to monitor"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
               <Input placeholder="Enter MWI account" disabled={disabled} />
@@ -429,9 +512,13 @@ const ExtensionFormAdvancedSection = ({
               name="absolute_codec_string"
               label="Absolute Codec String"
               tooltip="Absolute codec string for the extension"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <Input placeholder="Enter absolute codec string" disabled={disabled} />
+              <Input
+                placeholder="Enter absolute codec string"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
 
@@ -440,6 +527,7 @@ const ExtensionFormAdvancedSection = ({
               name="dial_string"
               label="Dial String"
               tooltip="Location of the endpoint"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
               <Input placeholder="Enter dial string" disabled={disabled} />
@@ -451,9 +539,14 @@ const ExtensionFormAdvancedSection = ({
               name="description"
               label="Description"
               tooltip="Enter the description"
+              validateFirst
               rules={[noEdgeWhitespaceRule]}
             >
-              <TextArea rows={2} placeholder="Enter description" disabled={disabled} />
+              <TextArea
+                rows={2}
+                placeholder="Enter description"
+                disabled={disabled}
+              />
             </Form.Item>
           </Col>
         </Row>

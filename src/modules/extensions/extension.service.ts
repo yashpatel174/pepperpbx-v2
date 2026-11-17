@@ -1,5 +1,4 @@
 import { request } from "../../services/api/apiClient";
-import type { ApiError } from "../../services/api/apiError";
 import useDomainStore from "../../store/domain";
 import {
   mockHiveUserDetails,
@@ -11,6 +10,7 @@ import type {
   Extension,
   ExtensionApiResponse,
   ExtensionDetails,
+  ExtensionDetailsResponse,
   ExtensionFormValues,
   ExtensionListQuery,
   ExtensionListResponse,
@@ -228,21 +228,26 @@ export const getHoldMusicOptions = (domainName?: string): Promise<string[]> => {
 /** GET /api/extensions/details?extension_uuid=... */
 export const getExtensionDetails = (
   extensionUuid: string,
-): Promise<ExtensionDetails> =>
-  new Promise((resolve, reject) => {
+): Promise<ExtensionDetailsResponse> =>
+  new Promise((resolve) => {
     setTimeout(() => {
-      const details = extensions.find(
-        (record) => record.extension_uuid === extensionUuid,
+      // const details = extensions.find(
+      //   (record) => record.extension_uuid === extensionUuid,
+      // );
+
+      const response = request.get<ExtensionDetailsResponse>(
+        `extensions/${extensionUuid}`,
       );
-      if (!details) {
-        const notFound: ApiError = {
-          status: 404,
-          message: `Extension ${extensionUuid} not found.`,
-        };
-        reject(notFound);
-        return;
-      }
-      resolve(cloneDetails(details));
+      resolve(response);
+      // if (!details) {
+      //   const notFound: ApiError = {
+      //     status: 404,
+      //     message: `Extension ${extensionUuid} not found.`,
+      //   };
+      //   reject(notFound);
+      //   return;
+      // }
+      // resolve(cloneDetails(details));
     }, 300);
   });
 
@@ -364,29 +369,38 @@ export const updateExtension = (
   oldExtension?: string,
 ): Promise<ExtensionDetails> =>
   new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = extensions.findIndex(
-        (record) => record.extension_uuid === extensionUuid,
-      );
-      if (index === -1) {
-        reject(new Error(`Extension ${extensionUuid} not found.`));
-        return;
-      }
-      const existing = extensions[index];
-      const updated: ExtensionDetails = {
+    setTimeout(async () => {
+      // const index = extensions.findIndex(
+      //   (record) => record.extension_uuid === extensionUuid,
+      // );
+      // if (index === -1) {
+      //   reject(new Error(`Extension ${extensionUuid} not found.`));
+      //   return;
+      // }
+      // const existing = extensions[index];
+      const updated = {
         ...toDetails(values, values.extension, extensionUuid),
         // Blank password in Edit means "keep the current one" (see Edit page placeholder).
-        password: values.password || existing.password || undefined,
+        // password: values.password || existing.password || undefined,
+        password: values.password || undefined,
         ...(oldExtension !== undefined && oldExtension !== values.extension
           ? { old_extension: oldExtension }
           : {}),
       };
-      extensions = [
-        ...extensions.slice(0, index),
-        updated,
-        ...extensions.slice(index + 1),
-      ];
-      resolve(cloneDetails(updated));
+      // extensions = [
+      //   ...extensions.slice(0, index),
+      //   updated,
+      //   ...extensions.slice(index + 1),
+      // ];
+      try {
+        const response = await request.patch<ExtensionDetailsResponse>(
+          `/extensions/${extensionUuid}`,
+          updated,
+        );
+        resolve(cloneDetails(response.data));
+      } catch (error) {
+        reject(error);
+      }
     }, 300);
   });
 
@@ -402,39 +416,49 @@ export const updateExtension = (
  * The mock copies them as stored rather than inventing a reset rule.
  */
 export const copyExtension = (
-  extensionUuid: string,
+  extensionData: ExtensionDetails,
   newExtension: string,
 ): Promise<ExtensionDetails> =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
-      const source = extensions.find(
-        (record) => record.extension_uuid === extensionUuid,
-      );
-      if (!source) {
-        reject(new Error(`Extension ${extensionUuid} not found.`));
-        return;
-      }
-      if (source.default === "true") {
-        reject(
-          new Error(
-            `Extension ${source.extension} is a default extension and cannot be copied.`,
-          ),
-        );
-        return;
-      }
-      if (extensions.some((record) => record.extension === newExtension)) {
-        reject(new Error(`Extension ${newExtension} already exists.`));
-        return;
-      }
+      // const source = extensions.find(
+      //   (record) => record.extension_uuid === extensionUuid,
+      // );
+      // if (!source) {
+      //   reject(new Error(`Extension ${extensionUuid} not found.`));
+      //   return;
+      // }
+      // if (source.default === "true") {
+      //   reject(
+      //     new Error(
+      //       `Extension ${source.extension} is a default extension and cannot be copied.`,
+      //     ),
+      //   );
+      //   return;
+      // }
+      // if (extensions.some((record) => record.extension === newExtension)) {
+      //   reject(new Error(`Extension ${newExtension} already exists.`));
+      //   return;
+      // }
       const copied: ExtensionDetails = {
-        ...source,
-        extension_uuid: `ext-${newExtension}-${Date.now()}`,
+        ...extensionData,
+        // extension_uuid: `ext-${newExtension}-${Date.now()}`,
         extension: newExtension,
       };
-      delete copied.default;
-      delete copied.old_extension;
-      extensions = [...extensions, copied];
-      resolve(cloneDetails(copied));
+
+      request
+        .post<CreateExtensionApiResponse>("/extensions", copied)
+        .then((res) => {
+          resolve(res.data[0]);
+          resolve(cloneDetails(res.data[0]));
+        })
+        .catch((err) => {
+          reject(err);
+        });
+
+      // delete copied.default;
+      // delete copied.old_extension;
+      // extensions = [...extensions, copied];
     }, 300);
   });
 
@@ -451,20 +475,30 @@ export const setExtensionEnabled = (
 ): Promise<ExtensionDetails> =>
   new Promise((resolve, reject) => {
     setTimeout(() => {
-      const index = extensions.findIndex(
-        (record) => record.extension_uuid === extensionUuid,
-      );
-      if (index === -1) {
-        reject(new Error(`Extension ${extensionUuid} not found.`));
-        return;
-      }
-      const updated = { ...extensions[index], enabled };
-      extensions = [
-        ...extensions.slice(0, index),
-        updated,
-        ...extensions.slice(index + 1),
-      ];
-      resolve(cloneDetails(updated));
+      // const index = extensions.findIndex(
+      //   (record) => record.extension_uuid === extensionUuid,
+      // );
+      // if (index === -1) {
+      //   reject(new Error(`Extension ${extensionUuid} not found.`));
+      //   return;
+      // }
+      request
+        .patch<ExtensionDetails>(`/extensions/${extensionUuid}/status`, {
+          enabled,
+        })
+        .then((res) => {
+          const updated = cloneDetails(res);
+          resolve(updated);
+        })
+        .catch((error: unknown) => {
+          reject(error);
+        });
+      // const updated = { ...extensions[index], enabled };
+      // extensions = [
+      //   ...extensions.slice(0, index),
+      //   updated,
+      //   ...extensions.slice(index + 1),
+      // ];
     }, 200);
   });
 
@@ -519,14 +553,20 @@ export const deleteExtensions = (
   void deleteVoicemail;
   return new Promise((resolve) => {
     setTimeout(() => {
-      extensions = extensions.filter(
-        (record) =>
-          !(
-            extensionUuids.includes(record.extension_uuid) &&
-            record.default !== "true"
-          ),
-      );
-      resolve();
+      // extensions = extensions.filter(
+      //   (record) =>
+      //     !(
+      //       extensionUuids.includes(record.extension_uuid) &&
+      //       record.default !== "true"
+      //     ),
+      // );
+
+      const response = request.delete<void>(`extensions/delete`, {
+        extensionUuids,
+        deleteVoicemail,
+      });
+      console.log("response: ", response);
+      resolve(response);
     }, 300);
   });
 };

@@ -1,7 +1,12 @@
 import { Card, Col, Form, Input, Row, Select } from "antd";
 import FormSwitchField from "../../../components/common/FormSwitchField";
 import ISO6391 from "iso-639-1";
-import { domainRules, descriptionRules, nameRules, languageRules } from "../announcement.validation";
+import {
+  domainRules,
+  descriptionRules,
+  nameRules,
+  languageRules,
+} from "../announcement.validation";
 import type { HiveAnnouncementDetails } from "../announcement.types";
 
 const { TextArea } = Input;
@@ -25,14 +30,26 @@ interface AnnouncementBasicSectionProps {
  * Outbound Routes' mode-conditional Basic section. Only Domain is mode-locked (disabled on Edit,
  * announcements.md §15/§33 — an announcement can't move between domains after creation).
  */
-const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: AnnouncementBasicSectionProps) => {
-
+const AnnouncementBasicSection = ({
+  mode,
+  hive,
+  disabled,
+  onDomainChange,
+}: AnnouncementBasicSectionProps) => {
   return (
     <Card>
-      <Row gutter={16} >
+      <Row gutter={16}>
         <Col xs={24} sm={12} lg={8}>
-          <Form.Item name="phrase_name" label="Name" tooltip="Enter a name for this announcement" rules={nameRules}>
-            <Input placeholder="Enter announcement name" aria-label="Announcement name" />
+          <Form.Item
+            name="phrase_name"
+            label="Name"
+            tooltip="Enter a name for this announcement"
+            rules={nameRules}
+          >
+            <Input
+              placeholder="Enter announcement name"
+              aria-label="Announcement name"
+            />
           </Form.Item>
         </Col>
 
@@ -54,14 +71,22 @@ const AnnouncementBasicSection = ({ mode, hive, disabled, onDomainChange }: Anno
         </Col>
 
         <Col xs={24} sm={12} lg={8}>
-          <Form.Item name="domain_name" label="Domain" tooltip="Select the domain" rules={domainRules}>
+          <Form.Item
+            name="domain_name"
+            label="Domain"
+            tooltip="Select the domain"
+            rules={domainRules}
+          >
             <Select
               showSearch
               optionFilterProp="label"
               placeholder="Select domain"
               disabled={mode === "edit"}
               onChange={onDomainChange}
-              options={hive.domainOptions.map((domain) => ({ label: domain, value: domain }))}
+              options={hive.domainOptions.map((domain) => ({
+                label: domain,
+                value: domain,
+              }))}
               aria-label="Domain"
             />
           </Form.Item>

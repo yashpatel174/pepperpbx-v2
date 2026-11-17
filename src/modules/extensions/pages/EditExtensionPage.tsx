@@ -3,14 +3,25 @@ import { useNavigate, useParams } from "react-router-dom";
 import { App, Button, Space } from "antd";
 import ModuleHeader from "../../../components/common/ModuleHeader";
 import FormPageToolbar from "../../../components/common/FormPageToolbar";
-import { getApiErrorMessage, isNotFoundError } from "../../../services/api/apiError";
+import {
+  getApiErrorMessage,
+  isNotFoundError,
+} from "../../../services/api/apiError";
 import useExtensionPermissions from "../useExtensionPermissions";
 import LoadingState from "../../../components/feedback/LoadingState";
 import EmptyState from "../../../components/feedback/EmptyState";
 import ErrorState from "../../../components/feedback/ErrorState";
 import ExtensionForm from "../components/ExtensionForm";
-import { getExtensionDetails, getHiveUserDetails, updateExtension } from "../extension.service";
-import type { ExtensionDetails, ExtensionFormValues, HiveUserDetails } from "../extension.types";
+import {
+  getExtensionDetails,
+  getHiveUserDetails,
+  updateExtension,
+} from "../extension.service";
+import type {
+  ExtensionDetails,
+  ExtensionFormValues,
+  HiveUserDetails,
+} from "../extension.types";
 
 const EDIT_EXTENSION_FORM_ID = "edit-extension-form";
 
@@ -22,7 +33,7 @@ const toFormValues = (details: ExtensionDetails): ExtensionFormValues => ({
   password: details.password ?? "",
   directory_first_name: details.directory_first_name,
   directory_last_name: details.directory_last_name,
-  user_context: details.domain_name,
+  user_context: details.user_context,
   limit_max: String(details.limit_max),
   limit_destination: details.limit_destination,
   missed_call_app: details.missed_call_app,
@@ -32,7 +43,8 @@ const toFormValues = (details: ExtensionDetails): ExtensionFormValues => ({
   user_record: details.user_record,
   hold_music: details.hold_music,
   sip_force_contact: details.sip_force_contact,
-  sip_force_expires: details.sip_force_expires === undefined ? "" : String(details.sip_force_expires),
+  sip_force_expires:
+    details.sip_force_expires === null ? 0 : details.sip_force_expires,
   sip_bypass_media: details.sip_bypass_media,
   voicemail_file: details.voicemail_file,
   effective_caller_id_name: details.effective_caller_id_name,
@@ -69,7 +81,9 @@ const EditExtensionPage = () => {
 
   const [hive, setHive] = useState<HiveUserDetails | null>(null);
   const [details, setDetails] = useState<ExtensionDetails | null>(null);
-  const [oldExtNumber, setOldExtNumber] = useState<string | undefined>(undefined);
+  const [oldExtNumber, setOldExtNumber] = useState<string | undefined>(
+    undefined,
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -88,8 +102,9 @@ const EditExtensionPage = () => {
           getExtensionDetails(extensionUuid),
         ]);
         setHive(hiveDetails);
-        setDetails(extensionDetails);
-        setOldExtNumber(extensionDetails.extension);
+        // setDetails(extensionDetails);
+        setDetails(extensionDetails.data);
+        setOldExtNumber(extensionDetails.data.extension);
         setFormKey((key) => key + 1);
       } catch (err) {
         // An unknown id gets a record-scoped EmptyState; retrying it can't help.
@@ -119,8 +134,15 @@ const EditExtensionPage = () => {
     if (!details) return;
     setSubmitting(true);
     try {
-      const updated = await updateExtension(details.extension_uuid, values, oldExtNumber);
-      message.success(`Extension "${updated.extension}" updated successfully.`);
+      const updated = await updateExtension(
+        details.extension_uuid,
+        values,
+        oldExtNumber,
+      );
+      console.log("updated: ", updated);
+      message.success(
+        `Extension "${updated.extension_uuid}" updated successfully.`,
+      );
       // Stay on the Edit page: re-fetch details and re-populate so the form reflects the
       // saved state (including a renumbered old_extension boundary for the next change).
       await load(false);
@@ -160,7 +182,12 @@ const EditExtensionPage = () => {
 
             {/* View-only users (no Basic or Advanced edit permission) get no Save at all. */}
             {(canEditBasic || canEditAdvanced) && (
-              <Button type="primary" htmlType="submit" form={EDIT_EXTENSION_FORM_ID} loading={submitting}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                form={EDIT_EXTENSION_FORM_ID}
+                loading={submitting}
+              >
                 Save
               </Button>
             )}

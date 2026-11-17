@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -eu
+
+echo "Running ESLint..."
+npm run lint
+
+echo "Running TypeScript and production build..."
+npm run build
+
+echo "All pre-push checks passed."

@@ -1,11 +1,11 @@
 import { Button, Space, Table, theme, Tooltip, Typography } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
+import { CopyOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import {
-  CopyOutlined,
-  DeleteOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
-import { defaultPageSize, extensionStatusLabels, pageSizeOptions } from "../extension.constants";
+  defaultPageSize,
+  extensionStatusLabels,
+  pageSizeOptions,
+} from "../extension.constants";
 import type { Extension, ExtensionStatus } from "../extension.types";
 import useStripedTableRow from "../../../components/common/useStripedTableRow";
 import StatusToggleTag from "../../../components/common/StatusToggleTag";
@@ -31,7 +31,8 @@ interface ExtensionTableProps {
   onSelectionChange: (selectedRowKeys: string[]) => void;
 }
 
-const renderOptionalText = (value?: string) => value || <Text type="secondary">—</Text>;
+const renderOptionalText = (value?: string) =>
+  value || <Text type="secondary">—</Text>;
 
 const ExtensionTable = ({
   data,

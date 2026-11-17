@@ -80,7 +80,7 @@ export interface ExtensionFormValues {
   auth_acl?: string;
   cidr?: string;
   sip_force_contact: string;
-  sip_force_expires?: string;
+  sip_force_expires?: number;
   mwi_account?: string;
   sip_bypass_media: string;
   absolute_codec_string?: string;
@@ -121,10 +121,16 @@ export interface ExtensionDetails extends Omit<
   sip_force_expires?: number;
 }
 
-export interface CreateExtensionApiResponse {
+export interface ExtensionDetailsResponse {
   success: boolean;
   message: string;
   data: ExtensionDetails;
+}
+
+export interface CreateExtensionApiResponse {
+  success: boolean;
+  message: string;
+  data: ExtensionDetails[];
   insertId: number;
 }
 

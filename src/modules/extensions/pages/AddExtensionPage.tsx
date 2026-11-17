@@ -51,11 +51,13 @@ const AddExtensionPage = () => {
     setSubmitting(true);
     try {
       const response = await createExtension(values);
-      const created: ExtensionDetails = response.data;
-      message.success(`Extension "${created.extension}" created successfully.`);
+      const created: ExtensionDetails[] = response.data;
+      message.success(
+        `Extension "${created[0].extension}" created successfully.`,
+      );
 
       if (canEditBasic) {
-        navigate(`/account/extensions/${created.extension_uuid}/edit`);
+        navigate(`/account/extensions/${created[0].extension_uuid}/edit`);
       } else {
         navigate("/account/extensions");
       }
@@ -94,6 +96,7 @@ const AddExtensionPage = () => {
                 type="primary"
                 htmlType="submit"
                 form={ADD_EXTENSION_FORM_ID}
+                disabled={submitting}
                 loading={submitting}
               >
                 Save
