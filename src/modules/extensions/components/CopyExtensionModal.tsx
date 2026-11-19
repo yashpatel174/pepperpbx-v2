@@ -1,10 +1,7 @@
 import { App, Button, Form, Input, Modal } from "antd";
 import { useEffect, useState } from "react";
 import { getApiErrorMessage } from "../../../services/api/apiError";
-import {
-  getHiveUserDetails,
-  isExtensionNumberTaken,
-} from "../extension.service";
+import { getHiveUserDetails } from "../extension.service";
 import type { ExtensionDetails, HiveUserDetails } from "../extension.types";
 import { extensionNumberRules } from "../extension.validation";
 
@@ -37,7 +34,6 @@ const CopyExtensionModal = ({
   const { message } = App.useApp();
   const [hive, setHive] = useState<HiveUserDetails | null>(null);
   const [copying, setCopying] = useState(false);
-
   const targetDomain = target?.user_context;
 
   useEffect(() => {
@@ -125,7 +121,7 @@ const CopyExtensionModal = ({
                     additionalExtStart: hive.additionalExtStart,
                     additionalExtEnd: hive.additionalExtEnd,
                     additionalExtExclude: hive.additionalExtExclude,
-                    isTaken: isExtensionNumberTaken,
+                    // isTaken: isExtensionNumberTaken,
                   }),
                 ]
               : [

@@ -102,7 +102,6 @@ const EditExtensionPage = () => {
           getExtensionDetails(extensionUuid),
         ]);
         setHive(hiveDetails);
-        // setDetails(extensionDetails);
         setDetails(extensionDetails.data);
         setOldExtNumber(extensionDetails.data.extension);
         setFormKey((key) => key + 1);
@@ -139,10 +138,7 @@ const EditExtensionPage = () => {
         values,
         oldExtNumber,
       );
-      console.log("updated: ", updated);
-      message.success(
-        `Extension "${updated.extension_uuid}" updated successfully.`,
-      );
+      message.success(`Extension "${updated.extension}" updated successfully.`);
       // Stay on the Edit page: re-fetch details and re-populate so the form reflects the
       // saved state (including a renumbered old_extension boundary for the next change).
       await load(false);

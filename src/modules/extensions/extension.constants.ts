@@ -1,4 +1,9 @@
-import type { Extension, ExtensionStatus, ExtensionFormValues, HiveUserDetails } from "./extension.types";
+import type {
+  Extension,
+  ExtensionStatus,
+  ExtensionFormValues,
+  HiveUserDetails,
+} from "./extension.types";
 
 export const defaultPageSize = 10;
 
@@ -43,7 +48,8 @@ export const searchableExtensionFields: (keyof Extension)[] = [
 
 /** How many consecutive extension numbers the Add form creates for the entered base number. */
 export const extensionRangeOptions = [
-  1, 10, 15, 20, 25, 30, 35, 40, 45, 50, 75, 100, 150, 200, 250, 500, 750, 1000, 5000,
+  1, 10, 15, 20, 25, 30, 35, 40, 45, 50, 75, 100, 150, 200, 250, 500, 750, 1000,
+  5000,
 ];
 
 export const missedCallAppOptions = [{ label: "Email", value: "email" }];
@@ -74,11 +80,10 @@ export const sipBypassMediaOptions = [
 ];
 
 export const voicemailFileOptions = [
-  { label: 'Audio file attachment', value: 'attach' },
-  { label: 'Listen Link (login required)', value: 'listen_link' },
-  { label: 'Download Link (no login required)', value: 'download_link' }
+  { label: "Audio file attachment", value: "attach" },
+  { label: "Listen Link (login required)", value: "listen_link" },
+  { label: "Download Link (no login required)", value: "download_link" },
 ];
-
 
 /** Add/Edit form-section permission strings. These arrive as server-only fields / user grants. */
 export const extensionPermissionStrings = {
@@ -103,7 +108,10 @@ const VOICEMAIL_PASSWORD_CHARS = "0123456789";
 export const generateStrongPassword = (): string =>
   Array.from(
     { length: 6 },
-    () => VOICEMAIL_PASSWORD_CHARS[Math.floor(Math.random() * VOICEMAIL_PASSWORD_CHARS.length)],
+    () =>
+      VOICEMAIL_PASSWORD_CHARS[
+        Math.floor(Math.random() * VOICEMAIL_PASSWORD_CHARS.length)
+      ],
   ).join("");
 
 /**
@@ -111,7 +119,9 @@ export const generateStrongPassword = (): string =>
  * account code, domain) plus the fixed Axion option defaults. Edit mode never uses this —
  * it initializes from the extension details API response instead.
  */
-export const getDefaultExtensionFormValues = (hive: HiveUserDetails): ExtensionFormValues => ({
+export const getDefaultExtensionFormValues = (
+  hive: HiveUserDetails,
+): ExtensionFormValues => ({
   range: 1,
   extension: hive.autoExt,
   accountcode: hive.accountNumber,

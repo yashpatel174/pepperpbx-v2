@@ -149,21 +149,32 @@ const ExtensionsPage = () => {
     navigate(`/account/extensions/${extension.id}/edit`);
 
   const handleCopyRequest = (extension: Extension) => {
-    getExtensionDetails(extension.id).then((res) => {
-      Promise.resolve(res);
-      setCopyTarget(res.data);
-    });
+    try {
+      getExtensionDetails(extension.id).then((res) => {
+        setCopyTarget(res.data);
+      });
+    } catch (error) {
+      message.error(
+        getApiErrorMessage(error, `Failed to copy extension ${extension.id}.`),
+      );
+    }
   };
 
   // Rejections propagate to CopyExtensionModal, which shows the error and stays open.
   const handleCopyConfirm = async (newExtension: string) => {
-    if (!copyTarget) return;
-    await copyExtension(copyTarget, newExtension);
-    message.success(
-      `Extension "${copyTarget.extension}" copied to "${newExtension}" successfully.`,
-    );
-    setCopyTarget(null);
-    clearSelection();
+    try {
+      if (!copyTarget) return;
+      await copyExtension(copyTarget.extension_uuid, newExtension);
+      message.success(
+        `Extension "${copyTarget.extension}" copied to "${newExtension}" successfully.`,
+      );
+      setCopyTarget(null);
+      clearSelection();
+    } catch (error) {
+      message.error(
+        getApiErrorMessage(error, `Failed to copy extension ${newExtension}.`),
+      );
+    }
   };
 
   // Single-row delete now goes through the same DeleteExtensionsModal (and the same delete
@@ -249,20 +260,29 @@ const ExtensionsPage = () => {
   };
 
   const handleDeleteConfirm = async (deleteVoicemail: boolean) => {
-    if (!deleteTargets) return;
-    const ids = deleteTargets.map((target) => target.id);
-    await deleteExtensions(ids, deleteVoicemail);
-    message.success(
-      ids.length === 1
-        ? `Extension "${deleteTargets[0].extension}" deleted successfully.`
-        : `${ids.length} extensions deleted.`,
-    );
-    setDeleteTargets(null);
-    // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
-    setSelectedExtensionIds((selected) =>
-      selected.filter((id) => !ids.includes(id)),
-    );
-    setDeleteIsBulk(false);
+    try {
+      if (!deleteTargets) return;
+      const ids = deleteTargets.map((target) => target.id);
+      await deleteExtensions(ids, deleteVoicemail);
+      message.success(
+        ids.length === 1
+          ? `Extension "${deleteTargets[0].extension}" deleted successfully.`
+          : `${ids.length} extensions deleted.`,
+      );
+      setDeleteTargets(null);
+      // Drop only the deleted ids — a single-row delete keeps the rest of a multi-page selection.
+      setSelectedExtensionIds((selected) =>
+        selected.filter((id) => !ids.includes(id)),
+      );
+      setDeleteIsBulk(false);
+    } catch (error) {
+      message.error(
+        getApiErrorMessage(
+          error,
+          `Failed to delete extension${deleteTargets?.length === 1 ? "" : "s"}.`,
+        ),
+      );
+    }
   };
 
   // Cancelling a bulk delete clears the selection; cancelling a row's Delete leaves it alone.
@@ -275,6 +295,7 @@ const ExtensionsPage = () => {
   const handleToggleConfirm = async () => {
     if (!toggleTargetIds) return;
     await bulkToggle(toggleTargetIds);
+    if (showAll === true) setShowAll(false);
     message.success(
       `${toggleTargetIds.length} extension${toggleTargetIds.length === 1 ? "" : "s"} toggled.`,
     );

@@ -1,4 +1,4 @@
-import { Card, Col, Form, Input, Row, Select } from "antd";
+import { Card, Col, Form, Input, message, Row, Select } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import ErrorState from "../../../components/feedback/ErrorState";
 import { getApiErrorMessage } from "../../../services/api/apiError";
@@ -18,6 +18,7 @@ import {
   noEdgeWhitespaceRule,
   numericFieldRule,
 } from "../extension.validation";
+import useExtensions from "../useExtensions";
 
 const { TextArea } = Input;
 
@@ -83,7 +84,7 @@ interface ExtensionFormAdvancedSectionProps {
  */
 const ExtensionFormAdvancedSection = ({
   mode,
-  hive,
+  // hive,
   disabled,
   defaultUserContext,
   onUserContextChange,
@@ -91,6 +92,19 @@ const ExtensionFormAdvancedSection = ({
   const form = Form.useFormInstance();
   const missedCallApp = Form.useWatch("missed_call_app", form);
   const watchedContext = Form.useWatch("user_context", form);
+  const [domain, setDomain] = useState<{ id: number; domain: string }[]>([]);
+
+  const { getDomain } = useExtensions();
+
+  useEffect(() => {
+    try {
+      getDomain().then((res) => {
+        setDomain(res.domainOptions);
+      });
+    } catch (error) {
+      message.error(getApiErrorMessage(error, "Failed to fetch domains."));
+    }
+  }, []);
 
   const {
     options: holdMusicOptions,
@@ -415,9 +429,13 @@ const ExtensionFormAdvancedSection = ({
                 showSearch
                 optionFilterProp="label"
                 placeholder="Select user context"
-                options={hive.domainOptions.map((domain) => ({
-                  label: domain,
-                  value: domain,
+                // options={hive.domainOptions.map((domain) => ({
+                //   label: domain,
+                //   value: domain,
+                // }))}
+                options={domain?.map((d) => ({
+                  label: d.domain,
+                  value: d.domain,
                 }))}
                 onChange={onUserContextChange}
                 disabled={mode === "edit" || disabled}

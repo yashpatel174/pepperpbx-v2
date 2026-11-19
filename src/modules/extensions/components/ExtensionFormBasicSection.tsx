@@ -1,7 +1,6 @@
 import { Card, Col, Form, Input, Row, Select, theme } from "antd";
 import { extensionReuseNote } from "../../../components/common/extensionReuseNote";
 import { extensionRangeOptions } from "../extension.constants";
-import { isExtensionNumberTaken } from "../extension.service";
 import type { HiveUserDetails } from "../extension.types";
 import {
   editPasswordRules,
@@ -48,7 +47,7 @@ const ExtensionFormBasicSection = ({
               additionalExtEnd: hive.additionalExtEnd,
               additionalExtExclude: hive.additionalExtExclude,
               excludeUuid,
-              isTaken: isExtensionNumberTaken,
+              // isTaken: isExtensionNumberTaken
             })}
           >
             <Input

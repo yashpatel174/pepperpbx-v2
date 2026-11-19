@@ -1,10 +1,13 @@
+import { App, Col, Form, Row } from "antd";
 import { useRef } from "react";
-import { App, Form, Row, Col } from "antd";
-import { domainChangeMessage, domainChangeTitle } from "../../../components/common/domainChangeMessage";
+import {
+  domainChangeMessage,
+  domainChangeTitle,
+} from "../../../components/common/domainChangeMessage";
 import type { ExtensionFormValues, HiveUserDetails } from "../extension.types";
 import useExtensionPermissions from "../useExtensionPermissions";
-import ExtensionFormBasicSection from "./ExtensionFormBasicSection";
 import ExtensionFormAdvancedSection from "./ExtensionFormAdvancedSection";
+import ExtensionFormBasicSection from "./ExtensionFormBasicSection";
 import ExtensionFormOptionsSection from "./ExtensionFormOptionsSection";
 import ExtensionFormVoicemailSection from "./ExtensionFormVoicemailSection";
 
@@ -39,8 +42,10 @@ const ExtensionForm = ({
   formId,
 }: ExtensionFormProps) => {
   const [form] = Form.useForm<ExtensionFormValues>();
+
   const { modal } = App.useApp();
-  const { canEditBasic, canEditAdvanced, showAdvancedSection } = useExtensionPermissions();
+  const { canEditBasic, canEditAdvanced, showAdvancedSection } =
+    useExtensionPermissions();
 
   const voicemailEnabled = Form.useWatch("voicemail_enabled", form);
 
@@ -78,30 +83,38 @@ const ExtensionForm = ({
       onFinish={onSubmit}
       disabled={submitting}
     >
-      <ExtensionFormBasicSection mode={mode} excludeUuid={excludeUuid} hive={hive} disabled={basicDisabled} />
+      <ExtensionFormBasicSection
+        mode={mode}
+        excludeUuid={excludeUuid}
+        hive={hive}
+        disabled={basicDisabled}
+      />
 
-        {showAdvancedSection && (
-          <ExtensionFormAdvancedSection
-            mode={mode}
-            hive={hive}
-            disabled={advancedDisabled}
-            defaultUserContext={initialValues.user_context}
-            onUserContextChange={handleUserContextChange}
-          />
-        )}
-        <div style={{ marginTop: 24 }}>
-          <Row gutter={[16, 16]}>
+      {showAdvancedSection && (
+        <ExtensionFormAdvancedSection
+          mode={mode}
+          hive={hive}
+          disabled={advancedDisabled}
+          defaultUserContext={initialValues.user_context}
+          onUserContextChange={handleUserContextChange}
+        />
+      )}
+      <div style={{ marginTop: 24 }}>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} lg={12}>
+            <ExtensionFormOptionsSection disabled={basicDisabled} />
+          </Col>
+
+          {voicemailEnabled && (
             <Col xs={24} lg={12}>
-              <ExtensionFormOptionsSection disabled={basicDisabled} />
+              <ExtensionFormVoicemailSection
+                mode={mode}
+                disabled={basicDisabled}
+              />
             </Col>
-
-            {voicemailEnabled && (
-              <Col xs={24} lg={12}>
-                <ExtensionFormVoicemailSection mode={mode} disabled={basicDisabled} />
-              </Col>
-            )}
-          </Row>
-        </div>
+          )}
+        </Row>
+      </div>
     </Form>
   );
 };

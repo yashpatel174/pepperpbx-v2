@@ -1,109 +1,150 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { App, Button, Space } from 'antd'
-import ModuleHeader from '../../../components/common/ModuleHeader'
-import FormPageToolbar from '../../../components/common/FormPageToolbar'
-import LoadingState from '../../../components/feedback/LoadingState'
-import ErrorState from '../../../components/feedback/ErrorState'
-import GatewayForm from '../components/GatewayForm'
-import { createGateway, getHiveGatewayDetails, getSbcDomains, getSipProfiles } from '../gateway.service'
-import { getDefaultGatewayFormValues } from '../gateway.constants'
-import useGatewayPermissions from '../useGatewayPermissions'
-import type { GatewayFormValues, HiveGatewayDetails, SbcDomainOption, SipProfileOption } from '../gateway.types'
-import { getApiErrorMessage } from '../../../services/api/apiError'
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { App, Button, Space } from "antd";
+import ModuleHeader from "../../../components/common/ModuleHeader";
+import FormPageToolbar from "../../../components/common/FormPageToolbar";
+import LoadingState from "../../../components/feedback/LoadingState";
+import ErrorState from "../../../components/feedback/ErrorState";
+import GatewayForm from "../components/GatewayForm";
+import {
+  createGateway,
+  getHiveGatewayDetails,
+  getSbcDomains,
+  getSipProfiles,
+} from "../gateway.service";
+import { getDefaultGatewayFormValues } from "../gateway.constants";
+import useGatewayPermissions from "../useGatewayPermissions";
+import type {
+  GatewayFormValues,
+  HiveGatewayDetails,
+  SbcDomainOption,
+  SipProfileOption,
+} from "../gateway.types";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 
-const ADD_GATEWAY_FORM_ID = 'add-gateway-form'
+const ADD_GATEWAY_FORM_ID = "add-gateway-form";
 
 const AddGatewayPage = () => {
-  const navigate = useNavigate()
-  const { message } = App.useApp()
-  const { canManage } = useGatewayPermissions()
+  const navigate = useNavigate();
+  const { message } = App.useApp();
+  const { canManage } = useGatewayPermissions();
 
-  const [hive, setHive] = useState<HiveGatewayDetails | null>(null)
-  const [sbcDomains, setSbcDomains] = useState<SbcDomainOption[]>([])
-  const [sipProfiles, setSipProfiles] = useState<SipProfileOption[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [optionsLoading, setOptionsLoading] = useState(false)
+  const [hive, setHive] = useState<HiveGatewayDetails | null>(null);
+  const [sbcDomains, setSbcDomains] = useState<SbcDomainOption[]>([]);
+  const [sipProfiles, setSipProfiles] = useState<SipProfileOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [optionsLoading, setOptionsLoading] = useState(false);
   // A failed domain-change refetch shows an inline Retry above the form.
-  const [optionsError, setOptionsError] = useState<{ domain: string; message: string } | null>(null)
+  const [optionsError, setOptionsError] = useState<{
+    domain: string;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
-    let active = true
+    let active = true;
     Promise.all([getHiveGatewayDetails(), getSbcDomains(), getSipProfiles()])
       .then(([hiveDetails, sbc, profiles]) => {
-        if (!active) return
-        setHive(hiveDetails)
-        setSbcDomains(sbc)
-        setSipProfiles(profiles)
+        if (!active) return;
+        setHive(hiveDetails);
+        setSbcDomains(sbc);
+        setSipProfiles(profiles);
       })
       .catch(() => {
-        if (active) setError('Failed to load account details.')
+        if (active) setError("Failed to load account details.");
       })
       .finally(() => {
-        if (active) setLoading(false)
-      })
+        if (active) setLoading(false);
+      });
     return () => {
-      active = false
-    }
-  }, [])
+      active = false;
+    };
+  }, []);
 
-  const handleCancel = () => navigate('/account/gateways')
+  const handleCancel = () => navigate("/account/gateways");
 
   // Matches the Axion reference: once a domain change is confirmed, re-fetch the domain-dependent
   // option lists (hive bootstrap, SBC domains, SIP profiles) for the newly selected domain, reusing
   // the exact same service calls the initial mount uses — no new service/API logic.
   const handleDomainConfirmed = async (domainName: string) => {
-    setOptionsLoading(true)
-    setOptionsError(null)
+    setOptionsLoading(true);
+    setOptionsError(null);
     try {
       const [hiveDetails, sbc, profiles] = await Promise.all([
         getHiveGatewayDetails(domainName),
         getSbcDomains(),
         getSipProfiles(),
-      ])
-      setHive(hiveDetails)
-      setSbcDomains(sbc)
-      setSipProfiles(profiles)
+      ]);
+      setHive(hiveDetails);
+      setSbcDomains(sbc);
+      setSipProfiles(profiles);
     } catch (err) {
-      setOptionsError({ domain: domainName, message: getApiErrorMessage(err, 'The options for the selected domain failed to load.') })
+      setOptionsError({
+        domain: domainName,
+        message: getApiErrorMessage(
+          err,
+          "The options for the selected domain failed to load.",
+        ),
+      });
     } finally {
-      setOptionsLoading(false)
+      setOptionsLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (values: GatewayFormValues) => {
-    setSubmitting(true)
+    setSubmitting(true);
     try {
-      const created = await createGateway(values)
-      message.success(`Gateway "${created.gateway}" created successfully.`)
+      const payload = {
+        ...values,
+        expire_seconds: parseInt(String(values.expire_seconds), 10),
+        retry_seconds: parseInt(String(values.retry_seconds), 10),
+        ping: parseInt(String(values.ping), 10),
+        ping_min: parseInt(String(values.ping_min), 10),
+        ping_max: parseInt(String(values.ping_max), 10),
+        channels: parseInt(String(values.channels), 10),
+      };
+
+      const created = await createGateway(payload);
+      message.success(`Gateway "${created.gateway}" created successfully.`);
       // Follow the Axion reference: land on the new record's Edit page.
-      navigate(`/account/gateways/${created.gateway_uuid}/edit`)
+      navigate(`/account/gateways/${created.gateway_uuid}/edit`);
     } catch (err) {
-      message.error(getApiErrorMessage(err, 'Failed to create gateway.'))
+      message.error(getApiErrorMessage(err, "Failed to create gateway."));
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   if (error) {
-    return <ErrorState message={error} onRetry={() => navigate('/account/gateways')} />
+    return (
+      <ErrorState
+        message={error}
+        onRetry={() => navigate("/account/gateways")}
+      />
+    );
   }
 
   if (loading || !hive) {
-    return <LoadingState rows={10} />
+    return <LoadingState rows={10} />;
   }
 
   return (
-    <Space orientation="vertical" size="middle" style={{ width: '100%' }}>
+    <Space orientation="vertical" size="middle" style={{ width: "100%" }}>
       <ModuleHeader
         title="Add Gateway"
         toolbar={
           <FormPageToolbar onBack={handleCancel}>
-            <Button onClick={handleCancel} disabled={submitting}>Cancel</Button>
+            <Button onClick={handleCancel} disabled={submitting}>
+              Cancel
+            </Button>
             {canManage && (
-              <Button type="primary" htmlType="submit" form={ADD_GATEWAY_FORM_ID} loading={submitting}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                form={ADD_GATEWAY_FORM_ID}
+                loading={submitting}
+              >
                 Save
               </Button>
             )}
@@ -132,7 +173,7 @@ const AddGatewayPage = () => {
         onSubmit={handleSubmit}
       />
     </Space>
-  )
-}
+  );
+};
 
-export default AddGatewayPage
+export default AddGatewayPage;

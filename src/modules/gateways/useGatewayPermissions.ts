@@ -1,5 +1,5 @@
-import usePermissions from '../../hooks/usePermissions'
-import { gatewayPermission } from './gateway.constants'
+import usePermissions from "../../hooks/usePermissions";
+import { gatewayPermission } from "./gateway.constants";
 
 /**
  * Single coarse permission gate, matching the Axion reference's all-or-nothing
@@ -15,11 +15,11 @@ import { gatewayPermission } from './gateway.constants'
  * asymmetry would just carry the bug forward without reason.
  */
 const useGatewayPermissions = () => {
-  const { permissions, hasPermission } = usePermissions()
-  const permissionsActive = permissions.length > 0
-  const canManage = !permissionsActive || hasPermission(gatewayPermission)
+  const { permissions, hasPermission } = usePermissions();
+  const permissionsActive = permissions.length > 0;
+  const canManage = !permissionsActive || hasPermission(gatewayPermission);
 
-  return { canManage }
-}
+  return { canManage };
+};
 
-export default useGatewayPermissions
+export default useGatewayPermissions;

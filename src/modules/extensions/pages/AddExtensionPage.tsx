@@ -1,20 +1,19 @@
+import { App, Button, Space } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { App, Button, Space } from "antd";
-import ModuleHeader from "../../../components/common/ModuleHeader";
 import FormPageToolbar from "../../../components/common/FormPageToolbar";
-import LoadingState from "../../../components/feedback/LoadingState";
+import ModuleHeader from "../../../components/common/ModuleHeader";
 import ErrorState from "../../../components/feedback/ErrorState";
+import LoadingState from "../../../components/feedback/LoadingState";
+import { getApiErrorMessage } from "../../../services/api/apiError";
 import ExtensionForm from "../components/ExtensionForm";
 import { createExtension, getHiveUserDetails } from "../extension.service";
-import { getDefaultExtensionFormValues } from "../extension.constants";
-import useExtensionPermissions from "../useExtensionPermissions";
 import type {
   ExtensionDetails,
   ExtensionFormValues,
   HiveUserDetails,
 } from "../extension.types";
-import { getApiErrorMessage } from "../../../services/api/apiError";
+import useExtensionPermissions from "../useExtensionPermissions";
 
 const ADD_EXTENSION_FORM_ID = "add-extension-form";
 
@@ -108,7 +107,30 @@ const AddExtensionPage = () => {
       <ExtensionForm
         formId={ADD_EXTENSION_FORM_ID}
         mode="create"
-        initialValues={getDefaultExtensionFormValues(hive)}
+        // initialValues={getDefaultExtensionFormValues(hive)}
+        initialValues={{
+          range: 1,
+          extension: hive.autoExt,
+          accountcode: hive.accountNumber,
+          limit_max: "",
+          limit_destination: "",
+          missed_call_app: "",
+          call_timeout: "",
+          user_record: "",
+          user_context: hive.newDomainName || hive.defaultDomain,
+          sip_force_contact: "",
+          sip_bypass_media: "",
+          voicemail_file: "",
+          call_screen_enabled: false,
+          force_ping: false,
+          directory_visible: false,
+          directory_exten_visible: false,
+          voicemail_transcription_enabled: false,
+          voicemail_local_after_email: false,
+          voicemail_enabled: false,
+          enabled: false,
+          voicemail_password: "",
+        }}
         hive={hive}
         submitting={submitting}
         onSubmit={handleSubmit}

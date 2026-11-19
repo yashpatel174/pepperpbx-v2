@@ -1,12 +1,6 @@
-
-
 import { Button, Space, Table, Tag, theme, Tooltip, Typography } from "antd";
 import type { TableColumnsType, TableProps } from "antd";
-import {
-  CopyOutlined,
-  DeleteOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { CopyOutlined, DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { defaultPageSize, pageSizeOptions } from "../gateway.constants";
 import type { Gateway } from "../gateway.types";
 import useStripedTableRow from "../../../components/common/useStripedTableRow";
@@ -38,7 +32,8 @@ const renderOptionalText = (value?: string) =>
 
 // Client-side comparator for the sortable text columns (matches the Axion reference's
 // tanstack sort: sorts the currently loaded/filtered page only, not a server-side sort).
-const compareOptional = (a?: string, b?: string) => (a ?? "").localeCompare(b ?? "");
+const compareOptional = (a?: string, b?: string) =>
+  (a ?? "").localeCompare(b ?? "");
 
 const GatewayTable = ({
   data,
@@ -74,10 +69,11 @@ const GatewayTable = ({
       ? [
           {
             title: "Domain",
-            dataIndex: "domain",
-            key: "domain",
+            dataIndex: "domain_name",
+            key: "domain_name",
             render: renderOptionalText,
-            sorter: (a: Gateway, b: Gateway) => a.domain.localeCompare(b.domain),
+            sorter: (a: Gateway, b: Gateway) =>
+              a.domain.localeCompare(b.domain),
           },
         ]
       : []),
@@ -123,16 +119,16 @@ const GatewayTable = ({
         return (
           <Tag
             style={{
-                cursor: "pointer",
-                backgroundColor: stopped ? "#00D27A" : "#f16b3e",
-                color: "#fff",
-                borderColor: stopped ? "#00D27A" : "#f16b3e",
-                fontWeight: 500,
-                borderRadius: "999px",
-                padding: "4px 14px",
-                minHeight: "28px",
-                lineHeight: "20px",
-              }}
+              cursor: "pointer",
+              backgroundColor: stopped ? "#00D27A" : "#f16b3e",
+              color: "#fff",
+              borderColor: stopped ? "#00D27A" : "#f16b3e",
+              fontWeight: 500,
+              borderRadius: "999px",
+              padding: "4px 14px",
+              minHeight: "28px",
+              lineHeight: "20px",
+            }}
             onClick={() => onStartStop(record)}
           >
             {stopped ? "Start" : "Stop"}
@@ -264,4 +260,3 @@ const GatewayTable = ({
 };
 
 export default GatewayTable;
-

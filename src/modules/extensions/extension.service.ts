@@ -7,6 +7,7 @@ import {
 } from "./extension.mock";
 import type {
   CreateExtensionApiResponse,
+  DomainOptionResponse,
   Extension,
   ExtensionApiResponse,
   ExtensionDetails,
@@ -66,58 +67,16 @@ const toListExtension = (details: ExtensionDetails): Extension => ({
  * domains when show_all, else only the current domain), and paging always slices the
  * resulting set — showAll is a domain-scope flag, never a "one giant page" mode.
  */
-// export const fetchExtensions = (
-//   query: ExtensionListQuery = {},
-// ): Promise<ExtensionListResponse> =>
-//   new Promise((resolve) => {
-//     setTimeout(() => {
-//       const {
-//         page = 1,
-//         pageSize = defaultPageSize,
-//         showAll = false,
-//         search = "",
-//       } = query;
-
-//       const currentDomain = getCurrentDomainName();
-//       const list = extensions.map(toListExtension);
-
-//       const needle = search.trim().toLowerCase();
-//       const searchFiltered = needle
-//         ? list.filter((extension) =>
-//             searchableExtensionFields.some((field) => {
-//               const value = extension[field];
-//               return (
-//                 typeof value === "string" &&
-//                 value.toLowerCase().includes(needle)
-//               );
-//             }),
-//           )
-//         : list;
-
-//       const domainFiltered = showAll
-//         ? searchFiltered
-//         : searchFiltered.filter(
-//             (extension) => extension.domain === currentDomain,
-//           );
-
-//       const total_records = domainFiltered.length;
-//       const total_pages = Math.max(1, Math.ceil(total_records / pageSize));
-//       const safePage = Math.min(Math.max(1, page), total_pages);
-
-//       const data = domainFiltered
-//         .slice((safePage - 1) * pageSize, safePage * pageSize)
-//         .map((extension) => ({
-//           ...extension,
-//         }));
-
-//       resolve({ data, page: safePage, pageSize, total_records, total_pages });
-//     }, 300);
-//   });
-
 export const fetchExtensions = async (
   query: ExtensionListQuery = {},
 ): Promise<ExtensionListResponse> => {
-  const { page = 1, pageSize = 10, showAll = false, search = "" } = query;
+  const {
+    page = 1,
+    pageSize = 10,
+    showAll = false,
+    search = "",
+    domain,
+  } = query;
 
   const response = await request.get<ExtensionApiResponse>("/extensions", {
     params: {
@@ -125,9 +84,9 @@ export const fetchExtensions = async (
       pageSize,
       showAll,
       search: search.trim(),
+      ...(!showAll && domain ? { domain } : {}),
     },
   });
-
   const list = response.data?.map(toListExtension);
 
   return {
@@ -165,9 +124,15 @@ export const isExtensionNumberTaken = (
     ),
   );
 
-const cloneDetails = (details: ExtensionDetails): ExtensionDetails => ({
-  ...details,
-});
+// export const isExtensionNumberTaken = (
+//   extension: string,
+//   existingExtensions: string[],
+// ): Promise<boolean> =>
+//   Promise.resolve(existingExtensions.some((record) => record === extension));
+
+// const cloneDetails = (details: ExtensionDetails): ExtensionDetails => ({
+//   ...details,
+// });
 
 /**
  * GET /api/hiveuser/details — Add-mode defaults (auto extension, account, domain, range bounds).
@@ -208,6 +173,11 @@ export const getHiveUserDetails = (
   });
 };
 
+export const getAllDomains = async (): Promise<DomainOptionResponse> => {
+  const response = await request.get<DomainOptionResponse>("/hiveuser/details");
+  return response;
+};
+
 /**
  * GET /api/destinations/list/holdMusic?domain_name=... — options are never hardcoded in the
  * form, and the domain is threaded through the service boundary so a real backend can serve
@@ -228,28 +198,12 @@ export const getHoldMusicOptions = (domainName?: string): Promise<string[]> => {
 /** GET /api/extensions/details?extension_uuid=... */
 export const getExtensionDetails = (
   extensionUuid: string,
-): Promise<ExtensionDetailsResponse> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      // const details = extensions.find(
-      //   (record) => record.extension_uuid === extensionUuid,
-      // );
-
-      const response = request.get<ExtensionDetailsResponse>(
-        `extensions/${extensionUuid}`,
-      );
-      resolve(response);
-      // if (!details) {
-      //   const notFound: ApiError = {
-      //     status: 404,
-      //     message: `Extension ${extensionUuid} not found.`,
-      //   };
-      //   reject(notFound);
-      //   return;
-      // }
-      // resolve(cloneDetails(details));
-    }, 300);
-  });
+): Promise<ExtensionDetailsResponse> => {
+  const response = request.get<ExtensionDetailsResponse>(
+    `extensions/${extensionUuid}`,
+  );
+  return response;
+};
 
 /**
  * Maps form values into the stored/API details shape. The numeric form strings are converted
@@ -317,92 +271,35 @@ const toDetails = (
 });
 
 /** POST /api/extensions/create — creates `range` consecutive records starting at the base number. */
-// export const createExtension = (
-//   values: ExtensionFormValues,
-// ): Promise<ExtensionDetails> =>
-//   new Promise((resolve) => {
-//     setTimeout(() => {
-//       // const countsAsRange = /^\d+$/.test(values.extension);
-//       // const createdDetails: ExtensionDetails[] = [];
-//       // for (
-//       //   let index = 0;
-//       //   index < (countsAsRange ? values.range : 1);
-//       //   index += 1
-//       // ) {
-//       //   const extension = countsAsRange
-//       //     ? String(Number(values.extension) + index)
-//       //     : values.extension;
-//       //   const details = toDetails(
-//       //     values,
-//       //     extension,
-//       //     `ext-${extension}-${Date.now()}-${index}`,
-//       //   );
-//       //   createdDetails.push(details);
-//       // }
-//       // extensions = [...extensions, ...createdDetails];
-//       const response = request.post("/extensions", values);
-//       resolve(response.data);
-//       // resolve(cloneDetails(createdDetails[0]));
-//     }, 300);
-//   });
-
-export const createExtension = (
-  values: ExtensionFormValues,
-): Promise<CreateExtensionApiResponse> =>
-  new Promise<CreateExtensionApiResponse>((resolve, reject) => {
-    setTimeout(async () => {
-      try {
-        const response: CreateExtensionApiResponse =
-          await request.post<CreateExtensionApiResponse>("/extensions", values);
-
-        resolve(response);
-      } catch (error: unknown) {
-        reject(error);
-      }
-    }, 300);
-  });
+export const createExtension = async (values: ExtensionFormValues) => {
+  const response = await request.post<CreateExtensionApiResponse>(
+    "/extensions/create",
+    values,
+  );
+  return response;
+};
 
 /** PATCH /api/extensions/update — `old_extension` is added only when the extension number changed. */
-export const updateExtension = (
+export const updateExtension = async (
   extensionUuid: string,
   values: ExtensionFormValues,
   oldExtension?: string,
-): Promise<ExtensionDetails> =>
-  new Promise((resolve, reject) => {
-    setTimeout(async () => {
-      // const index = extensions.findIndex(
-      //   (record) => record.extension_uuid === extensionUuid,
-      // );
-      // if (index === -1) {
-      //   reject(new Error(`Extension ${extensionUuid} not found.`));
-      //   return;
-      // }
-      // const existing = extensions[index];
-      const updated = {
-        ...toDetails(values, values.extension, extensionUuid),
-        // Blank password in Edit means "keep the current one" (see Edit page placeholder).
-        // password: values.password || existing.password || undefined,
-        password: values.password || undefined,
-        ...(oldExtension !== undefined && oldExtension !== values.extension
-          ? { old_extension: oldExtension }
-          : {}),
-      };
-      // extensions = [
-      //   ...extensions.slice(0, index),
-      //   updated,
-      //   ...extensions.slice(index + 1),
-      // ];
-      try {
-        const response = await request.patch<ExtensionDetailsResponse>(
-          `/extensions/${extensionUuid}`,
-          updated,
-        );
-        resolve(cloneDetails(response.data));
-      } catch (error) {
-        reject(error);
-      }
-    }, 300);
-  });
+) => {
+  const updated = {
+    ...toDetails(values, values.extension, extensionUuid),
+    // Blank password in Edit means "keep the current one" (see Edit page placeholder).
+    // password: values.password || existing.password || undefined,
+    password: values.password || undefined,
+    ...(oldExtension !== undefined && oldExtension !== values.extension
+      ? { old_extension: oldExtension }
+      : {}),
+  };
+  const response = await request.patch<ExtensionDetailsResponse>(
+    `/extensions/update`,
+    { extension_uuid: extensionUuid, updated },
+  );
+  return response.data;
+};
 
 /**
  * PATCH /api/extensions/copy — `{ new_extension, extension_uuid }`. Matches the Axion reference
@@ -415,52 +312,21 @@ export const updateExtension = (
  * backend determines how sensitive fields (SIP password, voicemail password) are copied/reset.
  * The mock copies them as stored rather than inventing a reset rule.
  */
-export const copyExtension = (
-  extensionData: ExtensionDetails,
+export const copyExtension = async (
+  extension_uuid: string,
   newExtension: string,
-): Promise<ExtensionDetails> =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // const source = extensions.find(
-      //   (record) => record.extension_uuid === extensionUuid,
-      // );
-      // if (!source) {
-      //   reject(new Error(`Extension ${extensionUuid} not found.`));
-      //   return;
-      // }
-      // if (source.default === "true") {
-      //   reject(
-      //     new Error(
-      //       `Extension ${source.extension} is a default extension and cannot be copied.`,
-      //     ),
-      //   );
-      //   return;
-      // }
-      // if (extensions.some((record) => record.extension === newExtension)) {
-      //   reject(new Error(`Extension ${newExtension} already exists.`));
-      //   return;
-      // }
-      const copied: ExtensionDetails = {
-        ...extensionData,
-        // extension_uuid: `ext-${newExtension}-${Date.now()}`,
-        extension: newExtension,
-      };
+) => {
+  const payload = {
+    new_extension: newExtension,
+    extension_uuid,
+  };
 
-      request
-        .post<CreateExtensionApiResponse>("/extensions", copied)
-        .then((res) => {
-          resolve(res.data[0]);
-          resolve(cloneDetails(res.data[0]));
-        })
-        .catch((err) => {
-          reject(err);
-        });
-
-      // delete copied.default;
-      // delete copied.old_extension;
-      // extensions = [...extensions, copied];
-    }, 300);
-  });
+  const response = await request.post<CreateExtensionApiResponse>(
+    "/extensions/copy",
+    payload,
+  );
+  return response;
+};
 
 /**
  * PATCH /api/extensions/update — flips the `enabled` flag for the list Enable/Disable toggle.
@@ -469,38 +335,18 @@ export const copyExtension = (
  * other changed fields; the mock applies the flag directly to the stored record so the list
  * refetches the new status.
  */
-export const setExtensionEnabled = (
-  extensionUuid: string,
+export const setExtensionEnabled = async (
+  extension_uuid: string,
   enabled: boolean,
-): Promise<ExtensionDetails> =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // const index = extensions.findIndex(
-      //   (record) => record.extension_uuid === extensionUuid,
-      // );
-      // if (index === -1) {
-      //   reject(new Error(`Extension ${extensionUuid} not found.`));
-      //   return;
-      // }
-      request
-        .patch<ExtensionDetails>(`/extensions/${extensionUuid}/status`, {
-          enabled,
-        })
-        .then((res) => {
-          const updated = cloneDetails(res);
-          resolve(updated);
-        })
-        .catch((error: unknown) => {
-          reject(error);
-        });
-      // const updated = { ...extensions[index], enabled };
-      // extensions = [
-      //   ...extensions.slice(0, index),
-      //   updated,
-      //   ...extensions.slice(index + 1),
-      // ];
-    }, 200);
-  });
+): Promise<ExtensionDetails> => {
+  const response = await request.patch<ExtensionDetails>(
+    `/extensions/update/${extension_uuid}`,
+    {
+      enabled,
+    },
+  );
+  return response;
+};
 
 /**
  * PATCH /api/extensions/toggle — flips each targeted record's OWN current `enabled` state.
@@ -513,25 +359,10 @@ export const setExtensionEnabled = (
  * reference only; not verified against a real PepperPBX backend. Protected/default records are
  * defensively skipped here even if their uuid is passed, mirroring what a real backend should do.
  */
-export const toggleExtensions = (
-  extensionUuids: string[],
-): Promise<ExtensionDetails[]> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      const updated: ExtensionDetails[] = [];
-      extensions = extensions.map((record) => {
-        if (
-          !extensionUuids.includes(record.extension_uuid) ||
-          record.default === "true"
-        )
-          return record;
-        const next = { ...record, enabled: !record.enabled };
-        updated.push(next);
-        return next;
-      });
-      resolve(updated.map(cloneDetails));
-    }, 300);
-  });
+export const toggleExtensions = async (extensionUuids: string[]) => {
+  const response = await request.patch("/extensions/toggle", extensionUuids);
+  return response;
+};
 
 /**
  * DELETE /api/extensions/delete — removes one or more records. Matches the Axion reference
@@ -546,27 +377,14 @@ export const toggleExtensions = (
  * call shape already matches what a real endpoint will expect. Protected/default records are
  * defensively kept even if their uuid is passed.
  */
-export const deleteExtensions = (
+export const deleteExtensions = async (
   extensionUuids: string[],
   deleteVoicemail: boolean,
 ): Promise<void> => {
   void deleteVoicemail;
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // extensions = extensions.filter(
-      //   (record) =>
-      //     !(
-      //       extensionUuids.includes(record.extension_uuid) &&
-      //       record.default !== "true"
-      //     ),
-      // );
-
-      const response = request.delete<void>(`extensions/delete`, {
-        extensionUuids,
-        deleteVoicemail,
-      });
-      console.log("response: ", response);
-      resolve(response);
-    }, 300);
+  const response = await request.delete<void>(`extensions/delete`, {
+    extensionUuids,
+    deleteVoicemail,
   });
+  return response;
 };

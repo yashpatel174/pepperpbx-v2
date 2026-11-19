@@ -4,10 +4,12 @@ import {
   copyExtension as copyExtensionRequest,
   deleteExtensions as deleteExtensionsRequest,
   fetchExtensions,
+  getAllDomains,
   setExtensionEnabled,
   toggleExtensions as toggleExtensionsRequest,
 } from "./extension.service";
-import type { Extension, ExtensionDetails } from "./extension.types";
+import type { Extension } from "./extension.types";
+import { MOCK_DEFAULT_DOMAIN } from "../../store/domain";
 
 /** Delay before a search input change is committed to a fetch, to avoid a request per keystroke. */
 const SEARCH_DEBOUNCE_MS = 400;
@@ -55,6 +57,7 @@ export const useExtensions = () => {
         page,
         pageSize,
         showAll,
+        domain: MOCK_DEFAULT_DOMAIN,
         search: debouncedSearchTerm,
       });
       if (requestId !== requestRef.current) return;
@@ -121,13 +124,10 @@ export const useExtensions = () => {
    * toggleExtensions) and refetches, rather than optimistically patching rows. The single-row
    * click keeps using toggleExtensionStatus below, unchanged.
    */
-  const bulkToggle = useCallback(
-    async (extensionUuids: string[]) => {
-      await toggleExtensionsRequest(extensionUuids);
-      await load();
-    },
-    [load],
-  );
+  const bulkToggle = useCallback(async (extensionUuids: string[]) => {
+    await toggleExtensionsRequest(extensionUuids);
+    await load();
+  }, []);
 
   /**
    * Flips the stored `enabled` flag through the service boundary (so a later refetch sees
@@ -152,12 +152,17 @@ export const useExtensions = () => {
    * list refetches, so the copy survives paging/search/Show All and is a real, editable record.
    */
   const copyExtension = useCallback(
-    async (extensionData: ExtensionDetails, newExtension: string) => {
+    async (extensionData: string, newExtension: string) => {
       await copyExtensionRequest(extensionData, newExtension);
       await load();
     },
     [load],
   );
+
+  const getDomain = useCallback(async () => {
+    const result = await getAllDomains();
+    return result;
+  }, []);
 
   /**
    * CSV export: returns every search-filtered record across ALL domains and pages (a page
@@ -194,6 +199,7 @@ export const useExtensions = () => {
     bulkToggle,
     toggleExtensionStatus,
     copyExtension,
+    getDomain,
     getExportData,
   };
 };

@@ -21,6 +21,7 @@ export interface ExtensionListQuery {
   page?: number;
   pageSize?: number;
   showAll?: boolean;
+  domain?: string;
   search?: string;
 }
 
@@ -45,6 +46,12 @@ export interface HiveUserDetails {
   additionalExtStart: number;
   additionalExtEnd: number;
   additionalExtExclude: string[];
+}
+
+export interface DomainOptionResponse {
+  success: boolean;
+  message: string;
+  domainOptions: { id: number; domain: string }[];
 }
 
 /**
