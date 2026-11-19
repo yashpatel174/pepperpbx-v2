@@ -104,7 +104,7 @@ const ExtensionFormAdvancedSection = ({
     } catch (error) {
       message.error(getApiErrorMessage(error, "Failed to fetch domains."));
     }
-  }, []);
+  }, [getDomain]);
 
   const {
     options: holdMusicOptions,

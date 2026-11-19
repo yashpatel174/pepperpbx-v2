@@ -124,10 +124,13 @@ export const useExtensions = () => {
    * toggleExtensions) and refetches, rather than optimistically patching rows. The single-row
    * click keeps using toggleExtensionStatus below, unchanged.
    */
-  const bulkToggle = useCallback(async (extensionUuids: string[]) => {
-    await toggleExtensionsRequest(extensionUuids);
-    await load();
-  }, []);
+  const bulkToggle = useCallback(
+    async (extensionUuids: string[]) => {
+      await toggleExtensionsRequest(extensionUuids);
+      await load();
+    },
+    [load],
+  );
 
   /**
    * Flips the stored `enabled` flag through the service boundary (so a later refetch sees
