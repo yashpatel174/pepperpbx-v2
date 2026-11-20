@@ -236,7 +236,7 @@ const GatewayTable = ({
 
   return (
     <Table<Gateway>
-      rowKey="id"
+      rowKey="gateway_uuid"
       showSorterTooltip={false}
       columns={columns}
       dataSource={data}

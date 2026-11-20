@@ -429,10 +429,6 @@ const ExtensionFormAdvancedSection = ({
                 showSearch
                 optionFilterProp="label"
                 placeholder="Select user context"
-                // options={hive.domainOptions.map((domain) => ({
-                //   label: domain,
-                //   value: domain,
-                // }))}
                 options={domain?.map((d) => ({
                   label: d.domain,
                   value: d.domain,

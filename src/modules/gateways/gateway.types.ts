@@ -21,6 +21,7 @@ export interface GatewayListQuery {
   pageSize?: number;
   showAll?: boolean;
   search?: string;
+  domain?: string;
 }
 
 export interface GatewayListResponse {

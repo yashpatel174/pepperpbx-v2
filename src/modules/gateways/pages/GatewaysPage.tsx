@@ -118,16 +118,18 @@ const GatewaysPage = () => {
   const handleDeleteRow = (gateway: Gateway) => {
     openConfirm({
       title: "Delete Gateway",
-      content: `Are you sure you want to delete gateway ${gateway.gateway}?`,
+      content: `Are you sure you want to delete gateway ${gateway.id}?`,
       confirmText: "Delete",
       danger: true,
       errorMessage: `Failed to delete gateway ${gateway.gateway}.`,
       bulk: false,
       run: async () => {
-        await removeGateways([gateway.id]);
+        await removeGateways([gateway.gateway_uuid!]);
         message.success(`Gateway "${gateway.gateway}" deleted successfully.`);
         // Drop only the deleted row — an unrelated multi-page selection stays intact.
-        setSelectedGatewayIds((ids) => ids.filter((id) => id !== gateway.id));
+        setSelectedGatewayIds((ids) =>
+          ids.filter((id) => id !== gateway.gateway_uuid),
+        );
       },
     });
   };
@@ -222,7 +224,7 @@ const GatewaysPage = () => {
     // start | stop — only gateways that register with a SIP server have a start/stop concept,
     // matching the inline Gateway Action pill's own `register === true` gate (see GatewayTable.tsx).
     const registeringIds = ids.filter(
-      (id) => data.find((gateway) => gateway.id === id)?.register,
+      (id) => data.find((gateway) => gateway.gateway_uuid === id)?.register,
     );
     if (registeringIds.length === 0) {
       message.warning(

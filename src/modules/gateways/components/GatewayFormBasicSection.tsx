@@ -1,6 +1,8 @@
-import { Card, Col, Form, Input, Row, Select } from "antd";
+import { Card, Col, Form, Input, message, Row, Select } from "antd";
+import { useEffect, useState } from "react";
 import FormSwitchField from "../../../components/common/FormSwitchField";
-import { GLOBAL_DOMAIN_OPTION } from "../gateway.constants";
+import { getApiErrorMessage } from "../../../services/api/apiError";
+import useExtensions from "../../extensions/useExtensions";
 import { isGatewayNameTaken } from "../gateway.service";
 import type {
   HiveGatewayDetails,
@@ -31,13 +33,27 @@ interface GatewayFormBasicSectionProps {
 const GatewayFormBasicSection = ({
   mode,
   excludeUuid,
-  hive,
+  // hive,
   sbcDomains,
   sipProfiles,
   optionsLoading,
   registerEnabled,
   onDomainChange,
 }: GatewayFormBasicSectionProps) => {
+  const [domain, setDomain] = useState<{ id: number; domain: string }[]>([]);
+
+  const { getDomain } = useExtensions();
+
+  useEffect(() => {
+    try {
+      getDomain().then((res) => {
+        setDomain(res.domainOptions);
+      });
+    } catch (error) {
+      message.error(getApiErrorMessage(error, "Failed to fetch domains."));
+    }
+  }, [getDomain]);
+
   return (
     <Card>
       <Row gutter={16}>
@@ -129,7 +145,7 @@ const GatewayFormBasicSection = ({
               noEdgeWhitespaceRule,
             ]}
           >
-            <Select
+            {/* <Select
               showSearch
               optionFilterProp="label"
               placeholder="Select domain"
@@ -143,6 +159,19 @@ const GatewayFormBasicSection = ({
                 })),
               ]}
               aria-label="Domain"
+            /> */}
+
+            <Select
+              showSearch
+              optionFilterProp="label"
+              placeholder="Select user context"
+              options={domain?.map((d) => ({
+                label: d.domain,
+                value: d.domain,
+              }))}
+              onChange={onDomainChange}
+              disabled={mode === "edit"}
+              aria-label="User context"
             />
           </Form.Item>
         </Col>

@@ -9,6 +9,7 @@ import {
 } from "./gateway.service";
 import type { StartStopAction } from "./gateway.service";
 import type { Gateway } from "./gateway.types";
+import { MOCK_DEFAULT_DOMAIN } from "../active-calls/active-calls.constants";
 
 /** Delay before a typed search value is committed to a fetch — matches Extensions' useExtensions.ts. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -55,6 +56,7 @@ export const useGateways = () => {
         page,
         pageSize,
         showAll,
+        domain: MOCK_DEFAULT_DOMAIN,
         search: debouncedSearchTerm,
       });
       if (requestId !== requestRef.current) return;

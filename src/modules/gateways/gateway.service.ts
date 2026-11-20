@@ -77,102 +77,65 @@ let gateways: GatewayDetails[] = seedGateways.map((gateway) => ({
  * emulates that here: search narrows first, then the domain scope is applied (all domains when
  * showAll, else only the current domain), and paging always slices the resulting set.
  */
-export const fetchGateways = (
+export const fetchGateways = async (
   query: GatewayListQuery = {},
-): Promise<GatewayListResponse> =>
-  new Promise((resolve) => {
-    setTimeout(async () => {
-      const {
-        page = 1,
-        pageSize = defaultPageSize,
-        // showAll = false,
-        search = "",
-      } = query;
+): Promise<GatewayListResponse> => {
+  const {
+    page = 1,
+    pageSize = defaultPageSize,
+    showAll = false,
+    search = "",
+    domain,
+  } = query;
 
-      // const currentDomain = getCurrentDomainName();
-      // const list = gateways.map(toListGateway);
-
-      // const needle = search.trim().toLowerCase();
-      // const searchFiltered = needle
-      //   ? list.filter((gateway) =>
-      //       searchableFields.some((field) => {
-      //         const value = gateway[field];
-      //         return (
-      //           typeof value === "string" &&
-      //           value.toLowerCase().includes(needle)
-      //         );
-      //       }),
-      //     )
-      //   : list;
-
-      const response = await request.get<GatewayApiResponse>("/gateways", {
-        params: {
-          page,
-          pageSize,
-          search: search.trim(),
-        },
-      });
-
-      resolve({
-        data: response.data?.map((gateway: Gateway) => ({
-          ...gateway,
-        })),
-        page: response.currentPage,
-        pageSize: response.pageSize,
-        total_records: response.totalRecords,
-        total_pages: response.totalPages,
-      });
-
-      // const domainFiltered = showAll
-      //   ? searchFiltered
-      //   : searchFiltered.filter((gateway) => gateway.domain === currentDomain);
-
-      // const total_records = domainFiltered.length;
-      // const total_pages = Math.max(1, Math.ceil(total_records / pageSize));
-      // const safePage = Math.min(Math.max(1, page), total_pages);
-
-      // const data = domainFiltered
-      //   .slice((safePage - 1) * pageSize, safePage * pageSize)
-      //   .map((gateway) => ({ ...gateway }));
-
-      // resolve({ data, page: safePage, pageSize, total_records, total_pages });
-    }, 300);
+  const response = await request.get<GatewayApiResponse>("/gateways/list", {
+    params: {
+      page,
+      pageSize,
+      showAll,
+      search: search.trim(),
+      ...(!showAll && domain ? { domain } : {}),
+    },
   });
+
+  return {
+    data: response.data?.map((gateway: Gateway) => ({
+      ...gateway,
+    })),
+    page: response.currentPage,
+    pageSize: response.pageSize,
+    total_records: response.totalRecords,
+    total_pages: response.totalPages,
+  };
+
+  // const domainFiltered = showAll
+  //   ? searchFiltered
+  //   : searchFiltered.filter((gateway) => gateway.domain === currentDomain);
+
+  // const total_records = domainFiltered.length;
+  // const total_pages = Math.max(1, Math.ceil(total_records / pageSize));
+  // const safePage = Math.min(Math.max(1, page), total_pages);
+
+  // const data = domainFiltered
+  //   .slice((safePage - 1) * pageSize, safePage * pageSize)
+  //   .map((gateway) => ({ ...gateway }));
+
+  // resolve({ data, page: safePage, pageSize, total_records, total_pages });
+};
 
 const cloneDetails = (details: GatewayDetails): GatewayDetails => ({
   ...details,
 });
 
 /** GET /api/gateways/details/${gateway_uuid} */
-export const getGatewayDetails = (
+export const getGatewayDetails = async (
   gatewayUuid: string,
-): Promise<GatewayDetailsResponse> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      // const details = gateways.find(
-      //   (record) => record.gateway_uuid === gatewayUuid,
-      // );
-      // if (!details) {
-      //   const notFound: ApiError = {
-      //     status: 404,
-      //     message: `Gateway ${gatewayUuid} not found.`,
-      //   };
-      //   reject(notFound);
-      //   return;
-      // }
-      // // sbcDomainIp null→'' normalization + description trim, per the Axion reference.
-      // resolve({
-      //   ...cloneDetails(details),
-      //   sbcDomainIp: details.sbcDomainIp ?? "",
-      //   description: details.description?.trim(),
-      // });
-
-      const response = request.get<GatewayDetailsResponse>(
-        `gateways/${gatewayUuid}`,
-      );
-      resolve(response);
-    }, 300);
-  });
+): Promise<GatewayDetailsResponse> => {
+  const response = await request.get<GatewayDetailsResponse>(
+    `gateways/details/${gatewayUuid}`,
+  );
+  return response;
+};
 
 /**
  * GET /api/hiveuser/details?module=Gateways&domain_name=... — Add/Edit bootstrap (domain
@@ -287,71 +250,32 @@ export const isGatewayNameTaken = (
 // });
 
 /** POST /api/gateways/create */
-export const createGateway = (
+export const createGateway = async (
   values: GatewayFormValues,
-): Promise<GatewayDetails> =>
-  new Promise((resolve, reject) => {
-    setTimeout(async () => {
-      // const created = toDetails(values, `gw-${values.gateway}-${Date.now()}`, 'Stopped', undefined)
-      // gateways = [...gateways, created]
-      // resolve(cloneDetails(created))
+): Promise<GatewayDetails> => {
+  const response: CreateGatewayApiResponse =
+    await request.post<CreateGatewayApiResponse>("/gateways/create", values);
 
-      try {
-        const response: CreateGatewayApiResponse =
-          await request.post<CreateGatewayApiResponse>("/gateways", values);
-
-        resolve(response.data);
-      } catch (error: unknown) {
-        reject(error);
-      }
-    }, 300);
-  });
+  return response.data;
+};
 
 /** PATCH /api/gateways/update */
-export const updateGateway = (
+export const updateGateway = async (
   gatewayUuid: string,
   values: GatewayFormValues,
-): Promise<GatewayDetailsResponse> =>
-  new Promise((resolve) => {
-    setTimeout(async () => {
-      // const index = gateways.findIndex(
-      //   (record) => record.gateway_uuid === gatewayUuid,
-      // );
-      // if (index === -1) {
-      //   reject(new Error(`Gateway ${gatewayUuid} not found.`));
-      //   return;
-      // }
-      // const existing = gateways[index];
-      // const updated: GatewayDetails = {
-      //   ...toDetails(values, gatewayUuid, existing.status, existing.state),
-      //   // Blank password on submit means "keep the current one".
-      //   password: values.password || existing.password || undefined,
-      // };
-      // gateways = [
-      //   ...gateways.slice(0, index),
-      //   updated,
-      //   ...gateways.slice(index + 1),
-      // ];
-      // resolve(cloneDetails(updated));
-
-      const response = await request.patch<GatewayDetailsResponse>(
-        `/gateways/${gatewayUuid}`,
-        values,
-      );
-      resolve(response);
-    }, 300);
-  });
+): Promise<GatewayDetailsResponse> => {
+  const response = await request.patch<GatewayDetailsResponse>(
+    `/gateways/update/${gatewayUuid}`,
+    values,
+  );
+  return response;
+};
 
 /** DELETE /api/gateways/delete — { gateway_uuids: string[] }. Used by both single (one-element array) and bulk delete. */
-export const deleteGateways = (gatewayUuids: string[]): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(() => {
-      gateways = gateways.filter(
-        (record) => !gatewayUuids.includes(record.gateway_uuid!),
-      );
-      resolve();
-    }, 300);
-  });
+export const deleteGateways = async (gatewayUuids: string[]): Promise<void> => {
+  await request.delete("gateways/delete", { gatewayUuids });
+  return;
+};
 
 /**
  * PATCH /api/gateways/copy — { gateway_uuids: [gatewayUuid] }. Row action only — a simple
@@ -386,27 +310,14 @@ export const copyGateway = (gatewayUuid: string): Promise<GatewayDetails> =>
  *
  * BACKEND CONTRACT REQUIRED — endpoint/method/payload assumed from the Axion reference only.
  */
-export const toggleGateways = (
+export const toggleGateways = async (
   gatewayUuids: string[],
-): Promise<GatewayDetails[]> =>
-  new Promise((resolve) => {
-    setTimeout(async () => {
-      // const updated: GatewayDetails[] = [];
-      // gateways = gateways.map((record) => {
-      //   if (!gatewayUuids.includes(record.gateway_uuid)) return record;
-      //   const next = { ...record, enabled: !record.enabled };
-      //   updated.push(next);
-      //   return next;
-      // });
-      // resolve(updated.map(cloneDetails));
-
-      const response = await request.patch<GatewayDetails[]>(
-        `/gateways/toggle-enabled-status`,
-        { gatewayUuids },
-      );
-      resolve(response);
-    }, 200);
+): Promise<GatewayDetails[]> => {
+  const response = await request.patch<GatewayDetails[]>(`/gateways/toggle`, {
+    gatewayUuids,
   });
+  return response;
+};
 
 export type StartStopAction = "start" | "stop";
 
@@ -440,7 +351,7 @@ export const startStopGateways = (
       // });
       // resolve(updated.map(cloneDetails));
       const response = await request.patch<GatewayDetails[]>(
-        `/gateways/toggle-status`,
+        `/gateways/startStop`,
         { gatewayUuids, action },
       );
       resolve(response);
