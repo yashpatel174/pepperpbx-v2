@@ -16,6 +16,7 @@ import useGatewayPermissions from "../useGatewayPermissions";
 import type { Gateway } from "../gateway.types";
 import type { StartStopAction } from "../gateway.service";
 import { getApiErrorMessage } from "../../../services/api/apiError";
+import CopyGatewayModal from "../components/CopyGatewayModal";
 
 type BulkAction = "start" | "stop" | "toggle" | "delete";
 
@@ -68,6 +69,7 @@ const GatewaysPage = () => {
   );
   // Kept separate from pendingConfirm so the dialog keeps its content through the close animation.
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [copy, setCopy] = useState<Gateway | null>(null);
 
   const hasSelection = selectedGatewayIds.length > 0;
 
@@ -101,24 +103,46 @@ const GatewaysPage = () => {
     setConfirmOpen(true);
   };
 
-  const handleCopy = (gateway: Gateway) => {
-    openConfirm({
-      title: "Copy Gateway",
-      content: "Do you really want to copy this gateway?",
-      confirmText: "Copy",
-      errorMessage: `Failed to copy gateway ${gateway.gateway}.`,
-      bulk: false,
-      run: async () => {
-        await copyGateway(gateway.id);
-        message.success(`Gateway "${gateway.gateway}" copied successfully.`);
-      },
-    });
+  const handleOpenCopyGateway = (gateway: Gateway) => {
+    console.log("gateway values: ", gateway);
+    setCopy(gateway);
+  };
+
+  // const handleCopy = (gateway: Gateway) => {
+  //   openConfirm({
+  //     title: "Copy Gateway",
+  //     content: "Do you really want to copy this gateway?",
+  //     confirmText: "Copy",
+  //     errorMessage: `Failed to copy gateway ${gateway.gateway}.`,
+  //     bulk: false,
+  //     run: async () => {
+  //       await copyGateway(gateway.id);
+  //       message.success(`Gateway "${gateway.gateway}" copied successfully.`);
+  //     },
+  //   });
+  // };
+
+  const handleCopy = async (values: { new_gateway: string }) => {
+    try {
+      if (!copy) return;
+
+      const gateway = await copyGateway(copy.gateway_uuid!, values.new_gateway);
+      console.log("gateway: ", gateway);
+      message.success(`Gateway "${gateway.data.gateway}" copied successfully.`);
+    } catch (error) {
+      message.error(
+        getApiErrorMessage(
+          error,
+          `Failed to copy gateway ${values.new_gateway}.`,
+        ),
+      );
+    }
   };
 
   const handleDeleteRow = (gateway: Gateway) => {
     openConfirm({
       title: "Delete Gateway",
-      content: `Are you sure you want to delete gateway ${gateway.id}?`,
+      content: `Are you sure you want to delete gateway ${gateway.gateway}?`,
       confirmText: "Delete",
       danger: true,
       errorMessage: `Failed to delete gateway ${gateway.gateway}.`,
@@ -372,7 +396,8 @@ const GatewaysPage = () => {
           onPageChange={setPage}
           onPageSizeChange={setPageSize}
           onEdit={handleEdit}
-          onCopy={handleCopy}
+          // onCopy={handleCopy}
+          onCopy={handleOpenCopyGateway}
           onDelete={handleDeleteRow}
           onToggleEnabled={handleToggleEnabled}
           onStartStop={handleStartStop}
@@ -393,6 +418,12 @@ const GatewaysPage = () => {
       >
         {pendingConfirm?.content}
       </ConfirmActionModal>
+
+      <CopyGatewayModal
+        open={Boolean(copy)}
+        onCancel={() => setCopy(null)}
+        onCopy={handleCopy}
+      />
     </Space>
   );
 };

@@ -1,3 +1,5 @@
+import React from "react";
+
 export interface Gateway {
   id: string;
   gateway: string;
@@ -7,6 +9,7 @@ export interface Gateway {
   context?: string;
   /** Drives the Gateway Action (Start/Stop) pill — 'Stopped' shows Start, anything else shows Stop. Exact backend value set is unconfirmed. */
   status?: string;
+  gatewayaction: "Started" | "Stopped";
   /** Whether this gateway registers with a SIP server — gates the Gateway Action pill's visibility. */
   register: boolean;
   /** Informational only per the Axion audit — not confirmed to be tied to any action here. */
@@ -138,4 +141,17 @@ export interface GatewayToggleResponse {
       enabled: boolean;
     }[];
   };
+}
+
+export interface PendingConfirm {
+  title: string;
+  content: React.ReactNode;
+  confirmText: string;
+  errorMessage: string;
+  bulk: boolean;
+  danger?: boolean;
+  run: (value?: string) => Promise<void>;
+  showInput?: boolean;
+  inputLabel?: string;
+  inputPlaceholder?: string;
 }

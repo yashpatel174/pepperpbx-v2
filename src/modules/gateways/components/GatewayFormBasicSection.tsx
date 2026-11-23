@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import FormSwitchField from "../../../components/common/FormSwitchField";
 import { getApiErrorMessage } from "../../../services/api/apiError";
 import useExtensions from "../../extensions/useExtensions";
-import { isGatewayNameTaken } from "../gateway.service";
 import type {
   HiveGatewayDetails,
   SbcDomainOption,
@@ -32,7 +31,7 @@ interface GatewayFormBasicSectionProps {
 
 const GatewayFormBasicSection = ({
   mode,
-  excludeUuid,
+  // excludeUuid,
   // hive,
   sbcDomains,
   sipProfiles,
@@ -67,15 +66,6 @@ const GatewayFormBasicSection = ({
               { required: true, message: "Gateway required" },
               gatewayNameRule,
               noEdgeWhitespaceRule,
-              {
-                validator: async (_, value: string) => {
-                  if (!value) return;
-
-                  if (await isGatewayNameTaken(value, excludeUuid)) {
-                    throw new Error("This gateway name is already in use.");
-                  }
-                },
-              },
             ]}
           >
             <Input placeholder="Enter gateway name" />

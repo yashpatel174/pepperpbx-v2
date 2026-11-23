@@ -146,8 +146,8 @@ export const useGateways = () => {
 
   /** Row action only — a simple UUID-based clone, no bulk equivalent (see gateway.service.ts). */
   const copyGateway = useCallback(
-    async (gatewayUuid: string) => {
-      const created = await copyGatewayRequest(gatewayUuid);
+    async (gatewayUuid: string, new_gateway: string) => {
+      const created = await copyGatewayRequest(gatewayUuid, new_gateway);
       await load();
       return created;
     },

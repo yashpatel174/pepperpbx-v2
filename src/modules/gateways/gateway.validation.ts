@@ -38,3 +38,32 @@ export const ipOrDomainRule = {
     );
   },
 };
+
+export const validateGatewayName = () => [
+  {
+    required: true,
+    whitespace: true,
+    message: "Gateway name is required.",
+  },
+  {
+    validator: (_: unknown, value?: string) => {
+      if (!value) return Promise.resolve();
+
+      if (value !== value.trim()) {
+        return Promise.reject(
+          new Error("Leading and trailing spaces are not allowed."),
+        );
+      }
+
+      if (/\s{2,}/.test(value)) {
+        return Promise.reject(new Error("Consecutive spaces are not allowed."));
+      }
+
+      if (/\p{Extended_Pictographic}/u.test(value)) {
+        return Promise.reject(new Error("Emojis are not allowed."));
+      }
+
+      return Promise.resolve();
+    },
+  },
+];

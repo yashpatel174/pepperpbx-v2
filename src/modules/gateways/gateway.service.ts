@@ -5,7 +5,6 @@ import {
   mockHiveGatewayDetails,
   mockSbcDomains,
   mockSipProfiles,
-  mockGateways as seedGateways,
 } from "./gateway.mock";
 import type {
   CreateGatewayApiResponse,
@@ -28,9 +27,9 @@ import type {
  * never import gateway.mock.ts directly. Resets on a real page reload since it's just a
  * re-evaluated module; no fake persistence across refresh.
  */
-let gateways: GatewayDetails[] = seedGateways.map((gateway) => ({
-  ...gateway,
-}));
+// let gateways: GatewayDetails[] = seedGateways.map((gateway) => ({
+//   ...gateway,
+// }));
 
 // const searchableFields: (keyof Gateway)[] = [
 //   "gateway",
@@ -123,9 +122,9 @@ export const fetchGateways = async (
   // resolve({ data, page: safePage, pageSize, total_records, total_pages });
 };
 
-const cloneDetails = (details: GatewayDetails): GatewayDetails => ({
-  ...details,
-});
+// const cloneDetails = (details: GatewayDetails): GatewayDetails => ({
+//   ...details,
+// });
 
 /** GET /api/gateways/details/${gateway_uuid} */
 export const getGatewayDetails = async (
@@ -190,16 +189,16 @@ export const getSipProfiles = (): Promise<SipProfileOption[]> =>
     setTimeout(() => resolve([...mockSipProfiles]), 250);
   });
 
-export const isGatewayNameTaken = (
-  gateway: string,
-  excludeUuid?: string,
-): Promise<boolean> =>
-  Promise.resolve(
-    gateways.some(
-      (record) =>
-        record.gateway === gateway && record.gateway_uuid !== excludeUuid,
-    ),
-  );
+// export const isGatewayNameTaken = (
+//   gateway: string,
+//   excludeUuid?: string,
+// ): Promise<boolean> =>
+//   Promise.resolve(
+//     gateways.some(
+//       (record) =>
+//         record.gateway === gateway && record.gateway_uuid !== excludeUuid,
+//     ),
+//   );
 
 /**
  * Maps form values into the stored/API details shape. The numeric form strings are converted to
@@ -282,25 +281,19 @@ export const deleteGateways = async (gatewayUuids: string[]): Promise<void> => {
  * UUID-based clone with no user-provided name/extension override, per the Axion reference
  * (deliberately different from a copy-with-inline-form pattern).
  */
-export const copyGateway = (gatewayUuid: string): Promise<GatewayDetails> =>
-  new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const source = gateways.find(
-        (record) => record.gateway_uuid === gatewayUuid,
-      );
-      if (!source) {
-        reject(new Error(`Gateway ${gatewayUuid} not found.`));
-        return;
-      }
-      const clonedRecord: GatewayDetails = {
-        ...cloneDetails(source),
-        gateway_uuid: `gw-${source.gateway}-copy-${Date.now()}`,
-        gateway: `${source.gateway}-copy`,
-      };
-      gateways = [...gateways, clonedRecord];
-      resolve(cloneDetails(clonedRecord));
-    }, 300);
-  });
+export const copyGateway = async (
+  gatewayUuid: string,
+  new_gateway: string,
+): Promise<CreateGatewayApiResponse> => {
+  const response = await request.patch<CreateGatewayApiResponse>(
+    "gateways/copy",
+    {
+      gatewayUuid,
+      new_gateway,
+    },
+  );
+  return response;
+};
 
 /**
  * PATCH /api/gateways/toggle — { gateway_uuids: string[] }, no status field. Flips each
@@ -332,28 +325,13 @@ export type StartStopAction = "start" | "stop";
  *
  * BACKEND CONTRACT REQUIRED — endpoint/method/payload assumed from the Axion reference only.
  */
-export const startStopGateways = (
+export const startStopGateways = async (
   gatewayUuids: string[],
   action: StartStopAction,
-): Promise<GatewayDetails[]> =>
-  new Promise((resolve) => {
-    setTimeout(async () => {
-      // const updated: GatewayDetails[] = [];
-      // gateways = gateways.map((record) => {
-      //   if (!gatewayUuids.includes(record.gateway_uuid) || !record.register)
-      //     return record;
-      //   const next = {
-      //     ...record,
-      //     status: action === "start" ? "Running" : "Stopped",
-      //   };
-      //   updated.push(next);
-      //   return next;
-      // });
-      // resolve(updated.map(cloneDetails));
-      const response = await request.patch<GatewayDetails[]>(
-        `/gateways/startStop`,
-        { gatewayUuids, action },
-      );
-      resolve(response);
-    }, 200);
-  });
+): Promise<GatewayDetails[]> => {
+  const response = await request.patch<GatewayDetails[]>(
+    `/gateways/startStop`,
+    { gatewayUuids, action },
+  );
+  return response;
+};
